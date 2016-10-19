@@ -1,15 +1,13 @@
 package world.data.jdbc;
 
-import com.google.common.base.Throwables;
 import fi.iki.elonen.NanoHTTPD;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
+import org.apache.jena.ext.com.google.common.base.Throwables;
 import org.junit.rules.ExternalResource;
 
 /**
  * JUnit @{code @Rule} for a simple HTTP server for use in unit tests.
  */
-@Slf4j
 abstract class NanoHTTPDResource extends ExternalResource {
     private final NanoHTTPD apiServer;
 
@@ -20,7 +18,7 @@ abstract class NanoHTTPDResource extends ExternalResource {
                 try {
                     return NanoHTTPDResource.this.serve(session);
                 } catch (Exception e) {
-                    log.error("Unexpected exception serving response.", e);
+                    e.printStackTrace();
                     return newResponse(Response.Status.INTERNAL_ERROR, "text/plain", Throwables.getStackTraceAsString(e));
                 }
             }
