@@ -8,10 +8,10 @@ import org.junit.rules.ExternalResource;
 /**
  * JUnit @{code @Rule} for a simple HTTP server for use in unit tests.
  */
-abstract class NanoHTTPDResource extends ExternalResource {
+public abstract class NanoHTTPDResource extends ExternalResource {
     private final NanoHTTPD apiServer;
 
-    NanoHTTPDResource(int port) {
+    public NanoHTTPDResource(int port) {
         this.apiServer = new NanoHTTPD(port) {
             @Override
             public Response serve(IHTTPSession session) {

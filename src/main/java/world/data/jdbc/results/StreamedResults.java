@@ -11,11 +11,9 @@ import java.sql.SQLFeatureNotSupportedException;
  * Represents a set of streamed results backed by some {@link QueryExecution},
  * streamed results are considered to be forward only
  *
- * @param <T>
- *            Type of the underlying result rows
- *
+ * @param <T> Type of the underlying result rows
  */
-public abstract class StreamedResults<T> extends QueryExecutionResults {
+abstract class StreamedResults<T> extends QueryExecutionResults {
 
     private T currItem;
     private boolean finished = false;
@@ -24,14 +22,11 @@ public abstract class StreamedResults<T> extends QueryExecutionResults {
     /**
      * Creates new streamed results
      *
-     * @param statement
-     *            Statement that created the result set
-     * @param qe
-     *            Query Execution
-     * @throws SQLException
-     *             Thrown if the arguments are invalid
+     * @param statement Statement that created the result set
+     * @param qe        Query Execution
+     * @throws SQLException Thrown if the arguments are invalid
      */
-    public StreamedResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
+    StreamedResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
         super(statement, qe);
     }
 
@@ -39,10 +34,9 @@ public abstract class StreamedResults<T> extends QueryExecutionResults {
      * Gets the current result row (if any)
      *
      * @return Result row, null if not at a row
-     * @throws SQLException
-     *             Thrown if the result set is closed
+     * @throws SQLException Thrown if the result set is closed
      */
-    protected T getCurrentRow() throws SQLException {
+    T getCurrentRow() throws SQLException {
         if (this.isClosed())
             throw new SQLException("Result set is closed");
         return this.currItem;
@@ -53,8 +47,7 @@ public abstract class StreamedResults<T> extends QueryExecutionResults {
      * further rows available
      *
      * @return True if further rows are available, false otherwise
-     * @throws SQLException
-     *             Thrown if an error determining whether rows are available
+     * @throws SQLException Thrown if an error determining whether rows are available
      */
     protected abstract boolean hasNext() throws SQLException;
 
@@ -63,9 +56,8 @@ public abstract class StreamedResults<T> extends QueryExecutionResults {
      * available
      *
      * @return Next row available
-     * @throws SQLException
-     *             Thrown if this method is invoked when no further rows are
-     *             available
+     * @throws SQLException Thrown if this method is invoked when no further rows are
+     *                      available
      */
     protected abstract T moveNext() throws SQLException;
 
@@ -266,8 +258,6 @@ public abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final void setFetchSize(int rows) throws SQLException {
-        // TODO Need to provide some buffering wrapper over a ResultSet to make
-        // this possible
         throw new SQLFeatureNotSupportedException();
     }
 }

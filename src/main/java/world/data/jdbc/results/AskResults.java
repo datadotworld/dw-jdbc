@@ -147,7 +147,7 @@ public class AskResults extends DataWorldResultsSet {
     }
 
     public void setFetchDirection(int direction) throws SQLException {
-        if (direction != ResultSet.FETCH_FORWARD) throw new SQLFeatureNotSupportedException("Jena JDBC Result Sets only support forward fetch");
+        if (direction != ResultSet.FETCH_FORWARD) throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets only support forward fetch");
     }
 
     public void setFetchSize(int rows) throws SQLException {
