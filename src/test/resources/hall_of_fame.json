@@ -9,7 +9,8 @@
       "votes",
       "inducted",
       "category",
-      "needed_note"
+      "needed_note",
+      "null_col"
     ]
   },
   "results": {
@@ -46,7 +47,7 @@
         "inducted": {
           "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
           "type": "literal",
-          "value": "false"
+          "value": "true"
         },
         "category": {
           "type": "literal",

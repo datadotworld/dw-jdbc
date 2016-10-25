@@ -291,7 +291,7 @@ public class SqlTest {
              final Statement statement = connection.createStatement()) {
             try (final ResultSet resultSet = statement.executeQuery("select * from HallOfFame order by yearid, playerID limit 10")) {
                 final ResultSetMetaData metaData = resultSet.getMetaData();
-                assertThat(metaData.getColumnCount()).isEqualTo(9);
+                assertThat(metaData.getColumnCount()).isEqualTo(10);
                 assertThat(metaData.getColumnClassName(1)).isEqualTo("java.lang.String");
                 assertThat(metaData.getColumnDisplaySize(1)).isEqualTo(Integer.MAX_VALUE);
                 assertThat(metaData.getColumnLabel(1)).isEqualTo("playerID");
@@ -322,7 +322,7 @@ public class SqlTest {
              final Statement statement = connection.createStatement()) {
             try (final ResultSet resultSet = statement.executeQuery("select * from HallOfFame order by yearid, playerID limit 10")) {
                 final ResultSetMetaData metaData = resultSet.getMetaData();
-                assertThat(metaData.getColumnClassName(10)).isEqualTo("java.lang.String");
+                assertThat(metaData.getColumnClassName(11)).isEqualTo("java.lang.String");
             }
         }
     }

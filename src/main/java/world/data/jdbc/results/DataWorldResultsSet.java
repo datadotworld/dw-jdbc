@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.jdbc.JdbcCompatibility;
+import org.apache.jena.jdbc.results.metadata.columns.DoubleColumn;
 import org.apache.jena.jdbc.utils.JdbcNodeUtils;
 import world.data.jdbc.statements.DataWorldStatement;
 
@@ -53,8 +54,6 @@ public abstract class DataWorldResultsSet implements ResultSet {
      *             Thrown if the arguments are invalid
      */
     public DataWorldResultsSet(DataWorldStatement statement) throws SQLException {
-        if (statement == null)
-            throw new SQLException("Statement for a Result Set cannot be null");
         this.statement = statement;
         this.compatibilityLevel = JdbcCompatibility
                 .normalizeLevel(this.statement.getJdbcCompatibilityLevel());
@@ -222,7 +221,7 @@ public abstract class DataWorldResultsSet implements ResultSet {
         } else {
             // Try to marshal into a date
             this.setNull(false);
-            return JdbcNodeUtils.toDouble(n);
+            return toDouble(n);
         }
     }
 
@@ -240,7 +239,7 @@ public abstract class DataWorldResultsSet implements ResultSet {
         } else {
             // Try to marshal into a date
             this.setNull(false);
-            return JdbcNodeUtils.toFloat(n);
+            return toFloat(n);
         }
     }
 
@@ -671,21 +670,6 @@ public abstract class DataWorldResultsSet implements ResultSet {
         return this.warnings;
     }
 
-    /**
-     * Helper method that derived classes may use to set warnings
-     *
-     * @param warning
-     *            Warning
-     */
-    private void setWarning(SQLWarning warning) {
-        if (this.warnings == null) {
-            this.warnings = warning;
-        } else {
-            // Chain with existing warnings
-            warning.setNextWarning(this.warnings);
-            this.warnings = warning;
-        }
-    }
 
     @Override
     public void insertRow() throws SQLException {
@@ -1157,4 +1141,39 @@ public abstract class DataWorldResultsSet implements ResultSet {
         this.wasNull = wasNull;
     }
 
+    private static double toDouble(Node n) throws SQLException {
+        try {
+            if (n == null)
+                return 0;
+            if (n.isLiteral()) {
+                return Double.parseDouble(n.getLiteralLexicalForm());
+            } else {
+                throw new SQLException("Unable to marshal a non-literal to an integer");
+            }
+        } catch (SQLException e) {
+            // Throw as is
+            throw e;
+        } catch (Exception e) {
+            // Wrap other exceptions
+            throw new SQLException("Unable to marshal the value to an integer", e);
+        }
+    }
+
+    private static float toFloat(Node n) throws SQLException {
+        try {
+            if (n == null)
+                return 0;
+            if (n.isLiteral()) {
+                return Float.parseFloat(n.getLiteralLexicalForm());
+            } else {
+                throw new SQLException("Unable to marshal a non-literal to an integer");
+            }
+        } catch (SQLException e) {
+            // Throw as is
+            throw e;
+        } catch (Exception e) {
+            // Wrap other exceptions
+            throw new SQLException("Unable to marshal the value to an integer", e);
+        }
+    }
 }
