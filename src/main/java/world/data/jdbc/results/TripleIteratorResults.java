@@ -40,8 +40,6 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
     public TripleIteratorResults(DataWorldStatement statement, QueryExecution qe, Iterator<Triple> ts)
             throws SQLException {
         super(statement, qe);
-        if (ts == null)
-            throw new SQLException("Triple Iterator cannot be null");
         this.triples = PeekIterator.create(ts);
         this.metadata = new TripleResultsMetadata(this, this.triples);
         this.numColumns = this.metadata.getColumnCount();

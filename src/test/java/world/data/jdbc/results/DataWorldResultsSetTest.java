@@ -18,6 +18,7 @@ import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
@@ -251,169 +252,301 @@ public class DataWorldResultsSetTest {
 
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getArray() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getArray(1);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getArray1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getArray("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getAsciiStream() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getAsciiStream(1);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getAsciiStream1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getAsciiStream("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getBigDecimal2() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getBigDecimal("foo", 3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getBigDecimal3() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getBigDecimal(3, 3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getBinaryStream() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getBinaryStream(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getBinaryStream1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getBinaryStream("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getBlob() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getBlob("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getBlob1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getBlob(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getBytes() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getBytes("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getBytes1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getBytes(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getCharacterStream() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getCharacterStream("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getCharacterStream1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getCharacterStream(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getClob() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getClob("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getClob1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getClob(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getCursorName() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getCursorName();
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getDate2() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getDate("foo", null);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getDate3() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getDate(3, null);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getNCharacterStream() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getNCharacterStream("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getNCharacterStream1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getNCharacterStream(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getNClob() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getNClob("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getNClob1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getNClob(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getObject2() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getObject("foo", String.class);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getObject3() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getObject(3, String.class);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getObject4() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getObject("foo", Collections.emptyMap());
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getObject5() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getObject(3, Collections.emptyMap());
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getRef() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getRef("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getRef1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getRef(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getRowId() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getRowId("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getRowId1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getRowId(3);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getSQLXML() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getSQLXML("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getSQLXML1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getSQLXML(3);
+        }
     }
 
     @Test
@@ -421,34 +554,58 @@ public class DataWorldResultsSetTest {
 
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getTime2() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getTime("foo", null);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getTime3() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getTime(3, null);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getTimestamp2() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getTimestamp("foo", null);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getTimestamp3() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getTimestamp(3, null);
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getUnicodeStream() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getUnicodeStream("foo");
+        }
     }
 
-    @Test
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void getUnicodeStream1() throws Exception {
-
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
+            resultSet.getUnicodeStream(3);
+        }
     }
 
     @Test

@@ -150,8 +150,6 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final int getFetchSize() {
-        // TODO Need a buffering wrapper around ResultSet to make this
-        // configurable
         return 0;
     }
 

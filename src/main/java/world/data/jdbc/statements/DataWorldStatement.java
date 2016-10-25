@@ -5,7 +5,6 @@ import org.apache.jena.jdbc.JdbcCompatibility;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.ReadWrite;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,6 @@ public class DataWorldStatement implements Statement{
     private int timeout = NO_LIMIT;
     private int compatibilityLevel = USE_CONNECTION_COMPATIBILITY;
     private SQLWarning warnings = null;
-    private int updateCount = 0;
 
     private final HttpAuthenticator authenticator;
     private final QueryBuilder queryBuilder;
@@ -132,7 +130,7 @@ public class DataWorldStatement implements Statement{
     }
 
     public int getUpdateCount() {
-        return this.updateCount;
+        return -1;
     }
 
     public SQLWarning getWarnings() {
@@ -177,9 +175,6 @@ public class DataWorldStatement implements Statement{
 
 
     protected QueryEngineHTTP createQueryExecution(Query q) throws SQLException {
-        if (this.connection.getQueryEndpoint() == null)
-            throw new SQLException("This statement is backed by a write-only connection, read operations are not supported");
-
         // Create basic execution
         QueryEngineHTTP exec = (QueryEngineHTTP) QueryExecutionFactory.sparqlService(this.connection.getQueryEndpoint(), q);
 
@@ -224,7 +219,7 @@ public class DataWorldStatement implements Statement{
                 // Need to add a null to getMoreResults() to produce correct
                 // behavior across subsequent calls to getMoreResults()
                 this.results.add(null);
-                rets[i] = this.getUpdateCount();
+                rets[i] = -1;
             }
         }
         this.currResults = curr;
@@ -273,23 +268,9 @@ public class DataWorldStatement implements Statement{
         }
         LOGGER.info("Statement was closed");
     }
-    /**
-     * Helper method that derived classes may use to set warnings
-     *
-     * @param warning Warning
-     */
-    protected void setWarning(String warning) {
-        this.setWarning(new SQLWarning(warning));
-    }
 
-    /**
-     * Helper method that derived classes may use to set warnings
-     *
-     * @param warning Warning
-     * @param cause   Cause
-     */
-    protected void setWarning(String warning, Throwable cause) {
-        this.setWarning(new SQLWarning(warning, cause));
+    private void setWarning(String warning) {
+        this.setWarning(new SQLWarning(warning));
     }
 
     public void setEscapeProcessing(boolean enable) {
@@ -311,24 +292,15 @@ public class DataWorldStatement implements Statement{
     }
 
     public void setMaxRows(int max) {
-        if (max <= NO_LIMIT) {
-            this.maxRows = NO_LIMIT;
-        } else {
-            this.maxRows = max;
-        }
+        this.setWarning("setMaxRows() was called but there is no row size limit for data.world JDBC connections");
     }
 
     public void setPoolable(boolean poolable) {
-        // Ignored
         this.setWarning("setPoolable() was called but data.world JDBC statements are always considered poolable");
     }
 
     public void setQueryTimeout(int seconds) {
-        if (seconds <= NO_LIMIT) {
-            this.timeout = NO_LIMIT;
-        } else {
-            this.timeout = seconds;
-        }
+        this.timeout = Math.max(seconds, 0);
     }
 
     // Java 6/7 compatibility
@@ -343,24 +315,6 @@ public class DataWorldStatement implements Statement{
         // We don't support the JDBC 4.1 feature of closing statements
         // automatically
         throw new SQLFeatureNotSupportedException();
-    }
-
-    protected void beginTransaction(ReadWrite type) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Transactions against remote endpoint backed connections are not supported");
-    }
-
-    protected void commitTransaction() throws SQLException {
-        throw new SQLFeatureNotSupportedException("Transactions against remote endpoint backed connections are not supported");
-    }
-
-    protected void rollbackTransaction() throws SQLException {
-        throw new SQLFeatureNotSupportedException("Transactions against remote endpoint backed connections are not supported");
-    }
-
-    protected boolean hasActiveTransaction() {
-        // Remote endpoints don't support transactions so can't ever have an
-        // active transaction
-        return false;
     }
 
     public final boolean isPoolable() {
@@ -409,22 +363,8 @@ public class DataWorldStatement implements Statement{
         }
     }
 
-    protected boolean executeQuery(Query q) throws SQLException {
-        if (this.isClosed())
-            throw new SQLException("The Statement is closed");
-
+    private boolean executeQuery(Query q) throws SQLException {
         try {
-            // Manipulate the query if appropriate
-            if (this.maxRows > NO_LIMIT) {
-                // If we have no LIMIT or the LIMIT is greater than the
-                // permitted max rows
-                // then we will set the LIMIT to the max rows
-                if (!q.hasLimit() || q.getLimit() > this.maxRows) {
-                    LOGGER.info("Enforced max rows on results by applying LIMIT {} to the query", this.maxRows);
-                    q.setLimit(this.maxRows);
-                }
-            }
-
             // Create the query execution
             QueryExecution qe = this.createQueryExecution(q);
 
@@ -445,22 +385,22 @@ public class DataWorldStatement implements Statement{
 
     @Override
     public final int executeUpdate(String sql) throws SQLException {
-        return -1;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
-        return this.executeUpdate(sql);
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public int executeUpdate(String sql, int[] columnIndexes) throws SQLException {
-        return this.executeUpdate(sql);
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public int executeUpdate(String sql, String[] columnNames) throws SQLException {
-        return this.executeUpdate(sql);
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override

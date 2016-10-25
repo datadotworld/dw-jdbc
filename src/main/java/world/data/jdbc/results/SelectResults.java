@@ -42,8 +42,6 @@ public class SelectResults extends StreamedResults<Binding> {
     public SelectResults(DataWorldStatement statement, QueryExecution qe, org.apache.jena.query.ResultSet results)
             throws SQLException {
         super(statement, qe);
-        if (results == null)
-            throw new SQLException("SPARQL Results cannot be null");
         this.innerResults = ResultSetFactory.makePeekable(results);
         this.columns = new ArrayList<>(this.innerResults.getResultVars());
         this.metadata = new SelectResultsMetadata(this, this.innerResults);
