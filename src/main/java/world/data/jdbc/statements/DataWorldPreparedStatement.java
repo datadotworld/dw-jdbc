@@ -630,13 +630,13 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
         return execution;
     }
 
-    private String formatParams() {
+    String formatParams() {
         final StringBuilder out = new StringBuilder();
         boolean first = true;
         for (Map.Entry<String, Object> param : params.entrySet()) {
-            if(first){
+            if (first) {
                 first = false;
-            }else{
+            } else {
                 out.append(",");
             }
             out.append("$data_world_param");

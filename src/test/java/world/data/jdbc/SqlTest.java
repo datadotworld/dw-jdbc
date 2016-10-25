@@ -171,6 +171,14 @@ public class SqlTest {
         }
     }
     @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    public void testBytes() throws Exception {
+
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
+            statement.setBytes(1, null);
+        }
+    }
+    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetCharacterStream2() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -236,6 +244,23 @@ public class SqlTest {
         }
     }
     @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    public void testSetNCharacterStream() throws Exception {
+
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
+            statement.setNCharacterStream(1, null);
+        }
+    }
+    
+    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    public void testSetNCharacterStream2() throws Exception {
+
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
+            statement.setNCharacterStream(1,  null, 3L);
+        }
+    }
+    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetNClob() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -243,6 +268,7 @@ public class SqlTest {
             statement.setNClob(1, (NClob)null);
         }
     }
+    
     @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetNClob2() throws Exception {
 
@@ -281,6 +307,41 @@ public class SqlTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
             statement.setSQLXML(1, null);
+        }
+    }
+
+    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    public void testSetDate() throws Exception {
+
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
+            statement.setDate(1, null, null);
+        }
+    }
+
+    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    public void testSetTime() throws Exception {
+
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
+            statement.setTime(1, null, null);
+        }
+    }
+    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    public void testSetTimestamp() throws Exception {
+
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
+            statement.setTimestamp(1, null, null);
+        }
+    }
+
+    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    public void testSetUnicodeStream() throws Exception {
+
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
+            statement.setUnicodeStream(1, null, 3);
         }
     }
 
