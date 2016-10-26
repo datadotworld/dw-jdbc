@@ -46,7 +46,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     private final String query;
     private final ParameterMetaData paramMetadata;
-    private Map<String, Object> params = new HashMap<>();
+    private Map<Integer, Object> params = new HashMap<>();
 
     /**
      * Creates a new prepared statement
@@ -103,7 +103,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
         if (parameterIndex < 1 || parameterIndex > this.paramMetadata.getParameterCount())
             throw new SQLException("Parameter Index is out of bounds");
 
-        params.put(Integer.toString(parameterIndex), n);
+        params.put(parameterIndex, n);
     }
 
     @Override
@@ -633,14 +633,14 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     String formatParams() {
         final StringBuilder out = new StringBuilder();
         boolean first = true;
-        for (Map.Entry<String, Object> param : params.entrySet()) {
+        for (Map.Entry<Integer, Object> param : params.entrySet()) {
             if (first) {
                 first = false;
             } else {
                 out.append(",");
             }
             out.append("$data_world_param");
-            out.append(param.getKey());
+            out.append(param.getKey()-1);
             out.append("=");
             out.append(param.getValue().toString());
         }
