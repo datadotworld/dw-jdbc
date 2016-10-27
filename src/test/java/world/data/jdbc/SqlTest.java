@@ -90,7 +90,7 @@ public class SqlTest {
                 }
             }
         }
-        assertThat(lastUri).isEqualTo("http://localhost:3333/sql/dave/lahman-sabremetrics-dataset?query=select+*+from+HallOfFame+where+yearid+%3E+%3F+order+by+yearid%2C+playerID+limit+10&parameters=%24data_world_param1%3D%223%22%5E%5Ehttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23integer");
+        assertThat(lastUri).isEqualTo("http://localhost:3333/sql/dave/lahman-sabremetrics-dataset?query=select+*+from+HallOfFame+where+yearid+%3E+%3F+order+by+yearid%2C+playerID+limit+10&parameters=%24data_world_param0%3D%223%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23integer%3E");
 
     }
 

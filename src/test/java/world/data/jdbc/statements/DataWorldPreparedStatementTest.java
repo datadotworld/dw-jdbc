@@ -79,7 +79,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setBigDecimal(1, new BigDecimal(3));
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"3\"^^http://www.w3.org/2001/XMLSchema#decimal");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3\"^^<http://www.w3.org/2001/XMLSchema#decimal>");
             }
         }
     }
@@ -89,7 +89,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ?  ")) {
                 statement.setBoolean(1, true);
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"true\"^^http://www.w3.org/2001/XMLSchema#boolean");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>");
             }
         }
     }
@@ -99,7 +99,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ?  ")) {
                 statement.setDate(1, new Date(1477433443000L));
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"2016-10-25T17:10:43-05:00\"^^http://www.w3.org/2001/XMLSchema#dateTime");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"2016-10-25T17:10:43-05:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
             }
         }
     }
@@ -109,7 +109,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setDouble(1, 3.0);
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"3.0\"^^http://www.w3.org/2001/XMLSchema#double");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3.0\"^^<http://www.w3.org/2001/XMLSchema#double>");
             }
         }
     }
@@ -119,7 +119,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setFloat(1, 3.0F);
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"3.0\"^^http://www.w3.org/2001/XMLSchema#float");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
             }
         }
     }
@@ -129,7 +129,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setInt(1, 3);
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"3\"^^http://www.w3.org/2001/XMLSchema#integer");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>");
             }
         }
     }
@@ -139,7 +139,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setLong(1, 3L);
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"3\"^^http://www.w3.org/2001/XMLSchema#integer");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>");
             }
         }
     }
@@ -149,7 +149,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setNString(1, "foo");
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"foo\"");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"foo\"");
             }
         }
     }
@@ -192,7 +192,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setByte(1, (byte)4);
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"4\"^^http://www.w3.org/2001/XMLSchema#byte");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"4\"^^<http://www.w3.org/2001/XMLSchema#byte>");
             }
         }
     }
@@ -201,7 +201,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setShort(1, (short)4);
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"4\"^^http://www.w3.org/2001/XMLSchema#short");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"4\"^^<http://www.w3.org/2001/XMLSchema#short>");
             }
         }
     }
@@ -211,7 +211,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
                 statement.setString(1, "foo");
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"foo\"");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"foo\"");
             }
         }
     }
@@ -221,7 +221,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ?  ")) {
                 statement.setTime(1, new Time(1477433443000L));
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param1=\"22:10:43+00:00\"^^http://www.w3.org/2001/XMLSchema#time");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"22:10:43+00:00\"^^<http://www.w3.org/2001/XMLSchema#time>");
             }
         }
     }
