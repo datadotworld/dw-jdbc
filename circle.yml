@@ -3,7 +3,8 @@ machine:
     version: openjdk8
 
 dependencies:
-    mvn dependency:go-offline -s settings.xml
+  override:
+    - mvn dependency:go-offline -s settings.xml
 
 deployment:
   master:
