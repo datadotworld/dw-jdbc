@@ -99,7 +99,7 @@ public class DataWorldPreparedStatementTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ?  ")) {
                 statement.setDate(1, new Date(1477433443000L));
-                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"2016-10-25T17:10:43-05:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
+                assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"2016-10-25T22:10:43+00:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
             }
         }
     }

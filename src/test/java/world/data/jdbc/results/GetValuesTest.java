@@ -166,8 +166,8 @@ public class GetValuesTest {
              final ResultSet resultSet = statement.executeQuery("select * from HallOfFame limit 10")) {
             resultSet.next();
             assertThat(resultSet.getObject(1)).isEqualTo("alexape01");
-            assertThat(resultSet.getObject(2)).isEqualTo("1936");
-            assertThat(resultSet.getObject("yearid")).isEqualTo("1936");
+            assertThat(resultSet.getObject(2)).isEqualTo(1936L);
+            assertThat(resultSet.getObject("yearid")).isEqualTo(1936L);
             assertThat(resultSet.wasNull()).isFalse();
             assertThat(resultSet.getObject("null_col")).isEqualTo(null);
             assertThat(resultSet.wasNull()).isTrue();

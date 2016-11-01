@@ -208,7 +208,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setDate(int parameterIndex, Date value) throws SQLException {
-        Calendar c = Calendar.getInstance();
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         c.setTimeInMillis(value.getTime());
         this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
     }

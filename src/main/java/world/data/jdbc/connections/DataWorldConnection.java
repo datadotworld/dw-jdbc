@@ -91,7 +91,7 @@ public class DataWorldConnection implements Connection {
      */
     public DataWorldConnection(String queryEndpoint, HttpAuthenticator authenticator, String lang) throws SQLException {
         this.lang = lang;
-        this.compatibilityLevel = JdbcCompatibility.normalizeLevel(compatibilityLevel);
+        this.compatibilityLevel = "sql".equals(lang) ? JdbcCompatibility.HIGH : JdbcCompatibility.normalizeLevel(compatibilityLevel);
         this.authenticator = authenticator;
         this.metadata = "sparql".equals(lang) ? new DataWorldSparqlMetadata(this) : new DataWorldSqlMetadata(this);
         queryService = queryEndpoint;
@@ -226,14 +226,14 @@ public class DataWorldConnection implements Connection {
             throws SQLException {
         if (this.isClosed())
             throw new SQLException("Cannot create a statement after the connection was closed");
-        DataWorldStatement stmt = this.createStatementInternal(resultSetType, resultSetConcurrency, resultSetHoldability);
+        DataWorldStatement stmt = this.createStatementInternal(resultSetType, resultSetConcurrency);
         synchronized (this.statements) {
             this.statements.add(stmt);
         }
         return stmt;
     }
 
-    private DataWorldStatement createStatementInternal(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
+    private DataWorldStatement createStatementInternal(int resultSetType, int resultSetConcurrency)
             throws SQLException {
         if (resultSetType != ResultSet.TYPE_FORWARD_ONLY) {
             throw new SQLFeatureNotSupportedException(
