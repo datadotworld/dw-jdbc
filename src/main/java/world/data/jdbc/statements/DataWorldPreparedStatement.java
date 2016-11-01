@@ -307,11 +307,11 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
         } else if (value instanceof Double) {
             this.setParameter(parameterIndex, NodeFactoryExtra.doubleToNode((Double) value));
         } else if (value instanceof Date) {
-            Calendar c = Calendar.getInstance();
+            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             c.setTimeInMillis(((Date) value).getTime());
             this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
         } else if (value instanceof Time) {
-            Calendar c = Calendar.getInstance();
+            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             c.setTimeInMillis(((Time) value).getTime());
             this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
         } else if (value instanceof Calendar) {
@@ -390,15 +390,15 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
                     break;
                 case Types.DATE:
                     if (value instanceof Date) {
-                        Calendar c = Calendar.getInstance();
+                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                         c.setTimeInMillis(((Date) value).getTime());
                         this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
                     } else if (value instanceof Node) {
-                        Calendar c = Calendar.getInstance();
+                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                         c.setTimeInMillis(JdbcNodeUtils.toDate((Node) value).getTime());
                         this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
                     } else if (value instanceof Time) {
-                        Calendar c = Calendar.getInstance();
+                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                         c.setTimeInMillis(((Time) value).getTime());
                         this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
                     } else if (value instanceof Calendar) {
@@ -483,11 +483,11 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
                     } else if (value instanceof Long) {
                         this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Long) value));
                     } else if (value instanceof Date) {
-                        Calendar c = Calendar.getInstance();
+                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                         c.setTimeInMillis(((Date) value).getTime());
                         this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
                     } else if (value instanceof Time) {
-                        Calendar c = Calendar.getInstance();
+                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                         c.setTimeInMillis(((Time) value).getTime());
                         this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
                     } else if (value instanceof Calendar) {
@@ -518,15 +518,15 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
                     break;
                 case Types.TIME:
                     if (value instanceof Time) {
-                        Calendar c = Calendar.getInstance();
+                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                         c.setTimeInMillis(((Time) value).getTime());
                         this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
                     } else if (value instanceof Node) {
-                        Calendar c = Calendar.getInstance();
+                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                         c.setTimeInMillis(JdbcNodeUtils.toDate((Node) value).getTime());
                         this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
                     } else if (value instanceof Date) {
-                        Calendar c = Calendar.getInstance();
+                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                         c.setTimeInMillis(((Date) value).getTime());
                         this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
                     } else if (value instanceof Calendar) {
