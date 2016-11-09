@@ -1,0 +1,13 @@
+machine:
+  java:
+    version: openjdk8
+
+dependencies:
+  override:
+    - mvn dependency:go-offline -s settings.xml
+
+deployment:
+  master:
+    branch: master
+    commands:
+      - mvn clean deploy -s settings.xml -q

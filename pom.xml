@@ -48,11 +48,19 @@
             <groupId>org.nanohttpd</groupId>
             <artifactId>nanohttpd</artifactId>
             <version>2.3.1</version>
-
             <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.5.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
