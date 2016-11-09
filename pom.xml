@@ -59,6 +59,38 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.5.1</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.jfrog.buildinfo</groupId>
+                    <artifactId>artifactory-maven-plugin</artifactId>
+                    <version>2.4.0</version>
+                    <inherited>false</inherited>
+                    <executions>
+                        <execution>
+                            <id>build-info</id>
+                            <goals>
+                                <goal>publish</goal>
+                            </goals>
+                            <configuration>
+                                <publisher>
+                                    <contextUrl>
+                                        {{ARTIFACTORY_CONTEXT_URL|"https://dataworld.artifactoryonline.com/dataworld"}}
+                                    </contextUrl>
+                                    <username>{{ARTIFACTORY_USERNAME|"maven"}}</username>
+                                    <password>{{ARTIFACTORY_PASSWORD}}</password>
+                                    <repoKey>libs-release-local</repoKey>
+                                    <snapshotRepoKey>libs-snapshot-local</snapshotRepoKey>
+                                </publisher>
+                                <buildInfo>
+                                    <buildName>{{CI_BRANCH|"platform"}}</buildName>
+                                    <buildNumber>{{CI_BUILD_NUMBER|"1"}}</buildNumber>
+                                    <buildUrl>{{CI_BUILD_URL}}</buildUrl>
+                                    <vcsRevision>{{CI_COMMIT_ID}}</vcsRevision>
+                                    <buildRetentionCount>4</buildRetentionCount>
+                                </buildInfo>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -90,8 +122,10 @@
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.jfrog.buildinfo</groupId>
+                <artifactId>artifactory-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
-
-
 </project>
