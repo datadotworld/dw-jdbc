@@ -2,12 +2,27 @@ machine:
   java:
     version: openjdk8
 
+  environment:
+    _JAVA_OPTIONS: "-Xms512m -Xmx1792m"
+    AWS_DEFAULT_REGION: "us-east-1"
+    DW_PROJECT_HOME: $HOME
+    WORKON_HOME: $HOME/virtualenvs
+
 dependencies:
   override:
-    - mvn dependency:go-offline -s settings.xml
+    - |
+        mvn test-compile dependency:go-offline -s settings.xml
 
-deployment:
-  master:
-    branch: master
-    commands:
-      - mvn clean deploy -s settings.xml -q
+test:
+  override:
+    - |
+        if [[ ${CIRCLE_BRANCH} = "master" ]]; then
+          mvn clean deploy -s settings.xml -q
+        else
+          mvn clean install -s settings.xml -q
+        fi
+
+  post:
+    # Stick the surefire test reports where CircleCI can read them
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
