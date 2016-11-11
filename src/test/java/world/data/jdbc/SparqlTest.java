@@ -108,8 +108,8 @@ public class SparqlTest {
 
     @org.junit.Test
     public void testDescribe() throws Exception {
-        resultResourceName = "describe.json";
-        resultMimeType = "text/turtle";
+        resultResourceName = "describe.xml";
+        resultMimeType = "application/rdf+xml";
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
@@ -135,7 +135,34 @@ public class SparqlTest {
 
     @org.junit.Test
     public void testConstruct() throws Exception {
-        resultResourceName = "construct.json";
+        resultResourceName = "construct.xml";
+        resultMimeType = "application/rdf+xml";
+
+        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+             final Statement statement = connection.createStatement();
+             final ResultSet resultSet = statement.executeQuery("Construct{?o ?p ?s} where{?s ?p ?o.} limit 10")) {
+            ResultSetMetaData rsmd = resultSet.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            for (int i = 1; i <= columnsNumber; i++) {
+                if (i > 1) System.out.print(",  ");
+                System.out.print(rsmd.getColumnName(i));
+            }
+            System.out.println("");
+            while (resultSet.next()) {
+                for (int i = 1; i <= columnsNumber; i++) {
+                    if (i > 1) System.out.print(",  ");
+                    String columnValue = resultSet.getString(i);
+                    System.out.print(columnValue);
+                }
+                System.out.println("");
+            }
+        }
+        assertThat(lastUri).isEqualTo("http://localhost:3333/sparql/dave/lahman-sabremetrics-dataset?query=CONSTRUCT+%0A++%7B+%0A++++%3Fo+%3Fp+%3Fs+.%0A++%7D%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
+    }
+    
+    @org.junit.Test
+    public void testConstructTurtle() throws Exception {
+        resultResourceName = "construct.ttl";
         resultMimeType = "text/turtle";
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
