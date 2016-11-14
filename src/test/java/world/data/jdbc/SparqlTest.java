@@ -159,7 +159,7 @@ public class SparqlTest {
         }
         assertThat(lastUri).isEqualTo("http://localhost:3333/sparql/dave/lahman-sabremetrics-dataset?query=CONSTRUCT+%0A++%7B+%0A++++%3Fo+%3Fp+%3Fs+.%0A++%7D%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
     }
-    
+
     @org.junit.Test
     public void testConstructTurtle() throws Exception {
         resultResourceName = "construct.ttl";
