@@ -6,7 +6,7 @@ from any JVM language.  dw-jdbc supports query access both in dwSQL
 for semantic web data sources.
 
 
-##JDBC URLs
+## JDBC URLs
 
 JDBC connects to data source based on a provided JDBC url.  data.world 
 JDBC urls have the form
@@ -17,7 +17,7 @@ where [language] is either "sql" or "sparql",[user id] is the data.world
 id of the dataset owner, and [dataset id] is the data.world identifier for 
 the dataset.
 
-##Sample code (Java 8)
+## Sample code (Java 8)
 
 ```java
 final String QUERY = "select * from HallOfFame where playerID = ? order by yearid, playerID limit 10"
@@ -49,6 +49,14 @@ try (final Connection connection =    // get a connection to the database, which
 }
 ```
 
-##Building dw-jdbc
+## Building dw-jdbc
 
 dw-jdbc can be built from the command-line using `mvn clean install`.
+
+## Finding your Token
+API Tokens are coming soon to the data.world user settings, but until then you can use your site token for testing (please do not share this token).
+
+1. Visit https://data.world
+2. Open the developer console "View / Developer / Javascript Console" (or `CMD+OPT+J`)
+3. Enter the following and hit enter:  `document.cookie.match(/token=([^;]*)/)[1]`
+4. Copy the token and use it as your Connection password
