@@ -54,9 +54,7 @@ try (final Connection connection =    // get a connection to the database, which
 dw-jdbc can be built from the command-line using `mvn clean install`.
 
 ## Finding your Token
-API Tokens are coming soon to the data.world user settings, but until then you can use your site token for testing (please do not share this token).
 
 1. Visit https://data.world
-2. Open the developer console "View / Developer / Javascript Console" (or `CMD+OPT+J`)
-3. Enter the following and hit enter:  `document.cookie.match(/token=([^;]*)/)[1]`
-4. Copy the token and use it as your Connection password
+2. Visit your user settings, and click the advanced tab.
+3. Copy your token.
