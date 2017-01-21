@@ -20,8 +20,6 @@ package world.data.jdbc.statements;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.query.Query;
-import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.apache.jena.sparql.util.NodeFactoryExtra;
 import world.data.jdbc.connections.DataWorldConnection;
 
@@ -41,15 +39,16 @@ import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 
+import static world.data.jdbc.util.Conditions.checkSupported;
 
 public class DataWorldCallableStatement extends DataWorldPreparedStatement implements ReadOnlyCallableStatement {
-    private final Map<String, Node> namedParams = new HashMap<>();
+    private final boolean namedParamsSupported;
 
-    public DataWorldCallableStatement(String query, DataWorldConnection connection, QueryBuilder queryBuilder) throws SQLException {
+    public DataWorldCallableStatement(String query, DataWorldConnection connection,
+                                      QueryBuilder queryBuilder, boolean namedParamsSupported) throws SQLException {
         super(query, connection, queryBuilder);
+        this.namedParamsSupported = namedParamsSupported;
     }
 
     @Override
@@ -209,12 +208,12 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setNull(String parameterName, int sqlType) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Parameters for statements are not nullable");
+        setParameter(parameterName, null);
     }
 
     @Override
     public void setNull(String parameterName, int sqlType, String typeName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Parameters for statements are not nullable");
+        setParameter(parameterName, null);
     }
 
     @Override
@@ -287,44 +286,9 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
         setParameter(parameterName, NodeFactory.createURI(value.toString()));
     }
 
-    private void setParameter(String parameterName, Node n) throws SQLException {
-        namedParams.put(parameterName, n);
-    }
-
     @Override
-    protected QueryEngineHTTP createQueryExecution(Query q) throws SQLException {
-        QueryEngineHTTP execution = super.createQueryExecution(q);
-        if (!params.isEmpty() || !namedParams.isEmpty()) {
-            execution.addParam("parameters", formatParams());
-        }
-        return execution;
-    }
-
-    @Override
-    protected String formatParams() {
-        StringBuilder out = new StringBuilder();
-        boolean first = true;
-        for (Map.Entry<Integer, Node> param : params.entrySet()) {
-            if (first) {
-                first = false;
-            } else {
-                out.append(",");
-            }
-            out.append("$data_world_param");
-            out.append(param.getKey() - 1);
-            out.append("=");
-            out.append(normalizeValue(param.getValue().toString()));
-        }
-        for (Map.Entry<String, Node> param : namedParams.entrySet()) {
-            if (first) {
-                first = false;
-            } else {
-                out.append(",");
-            }
-            out.append(param.getKey());
-            out.append("=");
-            out.append(normalizeValue(param.getValue().toString()));
-        }
-        return out.toString();
+    void setParameter(String parameterName, Node n) throws SQLException {
+        checkSupported(namedParamsSupported, "Named parameters are not supported");
+        super.setParameter(parameterName, n);
     }
 }

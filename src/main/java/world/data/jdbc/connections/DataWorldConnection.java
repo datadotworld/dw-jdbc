@@ -433,9 +433,9 @@ public class DataWorldConnection implements Connection {
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Remote endpoint backed connection do not support scroll sensitive result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
         if ("sparql".equals(lang)) {
-            return new DataWorldCallableStatement(sparql, this, new SparqlStatementQueryBuilder());
+            return new DataWorldCallableStatement(sparql, this, new SparqlStatementQueryBuilder(), true);
         } else {
-            return new DataWorldCallableStatement(sparql, this, new SqlStatementQueryBuilder());
+            return new DataWorldCallableStatement(sparql, this, new SqlStatementQueryBuilder(), false);
         }
     }
 

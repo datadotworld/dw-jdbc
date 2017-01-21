@@ -27,15 +27,21 @@ import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SqlHelper;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
 public class DataWorldPreparedStatementTest {
@@ -104,56 +110,89 @@ public class DataWorldPreparedStatementTest {
     public void setBigDecimal() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setBigDecimal(1, new BigDecimal(3));
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3\"^^<http://www.w3.org/2001/XMLSchema#decimal>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"3\"^^<http://www.w3.org/2001/XMLSchema#decimal>")));
     }
 
     @Test
     public void setBoolean() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setBoolean(1, true);
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>")));
+    }
+
+    @Test
+    public void setByte() throws Exception {
+        DataWorldPreparedStatement statement = samplePreparedStatement();
+        statement.setByte(1, (byte) 4);
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"4\"^^<http://www.w3.org/2001/XMLSchema#byte>")));
     }
 
     @Test
     public void setDate() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setDate(1, new Date(1477433443000L));
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"2016-10-25T22:10:43Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"2016-10-25T22:10:43Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime>")));
     }
 
     @Test
     public void setDouble() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setDouble(1, 3.0);
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3.0\"^^<http://www.w3.org/2001/XMLSchema#double>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                        queryParam("$data_world_param0", "\"3.0\"^^<http://www.w3.org/2001/XMLSchema#double>")));
     }
 
     @Test
     public void setFloat() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setFloat(1, 3.0F);
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"3.0\"^^<http://www.w3.org/2001/XMLSchema#float>")));
     }
 
     @Test
     public void setInt() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setInt(1, 3);
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>")));
     }
 
     @Test
     public void setLong() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setLong(1, 3L);
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>")));
     }
 
     @Test
     public void setNString() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setNString(1, "foo");
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"foo\"");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"foo\"")));
+    }
+
+    @Test
+    public void setNull() throws Exception {
+        DataWorldPreparedStatement statement = samplePreparedStatement();
+        statement.setNull(1, Types.VARCHAR);
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), eq("query=select+*+from+Fielding+where+yearid+%3D+%3F"));
     }
 
     @Test
@@ -172,38 +211,47 @@ public class DataWorldPreparedStatementTest {
     }
 
     @Test
-    public void setByte() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
-        statement.setByte(1, (byte) 4);
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"4\"^^<http://www.w3.org/2001/XMLSchema#byte>");
-    }
-
-    @Test
     public void setShort() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setShort(1, (short) 4);
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"4\"^^<http://www.w3.org/2001/XMLSchema#short>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"4\"^^<http://www.w3.org/2001/XMLSchema#short>")));
     }
 
     @Test
     public void setString() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setString(1, "foo");
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"foo\"");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"foo\"")));
     }
 
     @Test
     public void setTime() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setTime(1, new Time(1477433443000L));
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"22:10:43Z\"^^<http://www.w3.org/2001/XMLSchema#time>");
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), endsWith(
+                queryParam("$data_world_param0", "\"22:10:43Z\"^^<http://www.w3.org/2001/XMLSchema#time>")));
     }
 
     @Test
     public void testAllNotSupported() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
-        assertSQLFeatureNotSupported(() -> statement.setNull(1, 1));
-        assertSQLFeatureNotSupported(() -> statement.setNull(1, 1, "foo"));
         assertSQLFeatureNotSupported(() -> statement.setTimestamp(1, new Timestamp(1477433443000L)));
+    }
+
+    private static String queryParam(String name, String value) {
+        return uriEncode(name) + "=" + uriEncode(value);
+    }
+
+    private static String uriEncode(String string) {
+        try {
+            return URLEncoder.encode(string, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

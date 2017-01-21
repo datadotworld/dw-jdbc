@@ -50,7 +50,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
@@ -62,7 +62,7 @@ import static world.data.jdbc.util.Conditions.check;
 public class DataWorldPreparedStatement extends DataWorldStatement implements ReadOnlyPreparedStatement {
     private final String query;
     private final ParameterMetaData paramMetadata;
-    final Map<Integer, Node> params = new HashMap<>();
+    private final Map<String, Node> params = new LinkedHashMap<>();
 
     /**
      * Creates a new prepared statement
@@ -77,12 +77,13 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
     }
 
     @Override
-    public void addBatch() {
+    public void addBatch() throws SQLException {
         addBatch(query);
     }
 
     @Override
-    public void clearParameters() {
+    public void clearParameters() throws SQLException {
+        checkClosed();
         params.clear();
     }
 
@@ -97,25 +98,16 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
     }
 
     @Override
-    public int executeUpdate() throws SQLException {
-        return executeUpdate(query);
-    }
-
-    @Override
-    public ResultSetMetaData getMetaData() {
+    public ResultSetMetaData getMetaData() throws SQLException {
+        checkClosed();
         // Return null because we don't know in advance the column types
         return null;
     }
 
     @Override
-    public ParameterMetaData getParameterMetaData() {
+    public ParameterMetaData getParameterMetaData() throws SQLException {
+        checkClosed();
         return paramMetadata;
-    }
-
-    private void setParameter(int parameterIndex, Node n) throws SQLException {
-        // Remember that JDBC uses a 1 based index
-        check(parameterIndex >= 1 && parameterIndex <= paramMetadata.getParameterCount(), "Parameter Index is out of bounds");
-        params.put(parameterIndex, n);
     }
 
     @Override
@@ -280,12 +272,12 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
 
     @Override
     public void setNull(int parameterIndex, int sqlType) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Parameters for statements are not nullable");
+        setParameter(parameterIndex, null);
     }
 
     @Override
     public void setNull(int parameterIndex, int sqlType, String typeName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Parameters for statements are not nullable");
+        setParameter(parameterIndex, null);
     }
 
     @Override
@@ -294,8 +286,9 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
     }
 
     Node objectToNode(Object value) throws SQLException {
-        check(value != null, "Setting a null value is not permitted");
-        if (value instanceof Node) {
+        if (value == null) {
+            return null;
+        } else if (value instanceof Node) {
             return (Node) value;
         } else if (value instanceof RDFNode) {
             return ((RDFNode) value).asNode();
@@ -340,7 +333,9 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
     }
 
     Node objectToNode(Object value, int targetSqlType) throws SQLException {
-        check(value != null, "Setting a null value is not permitted");
+        if (value == null) {
+            return null;
+        }
         try {
             switch (targetSqlType) {
                 case Types.ARRAY:
@@ -588,38 +583,28 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
         throw new SQLFeatureNotSupportedException();
     }
 
+    private void setParameter(int parameterIndex, Node n) throws SQLException {
+        checkClosed();
+        // Remember that JDBC uses a 1 based index
+        check(parameterIndex >= 1 && parameterIndex <= paramMetadata.getParameterCount(), "Parameter Index is out of bounds");
+        params.put("$data_world_param" + (parameterIndex - 1), n);
+    }
+
+    void setParameter(String parameterName, Node n) throws SQLException {
+        checkClosed();
+        check(parameterName != null && !parameterName.isEmpty(), "Empty or null parameter name");
+        check(!parameterName.startsWith("data_world_param"), "May not set positional parameter values using named parameter methods");
+        params.put("$" + parameterName, n);
+    }
+
     @Override
     protected QueryEngineHTTP createQueryExecution(Query q) throws SQLException {
         QueryEngineHTTP execution = super.createQueryExecution(q);
-        if (!params.isEmpty()) {
-            execution.addParam("parameters", formatParams());
+        for (Map.Entry<String, Node> entry : params.entrySet()) {
+            if (entry.getValue() != null) {
+                execution.addParam(entry.getKey(), NTripleFormat.toString(entry.getValue()));
+            }
         }
         return execution;
     }
-
-    String formatParams() {
-        StringBuilder out = new StringBuilder();
-        boolean first = true;
-        for (Map.Entry<Integer, Node> param : params.entrySet()) {
-            if (first) {
-                first = false;
-            } else {
-                out.append(",");
-            }
-            out.append("$data_world_param");
-            out.append(param.getKey() - 1);
-            out.append("=");
-            out.append(normalizeValue(param.getValue().toString()));
-        }
-        return out.toString();
-    }
-
-    String normalizeValue(final String string) {
-        if (string.contains("^^")) {
-            return string.replace("^^", "^^<") + ">";
-        } else {
-            return string;
-        }
-    }
-
 }
