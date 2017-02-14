@@ -63,8 +63,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-  <scm>
-    <tag>dw-jdbc-0.1</tag>
-  </scm>
 </project>
