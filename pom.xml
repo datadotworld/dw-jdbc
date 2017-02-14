@@ -63,4 +63,47 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.5.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.rat</groupId>
+                    <artifactId>apache-rat-plugin</artifactId>
+                    <version>0.12</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>README.md</exclude>
+                            <exclude>pom.xml</exclude>
+                            <exclude>circle.yml</exclude>
+                            <exclude>settings.xml</exclude>
+                            <exclude>LICENSE.txt</exclude>
+                            <exclude>NOTICE.txt</exclude>
+                            <exclude>**/META-INF/services/*</exclude>
+                            <exclude>**/test/resources/*</exclude>
+                        </excludes>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>
