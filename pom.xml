@@ -14,7 +14,7 @@
     <artifactId>dw-jdbc</artifactId>
     <version>0.1-SNAPSHOT</version>
 
-    <name>dw-sql</name>
+    <name>dw-jdbc</name>
 
     <properties>
         <encoding>UTF-8</encoding>
