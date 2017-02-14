@@ -11,7 +11,7 @@
 
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
 
     <name>dw-jdbc</name>
 
@@ -19,7 +19,7 @@
         <connection>scm:git:git@github.com:datadotworld/dw-jdbc.git</connection>
         <developerConnection>scm:git:git@github.com:datadotworld/dw-jdbc.git</developerConnection>
         <url>git@github.com:datadotworld/dw-jdbc.git</url>
-        <tag>dw-jdbc-0.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
