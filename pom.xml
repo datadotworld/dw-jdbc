@@ -11,12 +11,14 @@
 
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
-    <version>0.1</version>
+    <version>0.1-SNAPSHOT</version>
 
     <name>dw-jdbc</name>
 
     <properties>
         <encoding>UTF-8</encoding>
+        <bintray.repo>oss-maven</bintray.repo>
+        <bintray.package>dw-jdbc</bintray.package>
     </properties>
 
     <dependencies>
