@@ -69,7 +69,7 @@ do_release() {
     curl \
         --request POST \
         --header "Content-Type: application/json" \
-        --user "${BINTRAY_USER}:${BINTRAY_PASSWORD}" \
+        --user "${BINTRAY_USERNAME}:${BINTRAY_PASSWORD}" \
         --data '{
             "username": "'${SONATYPE_USERNAME}'",
             "password": "'${SONATYPE_PASSWORD}'"
