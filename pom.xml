@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>world.data</groupId>
+        <artifactId>datadotworld-parent</artifactId>
+        <version>0.1.1</version>
+    </parent>
 
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
 
-    <name>dw-sql</name>
+    <name>dw-jdbc</name>
+
+    <scm>
+        <connection>scm:git:git@github.com:datadotworld/dw-jdbc.git</connection>
+        <developerConnection>scm:git:git@github.com:datadotworld/dw-jdbc.git</developerConnection>
+        <url>git@github.com:datadotworld/dw-jdbc.git</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <encoding>UTF-8</encoding>
@@ -30,14 +42,12 @@
             <artifactId>jena-jdbc-driver-remote</artifactId>
             <version>3.1.0</version>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
             <version>4.12</version>
         </dependency>
-
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
@@ -51,6 +61,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -58,38 +69,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.5.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.jfrog.buildinfo</groupId>
-                    <artifactId>artifactory-maven-plugin</artifactId>
-                    <version>2.4.0</version>
-                    <inherited>false</inherited>
-                    <executions>
-                        <execution>
-                            <id>build-info</id>
-                            <goals>
-                                <goal>publish</goal>
-                            </goals>
-                            <configuration>
-                                <publisher>
-                                    <contextUrl>
-                                        {{ARTIFACTORY_CONTEXT_URL|"https://dataworld.artifactoryonline.com/dataworld"}}
-                                    </contextUrl>
-                                    <username>{{ARTIFACTORY_USERNAME|"maven"}}</username>
-                                    <password>{{ARTIFACTORY_PASSWORD}}</password>
-                                    <repoKey>libs-release-local</repoKey>
-                                    <snapshotRepoKey>libs-snapshot-local</snapshotRepoKey>
-                                </publisher>
-                                <buildInfo>
-                                    <buildName>{{CI_BRANCH|"platform"}}</buildName>
-                                    <buildNumber>{{CI_BUILD_NUMBER|"1"}}</buildNumber>
-                                    <buildUrl>{{CI_BUILD_URL}}</buildUrl>
-                                    <vcsRevision>{{CI_COMMIT_ID}}</vcsRevision>
-                                    <buildRetentionCount>4</buildRetentionCount>
-                                </buildInfo>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.rat</groupId>
@@ -119,38 +98,6 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.2</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <transformers>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                    </transformers>
-                    <createDependencyReducedPom>false</createDependencyReducedPom>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jfrog.buildinfo</groupId>
-                <artifactId>artifactory-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
