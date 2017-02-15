@@ -24,8 +24,6 @@
 
     <properties>
         <encoding>UTF-8</encoding>
-        <bintray.repo>oss-maven</bintray.repo>
-        <bintray.package>dw-jdbc</bintray.package>
     </properties>
 
     <dependencies>
