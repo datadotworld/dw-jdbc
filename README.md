@@ -58,9 +58,15 @@ try (final Connection connection =    // get a connection to the database, which
 }
 ```
 
-## Building dw-jdbc
+## Using dw-jdbc in your project
 
-dw-jdbc can be built from the command-line using `mvn clean install`.
+If using Maven, you can use dw-jdbc by just including the following in your pom.xml file
+
+<dependency>
+    <groupId>world.data</groupId>
+    <artifactId>dw-jdbc</artifactId>
+    <version>0.1.1</version>
+</dependency>
 
 ## Finding your Token
 
