@@ -358,14 +358,14 @@ public class DataWorldStatement implements Statement{
             LOGGER.info("Treating command text as a query");
             return this.executeQuery(q);
         } else {
-            throw new SQLException("Unable to create a SPARQL query/update");
+            throw new SQLException("Unable to create a query/update");
         }
     }
 
     @Override
     public final ResultSet executeQuery(String sql) throws SQLException {
         if (this.isClosed())
-            throw new SQLException("The Statement is closed");
+            throw new SQLException("The statement is closed");
 
         // Pre-process the command text
         LOGGER.info("Received input command text:\n {}", sql);
@@ -373,7 +373,7 @@ public class DataWorldStatement implements Statement{
         Query q = queryBuilder.buildQuery(sql);
 
         if (q == null)
-            throw new SQLException("Unable to create a SQL Query");
+            throw new SQLException("Unable to create a query");
         if (this.executeQuery(q)) {
             return this.currResults;
         } else {
@@ -396,8 +396,8 @@ public class DataWorldStatement implements Statement{
         } catch (SQLException e) {
             throw e;
         } catch (Throwable e) {
-            LOGGER.error("SPARQL Query evaluation failed", e);
-            throw new SQLException("Error occurred during SPARQL query evaluation", e);
+            LOGGER.error("Query evaluation failed", e);
+            throw new SQLException("Error occurred during query evaluation", e);
         }
     }
 

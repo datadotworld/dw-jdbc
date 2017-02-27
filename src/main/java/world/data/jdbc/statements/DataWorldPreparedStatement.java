@@ -288,12 +288,12 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setNull(int parameterIndex, int value) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Parameters for SPARQL statements are not nullable");
+        throw new SQLFeatureNotSupportedException("Parameters for statements are not nullable");
     }
 
     @Override
     public void setNull(int parameterIndex, int value, String arg2) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Parameters for SPARQL statements are not nullable");
+        throw new SQLFeatureNotSupportedException("Parameters for statements are not nullable");
     }
 
     @Override

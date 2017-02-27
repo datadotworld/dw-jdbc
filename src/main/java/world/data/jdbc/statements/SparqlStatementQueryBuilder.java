@@ -34,9 +34,9 @@ import java.sql.SQLException;
 public class SparqlStatementQueryBuilder implements QueryBuilder {
 
     @Override
-    public Query buildQuery(final String sql) throws SQLException {
+    public Query buildQuery(final String sparql) throws SQLException {
         try {
-            return  QueryFactory.create(sql);
+            return QueryFactory.create(sparql);
         } catch (Exception e) {
             throw new SQLException("Not a valid SPARQL query", e);
         }
@@ -57,14 +57,10 @@ public class SparqlStatementQueryBuilder implements QueryBuilder {
             qe.close();
             return new AskResults(statement, askRes);
         } else if (q.isDescribeType()) {
-            return  new TripleIteratorResults(statement, qe, qe.execDescribeTriples());
-        } else{
+            return new TripleIteratorResults(statement, qe, qe.execDescribeTriples());
+        } else {
             return new TripleIteratorResults(statement, qe, qe.execDescribeTriples());
         }
     }
-
-
-
-
 
 }
