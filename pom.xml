@@ -11,7 +11,7 @@
 
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
 
     <name>dw-jdbc</name>
 
