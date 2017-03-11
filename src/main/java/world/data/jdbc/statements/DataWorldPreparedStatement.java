@@ -58,13 +58,13 @@ import java.util.Map;
 import java.util.TimeZone;
 
 /**
- * Abstract DataWorld JDBC implementation of a prepared statement
+ * data.world JDBC implementation of a prepared statement
  */
 public class DataWorldPreparedStatement extends DataWorldStatement implements PreparedStatement {
 
     private final String query;
     private final ParameterMetaData paramMetadata;
-    private Map<Integer, Node> params = new HashMap<>();
+    protected Map<Integer, Node> params = new HashMap<>();
 
     /**
      * Creates a new prepared statement
@@ -648,7 +648,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
         return execution;
     }
 
-    String formatParams() {
+    protected String formatParams() {
         final StringBuilder out = new StringBuilder();
         boolean first = true;
         for (Map.Entry<Integer, Node> param : params.entrySet()) {
@@ -665,7 +665,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
         return out.toString();
     }
 
-    private String normalizeValue(final String string) {
+    protected String normalizeValue(final String string) {
         if (string.contains("^^")) {
             return string.replace("^^", "^^<") + ">";
         } else {

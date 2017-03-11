@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.data.jdbc.DataWorldSparqlMetadata;
 import world.data.jdbc.DataWorldSqlMetadata;
+import world.data.jdbc.statements.DataWorldCallableStatement;
 import world.data.jdbc.statements.DataWorldPreparedStatement;
 import world.data.jdbc.statements.DataWorldStatement;
 import world.data.jdbc.statements.SparqlStatementQueryBuilder;
@@ -338,18 +339,38 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public CallableStatement prepareCall(String sql) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        if (this.isClosed())
+            throw new SQLException("Cannot create a statement after the connection was closed");
+        return this.createCalledStatementInternal(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
     }
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        if (this.isClosed())
+            throw new SQLException("Cannot create a statement after the connection was closed");
+        return this.createCalledStatementInternal(sql, resultSetType, resultSetConcurrency);
     }
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability)
             throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        if (this.isClosed())
+            throw new SQLException("Cannot create a statement after the connection was closed");
+        return this.createCalledStatementInternal(sql, resultSetType, resultSetConcurrency);
+    }
+
+    private CallableStatement createCalledStatementInternal(String sparql, int resultSetType, int resultSetConcurrency) throws SQLException {
+        if (resultSetType != ResultSet.TYPE_FORWARD_ONLY)
+            throw new SQLFeatureNotSupportedException(
+                    "Remote endpoint backed connection do not support scroll sensitive result sets");
+        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY)
+            throw new SQLFeatureNotSupportedException("Remote endpoint backed connections only support read-only result sets");
+        if ("sparql".equals(lang)) {
+            return new DataWorldCallableStatement(sparql, this, this.authenticator, new SparqlStatementQueryBuilder());
+        } else {
+            return new DataWorldCallableStatement(sparql, this, this.authenticator, new SqlStatementQueryBuilder());
+        }
+
     }
 
     @Override

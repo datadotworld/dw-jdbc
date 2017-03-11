@@ -80,21 +80,24 @@ public class DataWorldConnectionTest {
         connection.nativeSQL("");
     }
 
-    @Test(expected = SQLFeatureNotSupportedException.class)
-    public void testPrepareCall() throws SQLException {
+    @Test(expected = SQLException.class)
+    public void testPrepareCallClosede() throws SQLException {
         final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+        connection.close();
         connection.prepareCall("");
     }
 
-    @Test(expected = SQLFeatureNotSupportedException.class)
-    public void testPrepareCall2() throws SQLException {
+    @Test(expected = SQLException.class)
+    public void testPrepareCall2Closed() throws SQLException {
         final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+        connection.close();
         connection.prepareCall("", 0, 0);
     }
 
-    @Test(expected = SQLFeatureNotSupportedException.class)
-    public void testPrepareCall3() throws SQLException {
+    @Test(expected = SQLException.class)
+    public void testPrepareCall3Closed() throws SQLException {
         final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
+        connection.close();
         connection.prepareCall("", 0, 0, 0);
     }
 
