@@ -77,7 +77,11 @@ public class DataWorldJdbcDriver implements Driver {
             }
         }
 
-        String queryEndpoint = effectiveProps.get("querybaseurl") +"/" + effectiveProps.get("lang") + "/" + effectiveProps.get("agentid") + "/" + effectiveProps.get("datasetid");
+        String queryEndpoint = String.format("%s/%s/%s/%s",
+                effectiveProps.get("querybaseurl"),
+                effectiveProps.get("lang"),
+                effectiveProps.get("agentid"),
+                effectiveProps.get("datasetid"));
         effectiveProps.put("query", queryEndpoint);
 
         HttpAuthenticator authenticator = this.configureAuthenticator(effectiveProps);

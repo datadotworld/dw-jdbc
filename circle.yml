@@ -3,7 +3,7 @@ machine:
     version: openjdk8
 
   environment:
-    _JAVA_OPTIONS: "-Xms512m -Xmx1792m"
+    _JAVA_OPTIONS: "-Xmx512m -Xms512m"
 
 test:
   post:

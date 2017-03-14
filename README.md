@@ -29,7 +29,7 @@ import java.sql.SQLException;
 
 
 
-final String QUERY = "select * from HallOfFame where playerID = ? order by yearid, playerID limit 10"
+final String QUERY = "select * from HallOfFame where playerID = ? order by yearid, playerID limit 10";
 final String URL = "jdbc:data:world:sql:dave:lahman-sabremetrics-dataset";
 
 

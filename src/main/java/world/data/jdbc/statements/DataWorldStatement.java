@@ -45,7 +45,6 @@ public class DataWorldStatement implements Statement{
     private static final int NO_LIMIT = 0;
     private static final int USE_CONNECTION_COMPATIBILITY = Integer.MIN_VALUE;
     private int maxRows = NO_LIMIT;
-    @SuppressWarnings("unused")
     private int timeout = NO_LIMIT;
     private int compatibilityLevel = USE_CONNECTION_COMPATIBILITY;
     private SQLWarning warnings = null;
