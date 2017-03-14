@@ -9,7 +9,6 @@
         <version>0.1.2</version>
     </parent>
 
-    <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
     <version>0.3-SNAPSHOT</version>
 
@@ -24,24 +23,26 @@
 
     <properties>
         <encoding>UTF-8</encoding>
+        <jena.version>3.1.0</jena.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-core</artifactId>
-            <version>3.1.0</version>
+            <version>${jena.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-jdbc-core</artifactId>
-            <version>3.1.0</version>
+            <version>${jena.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-jdbc-driver-remote</artifactId>
-            <version>3.1.0</version>
+            <version>${jena.version}</version>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -51,7 +52,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.4.1</version>
+            <version>3.6.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -63,44 +64,36 @@
     </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.5.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.rat</groupId>
-                    <artifactId>apache-rat-plugin</artifactId>
-                    <version>0.12</version>
-                    <configuration>
-                        <excludes>
-                            <exclude>README.md</exclude>
-                            <exclude>pom.xml</exclude>
-                            <exclude>circle.yml</exclude>
-                            <exclude>settings.xml</exclude>
-                            <exclude>LICENSE.txt</exclude>
-                            <exclude>NOTICE.txt</exclude>
-                            <exclude>**/META-INF/services/*</exclude>
-                            <exclude>**/test/resources/*</exclude>
-                        </excludes>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
+                <version>0.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>README.md</exclude>
+                        <exclude>pom.xml</exclude>
+                        <exclude>circle.yml</exclude>
+                        <exclude>settings.xml</exclude>
+                        <exclude>LICENSE.txt</exclude>
+                        <exclude>NOTICE.txt</exclude>
+                        <exclude>**/META-INF/services/*</exclude>
+                        <exclude>**/test/resources/*</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

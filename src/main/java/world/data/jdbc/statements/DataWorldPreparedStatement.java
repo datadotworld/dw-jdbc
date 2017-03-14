@@ -19,7 +19,6 @@
 package world.data.jdbc.statements;
 
 import org.apache.jena.atlas.web.auth.HttpAuthenticator;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.iri.IRI;
@@ -55,7 +54,6 @@ import java.sql.Types;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 
 /**
  * data.world JDBC implementation of a prepared statement
@@ -118,9 +116,9 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     private void setParameter(int parameterIndex, Node n) throws SQLException {
         // Remember that JDBC used a 1 based index
-        if (parameterIndex < 1 || parameterIndex > this.paramMetadata.getParameterCount())
+        if (parameterIndex < 1 || parameterIndex > this.paramMetadata.getParameterCount()) {
             throw new SQLException("Parameter Index is out of bounds");
-
+        }
         params.put(parameterIndex, n);
     }
 
@@ -135,18 +133,18 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setAsciiStream(int parameterIndex, InputStream value, int arg2) throws SQLException {
+    public void setAsciiStream(int parameterIndex, InputStream value, int length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
-    public void setAsciiStream(int parameterIndex, InputStream value, long arg2) throws SQLException {
+    public void setAsciiStream(int parameterIndex, InputStream value, long length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public void setBigDecimal(int parameterIndex, BigDecimal value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactory.createLiteral(value.toPlainString(), XSDDatatype.XSDdecimal));
+        this.setParameter(parameterIndex, LiteralFactory.bigDecimalToNode(value));
     }
 
     @Override
@@ -155,12 +153,12 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setBinaryStream(int parameterIndex, InputStream value, int arg2) throws SQLException {
+    public void setBinaryStream(int parameterIndex, InputStream value, int length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
-    public void setBinaryStream(int parameterIndex, InputStream value, long arg2) throws SQLException {
+    public void setBinaryStream(int parameterIndex, InputStream value, long length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
@@ -175,18 +173,18 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setBlob(int parameterIndex, InputStream value, long arg2) throws SQLException {
+    public void setBlob(int parameterIndex, InputStream value, long length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public void setBoolean(int parameterIndex, boolean value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactory.createLiteral(Boolean.toString(value), XSDDatatype.XSDboolean));
+        this.setParameter(parameterIndex, LiteralFactory.booleanToNode(value));
     }
 
     @Override
     public void setByte(int parameterIndex, byte value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactory.createLiteral(Byte.toString(value), XSDDatatype.XSDbyte));
+        this.setParameter(parameterIndex, LiteralFactory.byteToNode(value));
     }
 
     @Override
@@ -200,12 +198,12 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setCharacterStream(int parameterIndex, Reader value, int arg2) throws SQLException {
+    public void setCharacterStream(int parameterIndex, Reader value, int length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
-    public void setCharacterStream(int parameterIndex, Reader value, long arg2) throws SQLException {
+    public void setCharacterStream(int parameterIndex, Reader value, long length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
@@ -220,30 +218,28 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setClob(int parameterIndex, Reader value, long arg2) throws SQLException {
+    public void setClob(int parameterIndex, Reader value, long length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public void setDate(int parameterIndex, Date value) throws SQLException {
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        c.setTimeInMillis(value.getTime());
-        this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
+        this.setParameter(parameterIndex, LiteralFactory.dateTimeToNode(value));
     }
 
     @Override
-    public void setDate(int parameterIndex, Date value, Calendar arg2) throws SQLException {
+    public void setDate(int parameterIndex, Date value, Calendar cal) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public void setDouble(int parameterIndex, double value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactoryExtra.doubleToNode(value));
+        this.setParameter(parameterIndex, LiteralFactory.doubleToNode(value));
     }
 
     @Override
     public void setFloat(int parameterIndex, float value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactoryExtra.floatToNode(value));
+        this.setParameter(parameterIndex, LiteralFactory.floatToNode(value));
     }
 
     @Override
@@ -262,7 +258,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setNCharacterStream(int parameterIndex, Reader value, long arg2) throws SQLException {
+    public void setNCharacterStream(int parameterIndex, Reader value, long length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
@@ -277,7 +273,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setNClob(int parameterIndex, Reader value, long arg2) throws SQLException {
+    public void setNClob(int parameterIndex, Reader value, long length) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
@@ -287,59 +283,57 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setNull(int parameterIndex, int value) throws SQLException {
+    public void setNull(int parameterIndex, int sqlType) throws SQLException {
         throw new SQLFeatureNotSupportedException("Parameters for statements are not nullable");
     }
 
     @Override
-    public void setNull(int parameterIndex, int value, String arg2) throws SQLException {
+    public void setNull(int parameterIndex, int sqlType, String typeName) throws SQLException {
         throw new SQLFeatureNotSupportedException("Parameters for statements are not nullable");
     }
 
     @Override
     public void setObject(int parameterIndex, Object value) throws SQLException {
-        if (value == null) throw new SQLException("Setting a null value is not permitted");
+        this.setParameter(parameterIndex, objectToNode(value));
+    }
 
-        if (value instanceof Node) {
-            this.setParameter(parameterIndex, (Node) value);
+    Node objectToNode(Object value) throws SQLException {
+        if (value == null) {
+            throw new SQLException("Setting a null value is not permitted");
+        } else if (value instanceof Node) {
+            return (Node) value;
         } else if (value instanceof RDFNode) {
-            this.setParameter(parameterIndex, ((RDFNode) value).asNode());
+            return ((RDFNode) value).asNode();
         } else if (value instanceof String) {
-            this.setParameter(parameterIndex, NodeFactory.createLiteral((String) value));
+            return NodeFactory.createLiteral((String) value);
         } else if (value instanceof Boolean) {
-            this.setParameter(parameterIndex,
-                    NodeFactory.createLiteral(Boolean.toString((Boolean) value), XSDDatatype.XSDboolean));
+            return LiteralFactory.booleanToNode((Boolean) value);
         } else if (value instanceof Long) {
-            this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Long) value));
+            return NodeFactoryExtra.intToNode((Long) value);
         } else if (value instanceof Integer) {
-            this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Integer) value));
+            return NodeFactoryExtra.intToNode((Integer) value);
         } else if (value instanceof Short) {
-            this.setParameter(parameterIndex, NodeFactory.createLiteral(Short.toString((Short) value), XSDDatatype.XSDshort));
+            return LiteralFactory.shortToNode((Short) value);
         } else if (value instanceof Byte) {
-            this.setParameter(parameterIndex, NodeFactory.createLiteral(Byte.toString((Byte) value), XSDDatatype.XSDbyte));
+            return LiteralFactory.byteToNode((Byte) value);
         } else if (value instanceof BigDecimal) {
-            this.setParameter(parameterIndex,
-                    NodeFactory.createLiteral(((BigDecimal) value).toPlainString(), XSDDatatype.XSDdecimal));
+            return LiteralFactory.bigDecimalToNode((BigDecimal) value);
         } else if (value instanceof Float) {
-            this.setParameter(parameterIndex, NodeFactoryExtra.floatToNode((Float) value));
+            return LiteralFactory.floatToNode((Float) value);
         } else if (value instanceof Double) {
-            this.setParameter(parameterIndex, NodeFactoryExtra.doubleToNode((Double) value));
+            return LiteralFactory.doubleToNode((Double) value);
         } else if (value instanceof Date) {
-            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            c.setTimeInMillis(((Date) value).getTime());
-            this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
+            return LiteralFactory.dateTimeToNode((Date) value);
         } else if (value instanceof Time) {
-            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            c.setTimeInMillis(((Time) value).getTime());
-            this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
+            return LiteralFactory.timeToNode((Time) value);
         } else if (value instanceof Calendar) {
-            this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode((Calendar) value));
+            return NodeFactoryExtra.dateTimeToNode((Calendar) value);
         } else if (value instanceof URL) {
-            this.setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
+            return NodeFactory.createURI(value.toString());
         } else if (value instanceof URI) {
-            this.setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
+            return NodeFactory.createURI(value.toString());
         } else if (value instanceof IRI) {
-            this.setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
+            return NodeFactory.createURI(value.toString());
         } else {
             throw new SQLException(
                     "setObject() received a value that could not be converted to a RDF node for use in a SPARQL query");
@@ -348,8 +342,13 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setObject(int parameterIndex, Object value, int targetSqlType) throws SQLException {
-        if (value == null) throw new SQLException("Setting a null value is not permitted");
+        this.setParameter(parameterIndex, objectToNode(value, targetSqlType));
+    }
 
+    Node objectToNode(Object value, int targetSqlType) throws SQLException {
+        if (value == null) {
+            throw new SQLException("Setting a null value is not permitted");
+        }
         try {
             switch (targetSqlType) {
                 case Types.ARRAY:
@@ -376,194 +375,154 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
                     throw new SQLException("The provided SQL Target Type cannot be translated into an appropriate RDF term type");
                 case Types.BIGINT:
                     if (value instanceof Long) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Long) value));
+                        return NodeFactoryExtra.intToNode((Long) value);
                     } else if (value instanceof Integer) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((long) (Integer) value));
+                        return NodeFactoryExtra.intToNode((long) (Integer) value);
                     } else if (value instanceof Short) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((long) (Short) value));
+                        return NodeFactoryExtra.intToNode((long) (Short) value);
                     } else if (value instanceof Byte) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((long) (Byte) value));
+                        return NodeFactoryExtra.intToNode((long) (Byte) value);
                     } else if (value instanceof Node) {
-                        long l = JdbcNodeUtils.toLong((Node) value);
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode(l));
+                        return NodeFactoryExtra.intToNode(JdbcNodeUtils.toLong((Node) value));
                     } else if (value instanceof String) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode(Long.parseLong((String) value)));
+                        return NodeFactoryExtra.intToNode(Long.parseLong((String) value));
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired target type");
                     }
-                    break;
                 case Types.BOOLEAN:
                     if (value instanceof Boolean) {
-                        this.setParameter(parameterIndex,
-                                NodeFactory.createLiteral(Boolean.toString((Boolean) value), XSDDatatype.XSDboolean));
+                        return LiteralFactory.booleanToNode((Boolean) value);
                     } else if (value instanceof Node) {
-                        boolean b = JdbcNodeUtils.toBoolean((Node) value);
-                        this.setParameter(parameterIndex,
-                                NodeFactory.createLiteral(Boolean.toString(b), XSDDatatype.XSDboolean));
+                        return LiteralFactory.booleanToNode(JdbcNodeUtils.toBoolean((Node) value));
                     } else if (value instanceof String) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Boolean.toString(Boolean.parseBoolean((String) value)), XSDDatatype.XSDboolean));
+                        return LiteralFactory.booleanToNode(Boolean.parseBoolean((String) value));
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired target type");
                     }
-                    break;
                 case Types.DATE:
                     if (value instanceof Date) {
-                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                        c.setTimeInMillis(((Date) value).getTime());
-                        this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
+                        return LiteralFactory.dateTimeToNode((Date) value);
                     } else if (value instanceof Node) {
-                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                        c.setTimeInMillis(JdbcNodeUtils.toDate((Node) value).getTime());
-                        this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
+                        return LiteralFactory.dateTimeToNode(JdbcNodeUtils.toDate((Node) value));
                     } else if (value instanceof Time) {
-                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                        c.setTimeInMillis(((Time) value).getTime());
-                        this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
+                        return LiteralFactory.timeToNode((Time) value);
                     } else if (value instanceof Calendar) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode((Calendar) value));
+                        return NodeFactoryExtra.dateTimeToNode((Calendar) value);
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired target type");
                     }
-                    break;
                 case Types.DECIMAL:
                     if (value instanceof BigDecimal) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(((BigDecimal) value).toPlainString(), XSDDatatype.XSDdecimal));
+                        return LiteralFactory.bigDecimalToNode((BigDecimal) value);
                     } else if (value instanceof Node) {
-                        BigDecimal d = JdbcNodeUtils.toDecimal((Node) value);
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(d.toPlainString(), XSDDatatype.XSDdecimal));
+                        return LiteralFactory.bigDecimalToNode(JdbcNodeUtils.toDecimal((Node) value));
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired target type");
                     }
-                    break;
                 case Types.DOUBLE:
                     if (value instanceof Double) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.doubleToNode((Double) value));
+                        return LiteralFactory.doubleToNode((Double) value);
                     } else if (value instanceof Float) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.doubleToNode((Float) value));
+                        return LiteralFactory.doubleToNode((Float) value);
                     } else if (value instanceof Node) {
-                        Double d = JdbcNodeUtils.toDouble((Node) value);
-                        this.setParameter(parameterIndex, NodeFactoryExtra.doubleToNode(d));
+                        return LiteralFactory.doubleToNode(JdbcNodeUtils.toDouble((Node) value));
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired target type");
                     }
-                    break;
                 case Types.FLOAT:
                     if (value instanceof Float) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.floatToNode((Float) value));
+                        return LiteralFactory.floatToNode((Float) value);
                     } else if (value instanceof Node) {
-                        Float f = JdbcNodeUtils.toFloat((Node) value);
-                        this.setParameter(parameterIndex, NodeFactoryExtra.floatToNode(f));
+                        return LiteralFactory.floatToNode(JdbcNodeUtils.toFloat((Node) value));
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired target type");
                     }
-                    break;
                 case Types.INTEGER:
                     if (value instanceof Integer) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Integer) value));
+                        return NodeFactoryExtra.intToNode((Integer) value);
                     } else if (value instanceof Short) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Short) value));
+                        return NodeFactoryExtra.intToNode((Short) value);
                     } else if (value instanceof Byte) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Byte) value));
+                        return NodeFactoryExtra.intToNode((Byte) value);
                     } else if (value instanceof Node) {
-                        Integer i = JdbcNodeUtils.toInt((Node) value);
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode(i));
+                        return NodeFactoryExtra.intToNode(JdbcNodeUtils.toInt((Node) value));
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired target type");
                     }
-                    break;
                 case Types.JAVA_OBJECT:
                     if (value instanceof Node) {
-                        this.setParameter(parameterIndex, (Node) value);
+                        return (Node) value;
                     } else if (value instanceof RDFNode) {
-                        this.setParameter(parameterIndex, ((RDFNode) value).asNode());
+                        return ((RDFNode) value).asNode();
                     } else if (value instanceof String) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral((String) value));
+                        return NodeFactory.createLiteral((String) value);
                     } else if (value instanceof URL) {
-                        this.setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
+                        return NodeFactory.createURI(value.toString());
                     } else if (value instanceof URI) {
-                        this.setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
+                        return NodeFactory.createURI(value.toString());
                     } else if (value instanceof IRI) {
-                        this.setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
+                        return NodeFactory.createURI(value.toString());
                     } else if (value instanceof BigDecimal) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(((BigDecimal) value).toPlainString(), XSDDatatype.XSDdecimal));
+                        return LiteralFactory.bigDecimalToNode((BigDecimal) value);
                     } else if (value instanceof Boolean) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Boolean.toString(((Boolean) value)), XSDDatatype.XSDboolean));
+                        return LiteralFactory.booleanToNode((Boolean) value);
                     } else if (value instanceof Byte) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Byte.toString((Byte) value), XSDDatatype.XSDbyte));
+                        return LiteralFactory.byteToNode((Byte) value);
                     } else if (value instanceof Double) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.doubleToNode((Double) value));
+                        return LiteralFactory.doubleToNode((Double) value);
                     } else if (value instanceof Float) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.floatToNode((Float) value));
+                        return LiteralFactory.floatToNode((Float) value);
                     } else if (value instanceof Short) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Short.toString((Short) value), XSDDatatype.XSDshort));
+                        return LiteralFactory.shortToNode((Short) value);
                     } else if (value instanceof Integer) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Integer) value));
+                        return NodeFactoryExtra.intToNode((Integer) value);
                     } else if (value instanceof Long) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode((Long) value));
+                        return NodeFactoryExtra.intToNode((Long) value);
                     } else if (value instanceof Date) {
-                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                        c.setTimeInMillis(((Date) value).getTime());
-                        this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode(c));
+                        return LiteralFactory.dateTimeToNode((Date) value);
                     } else if (value instanceof Time) {
-                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                        c.setTimeInMillis(((Time) value).getTime());
-                        this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
+                        return LiteralFactory.timeToNode((Time) value);
                     } else if (value instanceof Calendar) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.dateTimeToNode((Calendar) value));
+                        return NodeFactoryExtra.dateTimeToNode((Calendar) value);
                     } else {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(value.toString()));
+                        return NodeFactory.createLiteral(value.toString());
                     }
-                    break;
                 case Types.CHAR:
                 case Types.NVARCHAR:
                 case Types.VARCHAR:
-                    this.setParameter(parameterIndex, NodeFactory.createLiteral(value.toString()));
-                    break;
+                    return NodeFactory.createLiteral(value.toString());
                 case Types.SMALLINT:
                     if (value instanceof Short) {
-                        Short s = (Short) value;
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Short.toString(s), XSDDatatype.XSDshort));
+                        return LiteralFactory.shortToNode((Short) value);
                     } else if (value instanceof Byte) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Short.toString((Byte) value), XSDDatatype.XSDshort));
+                        return LiteralFactory.shortToNode((Byte) value);
                     } else if (value instanceof Node) {
-                        Short s = JdbcNodeUtils.toShort((Node) value);
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Short.toString(s), XSDDatatype.XSDshort));
+                        return LiteralFactory.shortToNode(JdbcNodeUtils.toShort((Node) value));
                     } else if (value instanceof String) {
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Short.toString(Short.parseShort((String) value)), XSDDatatype.XSDshort));
+                        return LiteralFactory.shortToNode(Short.parseShort((String) value));
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired type");
                     }
-                    break;
                 case Types.TIME:
                     if (value instanceof Time) {
-                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                        c.setTimeInMillis(((Time) value).getTime());
-                        this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
+                        return LiteralFactory.timeToNode((Time) value);
                     } else if (value instanceof Node) {
-                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                        c.setTimeInMillis(JdbcNodeUtils.toDate((Node) value).getTime());
-                        this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
+                        return LiteralFactory.timeToNode(JdbcNodeUtils.toDate((Node) value));
                     } else if (value instanceof Date) {
-                        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                        c.setTimeInMillis(((Date) value).getTime());
-                        this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
+                        return LiteralFactory.timeToNode((Date) value);
                     } else if (value instanceof Calendar) {
-                        this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode((Calendar) value));
+                        return NodeFactoryExtra.timeToNode((Calendar) value);
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired type");
                     }
-                    break;
                 case Types.TINYINT:
                     if (value instanceof Byte) {
-                        Byte b = (Byte) value;
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Byte.toString(b), XSDDatatype.XSDbyte));
+                        return LiteralFactory.byteToNode((Byte) value);
                     } else if (value instanceof Node) {
-                        Byte b = JdbcNodeUtils.toByte((Node) value);
-                        this.setParameter(parameterIndex, NodeFactory.createLiteral(Byte.toString(b), XSDDatatype.XSDbyte));
+                        return LiteralFactory.byteToNode(JdbcNodeUtils.toByte((Node) value));
                     } else {
                         throw new SQLException("The given value is not marshallable to the desired type");
                     }
-                    break;
                 default:
                     throw new SQLException("Cannot translate an unknown SQL Target Type into an appropriate RDF term type");
             }
@@ -577,7 +536,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setObject(int parameterIndex, Object value, int arg2, int arg3) throws SQLException {
+    public void setObject(int parameterIndex, Object value, int targetSqlType, int scale) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
@@ -598,7 +557,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setShort(int parameterIndex, short value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactory.createLiteral(Short.toString(value), XSDDatatype.XSDshort));
+        this.setParameter(parameterIndex, LiteralFactory.shortToNode(value));
     }
 
     @Override
@@ -608,13 +567,11 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setTime(int parameterIndex, Time value) throws SQLException {
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        c.setTimeInMillis(value.getTime());
-        this.setParameter(parameterIndex, NodeFactoryExtra.timeToNode(c));
+        this.setParameter(parameterIndex, LiteralFactory.timeToNode(value));
     }
 
     @Override
-    public void setTime(int parameterIndex, Time value, Calendar arg2) throws SQLException {
+    public void setTime(int parameterIndex, Time value, Calendar cal) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
@@ -624,7 +581,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     @Override
-    public void setTimestamp(int parameterIndex, Timestamp value, Calendar arg2) throws SQLException {
+    public void setTimestamp(int parameterIndex, Timestamp value, Calendar cal) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
@@ -641,7 +598,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     protected QueryEngineHTTP createQueryExecution(Query q) throws SQLException {
-        final QueryEngineHTTP execution = super.createQueryExecution(q);
+        QueryEngineHTTP execution = super.createQueryExecution(q);
         if (!params.isEmpty()) {
             execution.addParam("parameters", formatParams());
         }
@@ -649,7 +606,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     protected String formatParams() {
-        final StringBuilder out = new StringBuilder();
+        StringBuilder out = new StringBuilder();
         boolean first = true;
         for (Map.Entry<Integer, Node> param : params.entrySet()) {
             if (first) {
