@@ -18,7 +18,7 @@
 */
 package world.data.jdbc;
 
-import org.apache.jena.atlas.web.auth.HttpAuthenticator;
+import org.apache.jena.query.ARQ;
 import world.data.jdbc.connections.DataWorldConnection;
 
 import java.sql.Connection;
@@ -37,6 +37,8 @@ public class DataWorldJdbcDriver implements Driver {
     private static final int[] VERSION_NUMBERS = Versions.parseVersionNumbers(VERSION);
 
     static {
+        ARQ.init();
+
         try {
             register();
         } catch (SQLException e) {
@@ -73,15 +75,15 @@ public class DataWorldJdbcDriver implements Driver {
             }
         }
 
-        String queryEndpoint = String.format("%s/%s/%s/%s",
-                effectiveProps.get("querybaseurl"),
-                effectiveProps.get("lang"),
-                effectiveProps.get("agentid"),
-                effectiveProps.get("datasetid"));
-        effectiveProps.put("query", queryEndpoint);
+        String queryBaseUrl = effectiveProps.getProperty("querybaseurl");
+        String lang = effectiveProps.getProperty("lang");
+        String agentId = effectiveProps.getProperty("agentid");
+        String datasetId = effectiveProps.getProperty("datasetid");
+        String password = effectiveProps.getProperty("password");
 
-        HttpAuthenticator authenticator = configureAuthenticator(effectiveProps);
-        return new DataWorldConnection(effectiveProps.getProperty("query"), authenticator, effectiveProps.getProperty("lang"));
+        String queryEndpoint = String.format("%s/%s/%s/%s", queryBaseUrl, lang, agentId, datasetId);
+
+        return new DataWorldConnection(queryEndpoint, lang, password);
     }
 
     @Override
@@ -112,13 +114,5 @@ public class DataWorldJdbcDriver implements Driver {
     // Java6/7 compatibility
     public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
-    }
-
-    private HttpAuthenticator configureAuthenticator(final Properties props) {
-        final String username = (String) props.get("user");
-        final String password = (String) props.get("password");
-        final DataWorldHttpAuthenticator authenticator = new DataWorldHttpAuthenticator(username, password);
-        props.put("authenticator", authenticator);
-        return authenticator;
     }
 }

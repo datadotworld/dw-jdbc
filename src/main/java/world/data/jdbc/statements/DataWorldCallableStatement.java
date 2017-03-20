@@ -18,7 +18,6 @@
 */
 package world.data.jdbc.statements;
 
-import org.apache.jena.atlas.web.auth.HttpAuthenticator;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
@@ -52,8 +51,8 @@ import java.util.Map;
 public class DataWorldCallableStatement extends DataWorldPreparedStatement implements CallableStatement {
     private final Map<String, Node> namedParams = new HashMap<>();
 
-    public DataWorldCallableStatement(String query, DataWorldConnection connection, HttpAuthenticator authenticator, QueryBuilder queryBuilder) throws SQLException {
-        super(query, connection, authenticator, queryBuilder);
+    public DataWorldCallableStatement(String query, DataWorldConnection connection, QueryBuilder queryBuilder) throws SQLException {
+        super(query, connection, queryBuilder);
     }
 
     @Override
