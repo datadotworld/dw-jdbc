@@ -31,22 +31,18 @@ import java.util.List;
 
 /**
  * Abstract implementation of JDBC result set metadata
- * 
  */
 public class DataWorldResultsMetadata implements ResultSetMetaData {
 
-    protected ResultSet results;
-    protected List<ColumnInfo> columns = new ArrayList<>();
+    private final ResultSet results;
+    private final List<ColumnInfo> columns = new ArrayList<>();
 
     /**
      * Abstract implementation of result set metadata
-     * 
-     * @param results
-     *            Result Set
-     * @param columns
-     *            Column information
-     * @throws SQLException
-     *             Thrown if metadata cannot be created
+     *
+     * @param results Result Set
+     * @param columns Column information
+     * @throws SQLException Thrown if metadata cannot be created
      */
     public DataWorldResultsMetadata(ResultSet results, ColumnInfo[] columns) throws SQLException {
         this.results = results;

@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -79,8 +80,8 @@ public class DataWorldSqlMetadataTest {
         assertThat(metaData.getMaxUserNameLength()).isEqualTo(0);
         assertThat(metaData.getMaxTableNameLength()).isEqualTo(0);
         assertThat(metaData.getMaxTablesInSelect()).isEqualTo(0);
-      //  assertThat(metaData.getURL()).isEqualTo(0);
-      //  assertThat(metaData.getUserName()).isEqualTo(0);
+        //  assertThat(metaData.getURL()).isEqualTo(0);
+        //  assertThat(metaData.getUserName()).isEqualTo(0);
         assertThat(metaData.getSQLKeywords()).isEqualTo("SELECT,DISTINCT,FROM,JOIN,LEFT,RIGHT,FULL,OUTER,INNER,ON,USING,NATURAL,WHERE,GROUP,BY,ORDER,ASC,DESC,HAVING,LIMIT,OFFSET,UNION,INTERSECT,MINUS,AS,AND,OR,NOT,IN,NULL,LIKE,CAST");
         assertThat(metaData.getSQLStateType()).isEqualTo(1);
         assertThat(metaData.getStringFunctions()).isEqualTo("LENGTH,UPPER,LOWER,CONCAT,LENGTH,SUBSTRING,REPLACE,REGEX");
@@ -215,14 +216,16 @@ public class DataWorldSqlMetadataTest {
         final DatabaseMetaData metaData = connection.getMetaData();
         metaData.unwrap(Class.class);
     }
+
     @Test(expected = SQLException.class)
     public void testNullConnection() throws SQLException {
         final DatabaseMetaData metaData = new DataWorldSqlMetadata(null);
         metaData.unwrap(Class.class);
     }
+
     private int getResultSetSize(final ResultSet resultSet) throws SQLException {
         int count = 0;
-        while(resultSet.next()){
+        while (resultSet.next()) {
             count++;
         }
         return count;

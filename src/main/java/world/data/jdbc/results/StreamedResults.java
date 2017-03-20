@@ -55,8 +55,9 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
      * @throws SQLException Thrown if the result set is closed
      */
     T getCurrentRow() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result set is closed");
+        }
         return this.currItem;
     }
 
@@ -116,10 +117,12 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final void afterLast() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
-        if (finished)
+        }
+        if (finished) {
             return;
+        }
 
         // Move to end of results
         while (this.hasNext()) {
@@ -132,12 +135,14 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final void beforeFirst() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
+        }
         // If we've started throw an error as we can't move backwards
-        if (this.currRow > 0)
+        if (this.currRow > 0) {
             throw new SQLException(
                     "data.world JDBC result sets are forward only, can't move to before the start of the result set after navigation through the result set has begun");
+        }
         // Otherwise OK
         this.currItem = null;
     }
@@ -153,10 +158,12 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final boolean first() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
-        if (this.currRow == 1)
+        }
+        if (this.currRow == 1) {
             return true;
+        }
         throw new SQLException(
                 "data.world JDBC result sets are forward only, can't move backwards to the first row after the first row has been passed");
     }
@@ -183,29 +190,33 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final boolean isAfterLast() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
+        }
         return this.finished;
     }
 
     @Override
     public final boolean isBeforeFirst() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
+        }
         return this.currRow == 0;
     }
 
     @Override
     public final boolean isFirst() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
+        }
         return this.currRow == 1;
     }
 
     @Override
     public final boolean isLast() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
+        }
         return !this.hasNext();
     }
 
@@ -232,8 +243,9 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
                 this.currRow++;
                 return true;
             } else {
-                if (!this.finished)
+                if (!this.finished) {
                     this.currRow++;
+                }
                 this.finished = true;
                 return false;
             }
@@ -268,8 +280,9 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final void setFetchDirection(int direction) throws SQLException {
-        if (direction != ResultSet.FETCH_FORWARD)
+        if (direction != ResultSet.FETCH_FORWARD) {
             throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets only support forward fetch");
+        }
     }
 
     @Override

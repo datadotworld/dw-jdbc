@@ -38,8 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DataWorldStatementTest {
     private static String lastUri;
-    private static String resultResourceName = "select.json";
-    private static String resultMimeType = "application/json";
+    private static final String resultResourceName = "select.json";
+    private static final String resultMimeType = "application/json";
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
@@ -252,6 +252,7 @@ public class DataWorldStatementTest {
 
         }
     }
+
     @Test
     public void clearBatch() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -407,6 +408,7 @@ public class DataWorldStatementTest {
             assertThat((Iterable<Throwable>) statement.getWarnings()).hasSize(2);
         }
     }
+
     @Test
     public void getUpdateCount() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -431,6 +433,7 @@ public class DataWorldStatementTest {
 
         }
     }
+
     @Test
     public void getMoreResultsKeepCurrent() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());

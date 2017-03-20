@@ -27,7 +27,6 @@ import java.sql.SQLException;
 
 /**
  * Abstract base class for result sets that are backed by a {@link QueryExecution}
- *
  */
 public abstract class QueryExecutionResults extends DataWorldResultsSet {
 
@@ -37,13 +36,16 @@ public abstract class QueryExecutionResults extends DataWorldResultsSet {
 
     /**
      * Creates new Query Execution backed results
+     *
      * @param statement Statement
-     * @param qe Query Execution
+     * @param qe        Query Execution
      * @throws SQLException Thrown if there is an issue creating the results
      */
     public QueryExecutionResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
         super(statement);
-        if (qe == null) throw new SQLException("Query Execution cannot be null");
+        if (qe == null) {
+            throw new SQLException("Query Execution cannot be null");
+        }
         this.qe = qe;
     }
 
@@ -68,6 +70,7 @@ public abstract class QueryExecutionResults extends DataWorldResultsSet {
 
     /**
      * Method which derived classes must implement to provide their own close logic
+     *
      * @throws SQLException Thrown if there is an issue closing the results
      */
     protected abstract void closeInternal() throws SQLException;
@@ -76,7 +79,6 @@ public abstract class QueryExecutionResults extends DataWorldResultsSet {
     public final boolean isClosed() {
         return this.qe == null;
     }
-
 
 
 }

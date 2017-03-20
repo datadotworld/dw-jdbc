@@ -36,7 +36,6 @@ import java.sql.Types;
 
 /**
  * Result set metadata for {@link TripleIteratorResults} instances
- *
  */
 public class TripleResultsMetadata extends DataWorldResultsMetadata {
 
@@ -77,13 +76,9 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
     /**
      * Gets the columns for CONSTRUCT/DESCRIBE results
      *
-     * @param results
-     *            Results
-     * @param ts
-     *            Underlying triples
-     *
+     * @param results Results
+     * @param ts      Underlying triples
      * @return Column Information
-     * @throws SQLException
      */
     private static ColumnInfo[] makeColumns(DataWorldResultsSet results, PeekIterator<Triple> ts) throws SQLException {
         return makeColumns(results, ts, COLUMN_LABEL_SUBJECT, COLUMN_LABEL_PREDICATE, COLUMN_LABEL_OBJECT);
@@ -92,32 +87,28 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
     /**
      * Gets the columns for CONSTRUCT/DESCRIBE results
      *
-     * @param results
-     *            Results
-     * @param ts
-     *            Underlying triples
-     * @param subjLabel
-     *            Label for subject column, use {@code null} to omit the subject
-     *            column
-     * @param predLabel
-     *            Label for predicate column, use {@code null} to omit the
-     *            predicate column
-     * @param objLabel
-     *            Label for object column, use {@code null} to omit the object
-     *            column
-     *
+     * @param results   Results
+     * @param ts        Underlying triples
+     * @param subjLabel Label for subject column, use {@code null} to omit the subject
+     *                  column
+     * @param predLabel Label for predicate column, use {@code null} to omit the
+     *                  predicate column
+     * @param objLabel  Label for object column, use {@code null} to omit the object
+     *                  column
      * @return Column Information
-     * @throws SQLException
      */
     private static ColumnInfo[] makeColumns(DataWorldResultsSet results, PeekIterator<Triple> ts, String subjLabel, String predLabel,
                                             String objLabel) throws SQLException {
         int numColumns = 0;
-        if (subjLabel != null)
+        if (subjLabel != null) {
             numColumns++;
-        if (predLabel != null)
+        }
+        if (predLabel != null) {
             numColumns++;
-        if (objLabel != null)
+        }
+        if (objLabel != null) {
             numColumns++;
+        }
         ColumnInfo[] columns = new ColumnInfo[numColumns];
 
         // Figure out column names
@@ -134,7 +125,7 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
         boolean columnsAsStrings = JdbcCompatibility.shouldTypeColumnsAsString(level);
         boolean columnsDetected = JdbcCompatibility.shouldDetectColumnTypes(level);
 
-        Triple t = null;
+        Triple t;
         Node[] values = new Node[numColumns];
         if (columnsDetected) {
             if (ts.hasNext()) {
@@ -187,12 +178,9 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
     /**
      * Creates new results metadata for triple (CONSTRUCT/DESCRIBE) results
      *
-     * @param results
-     *            Result Set
-     * @param ts
-     *            Triple iterator
-     * @throws SQLException
-     *             Thrown if the metadata cannot be created
+     * @param results Result Set
+     * @param ts      Triple iterator
+     * @throws SQLException Thrown if the metadata cannot be created
      */
     public TripleResultsMetadata(DataWorldResultsSet results, PeekIterator<Triple> ts) throws SQLException {
         super(results, makeColumns(results, ts));

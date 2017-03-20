@@ -40,11 +40,10 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
-public class DataWorldStatement implements Statement{
+public class DataWorldStatement implements Statement {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataWorldStatement.class);
     private static final int NO_LIMIT = 0;
     private static final int USE_CONNECTION_COMPATIBILITY = Integer.MIN_VALUE;
-    private int maxRows = NO_LIMIT;
     private int timeout = NO_LIMIT;
     private int compatibilityLevel = USE_CONNECTION_COMPATIBILITY;
     private SQLWarning warnings = null;
@@ -78,8 +77,9 @@ public class DataWorldStatement implements Statement{
      * @return Compatibility level
      */
     public int getJdbcCompatibilityLevel() {
-        if (this.compatibilityLevel == USE_CONNECTION_COMPATIBILITY)
+        if (this.compatibilityLevel == USE_CONNECTION_COMPATIBILITY) {
             return this.connection.getJdbcCompatibilityLevel();
+        }
         return this.compatibilityLevel;
     }
 
@@ -88,7 +88,7 @@ public class DataWorldStatement implements Statement{
      * {@link JdbcCompatibility} for explanations.
      * <p>
      * By default this is set at the connection level and inherited, however you
-     * may call {@link #setJdbcCompatibilityLevel(int)} to set the compatibility
+     * may call the {@code setJdbcCompatibilityLevel} method to set the compatibility
      * level for this statement. This allows you to change the compatibility
      * level on a per-query basis if so desired.
      * </p>
@@ -128,7 +128,7 @@ public class DataWorldStatement implements Statement{
     }
 
     public int getMaxRows() {
-        return maxRows;
+        return NO_LIMIT;
     }
 
     /**
@@ -220,8 +220,9 @@ public class DataWorldStatement implements Statement{
 
     @Override
     public final int[] executeBatch() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("The Statement is closed");
+        }
 
         // Go ahead and process the batch
         int[] rets = new int[this.commands.size()];
@@ -255,8 +256,9 @@ public class DataWorldStatement implements Statement{
 
     @Override
     public void close() throws SQLException {
-        if (this.closed)
+        if (this.closed) {
             return;
+        }
         LOGGER.info("Closing statement");
         this.closed = true;
         // Close current result set (if any)
@@ -272,8 +274,9 @@ public class DataWorldStatement implements Statement{
             // multiple result sets or executeBatch() calls
             while (!this.results.isEmpty()) {
                 ResultSet rset = this.results.poll();
-                if (rset != null)
+                if (rset != null) {
                     rset.close();
+                }
             }
             // Close open result sets i.e. stuff left around depending on
             // statement correction
@@ -294,8 +297,9 @@ public class DataWorldStatement implements Statement{
     }
 
     public void setFetchDirection(int direction) throws SQLException {
-        if (direction != ResultSet.FETCH_FORWARD)
+        if (direction != ResultSet.FETCH_FORWARD) {
             throw new SQLFeatureNotSupportedException("Only ResultSet.FETCH_FORWARD is supported as a fetch direction");
+        }
 
     }
 
@@ -344,8 +348,9 @@ public class DataWorldStatement implements Statement{
 
     @Override
     public final boolean execute(String sql) throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("The Statement is closed");
+        }
 
         // Pre-process the command text
         LOGGER.info("Received input command text:\n {}", sql);
@@ -363,16 +368,18 @@ public class DataWorldStatement implements Statement{
 
     @Override
     public final ResultSet executeQuery(String sql) throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("The statement is closed");
+        }
 
         // Pre-process the command text
         LOGGER.info("Received input command text:\n {}", sql);
 
         Query q = queryBuilder.buildQuery(sql);
 
-        if (q == null)
+        if (q == null) {
             throw new SQLException("Unable to create a query");
+        }
         if (this.executeQuery(q)) {
             return this.currResults;
         } else {
@@ -427,8 +434,9 @@ public class DataWorldStatement implements Statement{
 
     @Override
     public boolean getMoreResults() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("The Statement is closed");
+        }
 
         if (this.currResults != null) {
             this.currResults.close();
@@ -444,8 +452,9 @@ public class DataWorldStatement implements Statement{
 
     @Override
     public boolean getMoreResults(int current) throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("The Statement is closed");
+        }
 
         switch (current) {
             case Statement.CLOSE_CURRENT_RESULT:
@@ -475,8 +484,9 @@ public class DataWorldStatement implements Statement{
 
     @Override
     public final ResultSet getResultSet() throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("The Statement is closed");
+        }
         return this.currResults;
     }
 

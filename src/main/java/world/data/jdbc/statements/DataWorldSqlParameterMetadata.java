@@ -31,7 +31,6 @@ public class DataWorldSqlParameterMetadata implements ParameterMetaData {
 
     /**
      * Creates new parameter metadata
-     * @throws SQLException
      */
     public DataWorldSqlParameterMetadata(String query) throws SQLException {
         if (query == null) {
@@ -42,9 +41,9 @@ public class DataWorldSqlParameterMetadata implements ParameterMetaData {
 
     private int countParameters(final String query) {
         int count = 0;
-        for(int i =  0;i<query.length();i++){
+        for (int i = 0; i < query.length(); i++) {
             //TODO: needs to handle quotes and comments
-            if(query.charAt(i)=='?'){
+            if (query.charAt(i) == '?') {
                 count++;
             }
         }
@@ -68,7 +67,9 @@ public class DataWorldSqlParameterMetadata implements ParameterMetaData {
     }
 
     private void checkParamIndex(final int param) throws SQLException {
-        if (param < 1 || param > this.paramCount) throw new SQLException("Parameter Index is out of bounds");
+        if (param < 1 || param > this.paramCount) {
+            throw new SQLException("Parameter Index is out of bounds");
+        }
     }
 
     @Override

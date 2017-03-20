@@ -37,7 +37,6 @@ import java.util.List;
 
 /**
  * Result Set Metadata for {@link SelectResults} instances
- * 
  */
 public class SelectResultsMetadata extends DataWorldResultsMetadata {
 
@@ -45,29 +44,22 @@ public class SelectResultsMetadata extends DataWorldResultsMetadata {
 
     /**
      * Creates new SELECT results metadata
-     * 
-     * @param results
-     *            JDBC result set
-     * @param rset
-     *            Underlying SPARQL results
-     * @throws SQLException
+     *
+     * @param results JDBC result set
+     * @param rset    Underlying SPARQL results
      */
     public SelectResultsMetadata(DataWorldResultsSet results, ResultSetPeekable rset) throws SQLException {
         super(results, makeColumns(results, rset));
     }
 
 
-
     /**
      * Makes column information for SELECT results
-     * 
-     * @param results
-     *            Result Set
-     * @param rset
-     *            Underlying SPARQL results
+     *
+     * @param results Result Set
+     * @param rset    Underlying SPARQL results
      * @return Column information
-     * @throws SQLException
-     *             Thrown if the column information cannot be created
+     * @throws SQLException Thrown if the column information cannot be created
      */
     private static ColumnInfo[] makeColumns(DataWorldResultsSet results, ResultSetPeekable rset) throws SQLException {
         List<String> vars = rset.getResultVars();

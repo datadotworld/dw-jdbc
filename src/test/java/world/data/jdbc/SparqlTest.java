@@ -53,7 +53,7 @@ public class SparqlTest {
         }
     };
 
-    @org.junit.Test
+    @Test
     public void test() throws Exception {
         resultResourceName = "select.json";
         resultMimeType = "application/json";
@@ -64,13 +64,17 @@ public class SparqlTest {
             ResultSetMetaData rsmd = resultSet.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) System.out.print(",  ");
+                if (i > 1) {
+                    System.out.print(",  ");
+                }
                 System.out.print(rsmd.getColumnName(i));
             }
             System.out.println("");
             while (resultSet.next()) {
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     String columnValue = resultSet.getString(i);
                     System.out.print(columnValue);
                 }
@@ -80,7 +84,7 @@ public class SparqlTest {
         assertThat(lastUri).isEqualTo("http://localhost:3333/sparql/dave/lahman-sabremetrics-dataset?query=SELECT++%3Fs+%3Fp+%3Fo%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
     }
 
-    @org.junit.Test
+    @Test
     public void testAsk() throws Exception {
         resultMimeType = "application/json";
         resultResourceName = "ask.json";
@@ -90,13 +94,17 @@ public class SparqlTest {
             ResultSetMetaData rsmd = resultSet.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) System.out.print(",  ");
+                if (i > 1) {
+                    System.out.print(",  ");
+                }
                 System.out.print(rsmd.getColumnName(i));
             }
             System.out.println("");
             while (resultSet.next()) {
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     String columnValue = resultSet.getString(i);
                     System.out.print(columnValue);
                 }
@@ -106,7 +114,7 @@ public class SparqlTest {
         assertThat(lastUri).isEqualTo("http://localhost:3333/sparql/dave/lahman-sabremetrics-dataset?query=ASK%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0A");
     }
 
-    @org.junit.Test
+    @Test
     public void testDescribe() throws Exception {
         resultResourceName = "describe.xml";
         resultMimeType = "application/rdf+xml";
@@ -117,13 +125,17 @@ public class SparqlTest {
             ResultSetMetaData rsmd = resultSet.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) System.out.print(",  ");
+                if (i > 1) {
+                    System.out.print(",  ");
+                }
                 System.out.print(rsmd.getColumnName(i));
             }
             System.out.println("");
             while (resultSet.next()) {
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     String columnValue = resultSet.getString(i);
                     System.out.print(columnValue);
                 }
@@ -133,7 +145,7 @@ public class SparqlTest {
         assertThat(lastUri).isEqualTo("http://localhost:3333/sparql/dave/lahman-sabremetrics-dataset?query=DESCRIBE+%3Fs%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
     }
 
-    @org.junit.Test
+    @Test
     public void testConstruct() throws Exception {
         resultResourceName = "construct.xml";
         resultMimeType = "application/rdf+xml";
@@ -144,13 +156,17 @@ public class SparqlTest {
             ResultSetMetaData rsmd = resultSet.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) System.out.print(",  ");
+                if (i > 1) {
+                    System.out.print(",  ");
+                }
                 System.out.print(rsmd.getColumnName(i));
             }
             System.out.println("");
             while (resultSet.next()) {
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     String columnValue = resultSet.getString(i);
                     System.out.print(columnValue);
                 }
@@ -160,7 +176,7 @@ public class SparqlTest {
         assertThat(lastUri).isEqualTo("http://localhost:3333/sparql/dave/lahman-sabremetrics-dataset?query=CONSTRUCT+%0A++%7B+%0A++++%3Fo+%3Fp+%3Fs+.%0A++%7D%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
     }
 
-    @org.junit.Test
+    @Test
     public void testConstructTurtle() throws Exception {
         resultResourceName = "construct.ttl";
         resultMimeType = "text/turtle";
@@ -171,13 +187,17 @@ public class SparqlTest {
             ResultSetMetaData rsmd = resultSet.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) System.out.print(",  ");
+                if (i > 1) {
+                    System.out.print(",  ");
+                }
                 System.out.print(rsmd.getColumnName(i));
             }
             System.out.println("");
             while (resultSet.next()) {
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     String columnValue = resultSet.getString(i);
                     System.out.print(columnValue);
                 }
@@ -198,13 +218,17 @@ public class SparqlTest {
             ResultSetMetaData rsmd = resultSet.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) System.out.print(",  ");
+                if (i > 1) {
+                    System.out.print(",  ");
+                }
                 System.out.print(rsmd.getColumnName(i));
             }
             System.out.println("");
             while (resultSet.next()) {
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     String columnValue = resultSet.getString(i);
                     System.out.print(columnValue);
                 }
@@ -214,7 +238,7 @@ public class SparqlTest {
         assertThat(lastUri).isEqualTo("http://localhost:3333/sparql/dave/lahman-sabremetrics-dataset?query=SELECT++%3Fs+%3Fp+%3Fo%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
     }
 
-    @org.junit.Test(expected = SQLException.class)
+    @Test(expected = SQLException.class)
     public void testBadQuery() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();

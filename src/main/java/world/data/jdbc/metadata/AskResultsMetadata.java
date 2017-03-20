@@ -34,7 +34,6 @@ import java.sql.SQLException;
  * other forms of results we don't have this luxury and so the
  * {@link JdbcCompatibility} levels are used to determine how we report types.
  * </p>
- * 
  */
 public class AskResultsMetadata extends DataWorldResultsMetadata {
 
@@ -53,18 +52,17 @@ public class AskResultsMetadata extends DataWorldResultsMetadata {
     }
 
     private static ColumnInfo[] getColumns(String label) throws SQLException {
-        if (label == null)
+        if (label == null) {
             label = COLUMN_LABEL_ASK;
-        return new ColumnInfo[] { new BooleanColumn(label, columnNoNulls) };
+        }
+        return new ColumnInfo[]{new BooleanColumn(label, columnNoNulls)};
     }
 
     /**
      * Creates new ASK results metadata
-     * 
-     * @param results
-     *            Results
-     * @throws SQLException
-     *             Thrown if the metadata cannot be created
+     *
+     * @param results Results
+     * @throws SQLException Thrown if the metadata cannot be created
      */
     public AskResultsMetadata(DataWorldResultsSet results) throws SQLException {
         super(results, AskResultsMetadata.getColumns());

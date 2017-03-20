@@ -93,9 +93,9 @@ public class DataWorldConnection implements Connection {
      */
     private final static int DEFAULT_ISOLATION_LEVEL = TRANSACTION_NONE;
     private final String lang;
-    private String queryService;
-    private HttpAuthenticator authenticator;
-    protected DatabaseMetaData metadata;
+    private final String queryService;
+    private final HttpAuthenticator authenticator;
+    private final DatabaseMetaData metadata;
 
     private Properties clientInfo = new Properties();
     private SQLWarning warnings = null;
@@ -113,7 +113,7 @@ public class DataWorldConnection implements Connection {
         this.compatibilityLevel = "sql".equals(lang) ? JdbcCompatibility.HIGH : JdbcCompatibility.normalizeLevel(compatibilityLevel);
         this.authenticator = authenticator;
         this.metadata = "sparql".equals(lang) ? new DataWorldSparqlMetadata(this) : new DataWorldSqlMetadata(this);
-        queryService = queryEndpoint;
+        this.queryService = queryEndpoint;
     }
 
     /**
@@ -123,7 +123,7 @@ public class DataWorldConnection implements Connection {
      * @return Compatibility level
      */
     public int getJdbcCompatibilityLevel() {
-        return this.compatibilityLevel;
+        return compatibilityLevel;
     }
 
     /**
@@ -162,20 +162,20 @@ public class DataWorldConnection implements Connection {
             // Close any open statements
             closeStatements();
         } finally {
-            this.closeInternal();
+            closeInternal();
             LOGGER.info("Connection was closed");
         }
     }
 
     private void closeStatements() throws SQLException {
-        synchronized (this.statements) {
-            if (this.statements.size() > 0) {
-                LOGGER.info("Attempting to close " + this.statements.size() + " open statements");
-                for (Statement stmt : this.statements) {
+        synchronized (statements) {
+            if (statements.size() > 0) {
+                LOGGER.info("Attempting to close " + statements.size() + " open statements");
+                for (Statement stmt : statements) {
                     stmt.close();
                 }
                 LOGGER.info("All open statements were closed");
-                this.statements.clear();
+                statements.clear();
             }
         }
     }
@@ -186,17 +186,18 @@ public class DataWorldConnection implements Connection {
      * @return Endpoint URI or null for write only connections
      */
     public String getQueryEndpoint() {
-        return this.queryService;
+        return queryService;
     }
 
     private void closeInternal() {
-        this.closed = true;
+        closed = true;
     }
 
     @Override
     public void commit() throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot commit on a closed connection");
+        }
         LOGGER.info("Attempting to commit a transaction...");
         LOGGER.info("Transaction was committed");
     }
@@ -228,26 +229,29 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public final Statement createStatement() throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        }
+        return createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
     }
 
     @Override
     public final Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.createStatement(resultSetType, resultSetConcurrency, this.getHoldability());
+        }
+        return createStatement(resultSetType, resultSetConcurrency, getHoldability());
     }
 
     @Override
     public final Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
             throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        DataWorldStatement stmt = this.createStatementInternal(resultSetType, resultSetConcurrency);
-        synchronized (this.statements) {
-            this.statements.add(stmt);
+        }
+        DataWorldStatement stmt = createStatementInternal(resultSetType, resultSetConcurrency);
+        synchronized (statements) {
+            statements.add(stmt);
         }
         return stmt;
     }
@@ -258,12 +262,13 @@ public class DataWorldConnection implements Connection {
             throw new SQLFeatureNotSupportedException(
                     "data.world connections only support forward-scrolling result sets");
         }
-        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY)
+        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY) {
             throw new SQLFeatureNotSupportedException("Remote endpoint backed connections only support read-only result sets");
+        }
         if ("sparql".equals(lang)) {
-            return new DataWorldStatement(this, this.authenticator, new SparqlStatementQueryBuilder());
+            return new DataWorldStatement(this, authenticator, new SparqlStatementQueryBuilder());
         } else {
-            return new DataWorldStatement(this, this.authenticator, new SqlStatementQueryBuilder());
+            return new DataWorldStatement(this, authenticator, new SqlStatementQueryBuilder());
         }
     }
 
@@ -284,12 +289,12 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public Properties getClientInfo() {
-        return this.clientInfo;
+        return clientInfo;
     }
 
     @Override
     public String getClientInfo(String name) {
-        return this.clientInfo.getProperty(name);
+        return clientInfo.getProperty(name);
     }
 
     @Override
@@ -299,7 +304,7 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public DatabaseMetaData getMetaData() {
-        return this.metadata;
+        return metadata;
     }
 
     @Override
@@ -314,12 +319,12 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public SQLWarning getWarnings() {
-        return this.warnings;
+        return warnings;
     }
 
     @Override
     public boolean isClosed() {
-        return this.closed;
+        return closed;
     }
 
     @Override
@@ -329,7 +334,7 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public boolean isValid(int timeout) {
-        return !this.isClosed();
+        return !isClosed();
     }
 
     @Override
@@ -339,93 +344,106 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public CallableStatement prepareCall(String sql) throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.createCalledStatementInternal(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        }
+        return createCalledStatementInternal(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
     }
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.createCalledStatementInternal(sql, resultSetType, resultSetConcurrency);
+        }
+        return createCalledStatementInternal(sql, resultSetType, resultSetConcurrency);
     }
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability)
             throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.createCalledStatementInternal(sql, resultSetType, resultSetConcurrency);
+        }
+        return createCalledStatementInternal(sql, resultSetType, resultSetConcurrency);
     }
 
     private CallableStatement createCalledStatementInternal(String sparql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        if (resultSetType != ResultSet.TYPE_FORWARD_ONLY)
+        if (resultSetType != ResultSet.TYPE_FORWARD_ONLY) {
             throw new SQLFeatureNotSupportedException(
                     "Remote endpoint backed connection do not support scroll sensitive result sets");
-        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY)
+        }
+        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY) {
             throw new SQLFeatureNotSupportedException("Remote endpoint backed connections only support read-only result sets");
+        }
         if ("sparql".equals(lang)) {
-            return new DataWorldCallableStatement(sparql, this, this.authenticator, new SparqlStatementQueryBuilder());
+            return new DataWorldCallableStatement(sparql, this, authenticator, new SparqlStatementQueryBuilder());
         } else {
-            return new DataWorldCallableStatement(sparql, this, this.authenticator, new SqlStatementQueryBuilder());
+            return new DataWorldCallableStatement(sparql, this, authenticator, new SqlStatementQueryBuilder());
         }
 
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql) throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        }
+        return prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.prepareStatement(sql);
+        }
+        return prepareStatement(sql);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.prepareStatement(sql);
+        }
+        return prepareStatement(sql);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.prepareStatement(sql);
+        }
+        return prepareStatement(sql);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.prepareStatement(sql, resultSetType, resultSetConcurrency, DEFAULT_HOLDABILITY);
+        }
+        return prepareStatement(sql, resultSetType, resultSetConcurrency, DEFAULT_HOLDABILITY);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability)
             throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot create a statement after the connection was closed");
-        return this.createPreparedStatementInternal(sql, resultSetType, resultSetConcurrency);
+        }
+        return createPreparedStatementInternal(sql, resultSetType, resultSetConcurrency);
     }
 
     private PreparedStatement createPreparedStatementInternal(String sparql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        if (resultSetType != ResultSet.TYPE_FORWARD_ONLY)
+        if (resultSetType != ResultSet.TYPE_FORWARD_ONLY) {
             throw new SQLFeatureNotSupportedException(
                     "Remote endpoint backed connection do not support scroll sensitive result sets");
-        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY)
+        }
+        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY) {
             throw new SQLFeatureNotSupportedException("Remote endpoint backed connections only support read-only result sets");
+        }
         if ("sparql".equals(lang)) {
-            return new DataWorldPreparedStatement(sparql, this, this.authenticator, new SparqlStatementQueryBuilder());
+            return new DataWorldPreparedStatement(sparql, this, authenticator, new SparqlStatementQueryBuilder());
         } else {
-            return new DataWorldPreparedStatement(sparql, this, this.authenticator, new SqlStatementQueryBuilder());
+            return new DataWorldPreparedStatement(sparql, this, authenticator, new SqlStatementQueryBuilder());
         }
 
     }
@@ -437,8 +455,9 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public void rollback() throws SQLException {
-        if (this.isClosed())
+        if (isClosed()) {
             throw new SQLException("Cannot rollback on a closed connection");
+        }
     }
 
     @Override
@@ -457,12 +476,12 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public void setClientInfo(Properties properties) {
-        this.clientInfo = properties;
+        clientInfo = properties;
     }
 
     @Override
     public void setClientInfo(String name, String value) {
-        this.clientInfo.put(name, value);
+        clientInfo.put(name, value);
     }
 
     @Override
@@ -474,7 +493,7 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public void setReadOnly(boolean readOnly) throws SQLException {
-        if (this.isClosed()) {
+        if (isClosed()) {
             throw new SQLException("Cannot set read-only mode on a closed connection");
         }
         if (!readOnly) {

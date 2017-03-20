@@ -35,12 +35,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class SelectResultsTest {
     private static String lastUri;
-    private static String resultResourceName = "select.json";
-    private static String resultMimeType = "application/json";
+    private static final String resultResourceName = "select.json";
+    private static final String resultMimeType = "application/json";
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
@@ -154,6 +153,7 @@ public class SelectResultsTest {
             assertThat(resultSet.getMetaData().getColumnCount()).isEqualTo(3);
         }
     }
+
     @Test
     public void getMetaDataLow() throws Exception {
         try (final DataWorldConnection connection =
