@@ -97,11 +97,11 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
      * Creates new connection metadata
      *
      * @param connection Connection
-     * @throws SQLException
      */
     public DataWorldSparqlMetadata(DataWorldConnection connection) throws SQLException {
-        if (connection == null)
+        if (connection == null) {
             throw new SQLException("Connection cannot be null");
+        }
         this.connection = connection;
     }
 

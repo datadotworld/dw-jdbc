@@ -86,18 +86,18 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
      * Constants for SQL string functions
      */
     private static final String[] SQL_DATETIME_FUNCTIONS = new String[]{"YEAR", "MONTH", "DAY", "HOURS", "MINUTES",
-            "SECONDS",  "NOW"};
+            "SECONDS", "NOW"};
     private DataWorldConnection connection;
 
     /**
      * Creates new connection metadata
      *
      * @param connection Connection
-     * @throws SQLException
      */
     public DataWorldSqlMetadata(DataWorldConnection connection) throws SQLException {
-        if (connection == null)
+        if (connection == null) {
             throw new SQLException("Connection cannot be null");
+        }
         this.connection = connection;
     }
 
@@ -912,7 +912,9 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public boolean supportsMinimumSQLGrammar() { return false; }
+    public boolean supportsMinimumSQLGrammar() {
+        return false;
+    }
 
     @Override
     public boolean supportsMixedCaseIdentifiers() {

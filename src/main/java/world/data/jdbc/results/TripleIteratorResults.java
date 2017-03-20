@@ -34,7 +34,6 @@ import java.util.Iterator;
 /**
  * Represents results of a CONSTRUCT/DESCRIBE query where the results are
  * streamed
- *
  */
 public class TripleIteratorResults extends StreamedResults<Triple> {
 
@@ -46,14 +45,10 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
     /**
      * Creates a new result set which is backed by a triple iterator
      *
-     * @param statement
-     *            Statement
-     * @param qe
-     *            Query Execution
-     * @param ts
-     *            Triple Iterator
-     * @throws SQLException
-     *             Thrown if there is a problem creating the results
+     * @param statement Statement
+     * @param qe        Query Execution
+     * @param ts        Triple Iterator
+     * @throws SQLException Thrown if there is a problem creating the results
      */
     public TripleIteratorResults(DataWorldStatement statement, QueryExecution qe, Iterator<Triple> ts)
             throws SQLException {
@@ -127,8 +122,9 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
 
     @Override
     protected String findColumnLabel(int columnIndex) throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
+        }
         if (columnIndex >= 1 && columnIndex <= this.numColumns) {
             switch (columnIndex) {
                 case TripleResultsMetadata.COLUMN_INDEX_SUBJECT:
@@ -147,10 +143,12 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
 
     @Override
     protected Node getNode(String columnLabel) throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
-        if (this.getCurrentRow() == null)
+        }
+        if (this.getCurrentRow() == null) {
             throw new SQLException("Not currently at a row");
+        }
         Triple t = this.getCurrentRow();
         if (this.subjColumn != null && this.subjColumn.equals(columnLabel)) {
             return t.getSubject();

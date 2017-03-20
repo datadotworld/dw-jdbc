@@ -50,25 +50,22 @@ import java.util.Map;
 /**
  * Abstract implementation of a JDBC Result Set which makes all update methods
  * throw {@link SQLFeatureNotSupportedException}
- *
  */
 public abstract class DataWorldResultsSet implements ResultSet {
 
     private static final int DEFAULT_HOLDABILITY = ResultSet.CLOSE_CURSORS_AT_COMMIT;
 
     private SQLWarning warnings;
-    private DataWorldStatement statement;
+    private final DataWorldStatement statement;
     private boolean wasNull = false;
-    private int holdability = DEFAULT_HOLDABILITY;
+    private final int holdability = DEFAULT_HOLDABILITY;
     private int compatibilityLevel = JdbcCompatibility.DEFAULT;
 
     /**
      * Creates a new result set
      *
-     * @param statement
-     *            Statement that originated the result set
-     * @throws SQLException
-     *             Thrown if the arguments are invalid
+     * @param statement Statement that originated the result set
+     * @throws SQLException Thrown if the arguments are invalid
      */
     public DataWorldResultsSet(DataWorldStatement statement) throws SQLException {
         this.statement = statement;
@@ -131,11 +128,9 @@ public abstract class DataWorldResultsSet implements ResultSet {
      * Helper method which derived classes must implement to map a column index
      * to a column label
      *
-     * @param columnIndex
-     *            Column Index
+     * @param columnIndex Column Index
      * @return Column Label
-     * @throws SQLException
-     *             Should be thrown if the column index is invalid
+     * @throws SQLException Should be thrown if the column index is invalid
      */
     protected abstract String findColumnLabel(int columnIndex) throws SQLException;
 
@@ -143,12 +138,10 @@ public abstract class DataWorldResultsSet implements ResultSet {
      * Helper method which derived classes must implement to retrieve the Node
      * for the given column of the current row
      *
-     * @param columnLabel
-     *            Column Label
+     * @param columnLabel Column Label
      * @return Node if there is a value, null if no value for the column
-     * @throws SQLException
-     *             Should be thrown if there is no current row, the column label
-     *             is invalid or the result set is closed
+     * @throws SQLException Should be thrown if there is no current row, the column label
+     *                      is invalid or the result set is closed
      */
     protected abstract Node getNode(String columnLabel) throws SQLException;
 
@@ -611,7 +604,7 @@ public abstract class DataWorldResultsSet implements ResultSet {
     }
 
     @SuppressWarnings("javadoc")
-    public <T> T getObject(String columnLabel,  Class<T> type) throws SQLException {
+    public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getObject() is supported");
     }
 
@@ -1151,8 +1144,7 @@ public abstract class DataWorldResultsSet implements ResultSet {
     /**
      * Helper method for setting the wasNull() status of the last column read
      *
-     * @param wasNull
-     *            Whether the last column was null
+     * @param wasNull Whether the last column was null
      */
     protected void setNull(boolean wasNull) {
         this.wasNull = wasNull;
@@ -1160,8 +1152,9 @@ public abstract class DataWorldResultsSet implements ResultSet {
 
     private static double toDouble(Node n) throws SQLException {
         try {
-            if (n == null)
+            if (n == null) {
                 return 0;
+            }
             if (n.isLiteral()) {
                 return Double.parseDouble(n.getLiteralLexicalForm());
             } else {
@@ -1178,8 +1171,9 @@ public abstract class DataWorldResultsSet implements ResultSet {
 
     private static float toFloat(Node n) throws SQLException {
         try {
-            if (n == null)
+            if (n == null) {
                 return 0;
+            }
             if (n.isLiteral()) {
                 return Float.parseFloat(n.getLiteralLexicalForm());
             } else {

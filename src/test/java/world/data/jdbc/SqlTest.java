@@ -21,6 +21,7 @@ package world.data.jdbc;
 import fi.iki.elonen.NanoHTTPD;
 import org.apache.commons.io.IOUtils;
 import org.junit.ClassRule;
+import org.junit.Test;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -37,13 +38,12 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class SqlTest {
 
     private static String lastUri;
-    private static String resultResourceName = "hall_of_fame.json";
-    private static String resultMimeType = "application/json";
+    private static final String resultResourceName = "hall_of_fame.json";
+    private static final String resultMimeType = "application/json";
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
@@ -59,7 +59,7 @@ public class SqlTest {
         }
     };
 
-    @org.junit.Test
+    @Test
     public void test() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -68,13 +68,17 @@ public class SqlTest {
                 ResultSetMetaData rsmd = resultSet.getMetaData();
                 int columnsNumber = rsmd.getColumnCount();
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     System.out.print(rsmd.getColumnName(i));
                 }
                 System.out.println("");
                 while (resultSet.next()) {
                     for (int i = 1; i <= columnsNumber; i++) {
-                        if (i > 1) System.out.print(",  ");
+                        if (i > 1) {
+                            System.out.print(",  ");
+                        }
                         String columnValue = resultSet.getString(i);
                         System.out.print(columnValue);
                     }
@@ -84,7 +88,8 @@ public class SqlTest {
         }
         assertThat(lastUri).isEqualTo("http://localhost:3333/sql/dave/lahman-sabremetrics-dataset?query=select+*+from+HallOfFame+order+by+yearid%2C+playerID+limit+10");
     }
-    @org.junit.Test
+
+    @Test
     public void testPrepared() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -94,13 +99,17 @@ public class SqlTest {
                 ResultSetMetaData rsmd = resultSet.getMetaData();
                 int columnsNumber = rsmd.getColumnCount();
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     System.out.print(rsmd.getColumnName(i));
                 }
                 System.out.println("");
                 while (resultSet.next()) {
                     for (int i = 1; i <= columnsNumber; i++) {
-                        if (i > 1) System.out.print(",  ");
+                        if (i > 1) {
+                            System.out.print(",  ");
+                        }
                         String columnValue = resultSet.getString(i);
                         System.out.print(columnValue);
                     }
@@ -112,7 +121,7 @@ public class SqlTest {
 
     }
 
-    @org.junit.Test(expected = SQLException.class)
+    @Test(expected = SQLException.class)
     public void testIndexOutOfBounds() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -121,8 +130,8 @@ public class SqlTest {
             statement.setString(2, "foo");
         }
     }
-    
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetArray() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -130,7 +139,8 @@ public class SqlTest {
             statement.setArray(1, null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetAsciiStream() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -138,7 +148,8 @@ public class SqlTest {
             statement.setAsciiStream(1, null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetAsciiStream2() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -146,8 +157,8 @@ public class SqlTest {
             statement.setAsciiStream(1, null, 3);
         }
     }
-    
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetAsciiStream3() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -155,7 +166,8 @@ public class SqlTest {
             statement.setAsciiStream(1, null, 3L);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetBinaryStream() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -163,7 +175,8 @@ public class SqlTest {
             statement.setBinaryStream(1, null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetBinaryStream2() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -171,8 +184,8 @@ public class SqlTest {
             statement.setBinaryStream(1, null, 3);
         }
     }
-    
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetBinaryStream3() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -180,7 +193,8 @@ public class SqlTest {
             statement.setBinaryStream(1, null, 3L);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetCharacterStream() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -188,7 +202,8 @@ public class SqlTest {
             statement.setCharacterStream(1, null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testBytes() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -196,7 +211,8 @@ public class SqlTest {
             statement.setBytes(1, null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetCharacterStream2() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -204,8 +220,8 @@ public class SqlTest {
             statement.setCharacterStream(1, null, 3);
         }
     }
-    
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetCharacterStream3() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -213,23 +229,26 @@ public class SqlTest {
             statement.setCharacterStream(1, null, 3L);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetBlob() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
-            statement.setBlob(1, (Blob)null);
+            statement.setBlob(1, (Blob) null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetBlob2() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
-            statement.setBlob(1, (InputStream)null);
+            statement.setBlob(1, (InputStream) null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetBlob3() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -237,15 +256,17 @@ public class SqlTest {
             statement.setBlob(1, null, 3L);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetClob() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
-            statement.setClob(1, (Clob)null);
+            statement.setClob(1, (Clob) null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetClob2() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -253,7 +274,8 @@ public class SqlTest {
             statement.setClob(1, (Reader) null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetClob3() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -261,7 +283,8 @@ public class SqlTest {
             statement.setClob(1, null, 3L);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetNCharacterStream() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -269,25 +292,26 @@ public class SqlTest {
             statement.setNCharacterStream(1, null);
         }
     }
-    
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetNCharacterStream2() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
-            statement.setNCharacterStream(1,  null, 3L);
+            statement.setNCharacterStream(1, null, 3L);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetNClob() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final PreparedStatement statement = connection.prepareStatement("select * from HallOfFame where yearid > ? order by yearid, playerID limit 10")) {
-            statement.setNClob(1, (NClob)null);
+            statement.setNClob(1, (NClob) null);
         }
     }
-    
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetNClob2() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -295,7 +319,8 @@ public class SqlTest {
             statement.setNClob(1, (Reader) null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetNClob3() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -303,7 +328,8 @@ public class SqlTest {
             statement.setNClob(1, null, 3L);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetRef() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -311,7 +337,8 @@ public class SqlTest {
             statement.setRef(1, null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetRowId() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -319,7 +346,8 @@ public class SqlTest {
             statement.setRowId(1, null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSQLXML() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -328,7 +356,7 @@ public class SqlTest {
         }
     }
 
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetDate() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -337,7 +365,7 @@ public class SqlTest {
         }
     }
 
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetTime() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -345,7 +373,8 @@ public class SqlTest {
             statement.setTime(1, null, null);
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetTimestamp() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -354,7 +383,7 @@ public class SqlTest {
         }
     }
 
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testSetUnicodeStream() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -363,7 +392,7 @@ public class SqlTest {
         }
     }
 
-    @org.junit.Test
+    @Test
     public void testMetadataQueries() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -394,7 +423,8 @@ public class SqlTest {
             }
         }
     }
-    @org.junit.Test(expected = SQLException.class)
+
+    @Test(expected = SQLException.class)
     public void testMetadataQueryOutOfRange() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -406,17 +436,18 @@ public class SqlTest {
         }
     }
 
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testMetadataIsWrapperFor() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement()) {
             try (final ResultSet resultSet = statement.executeQuery("select * from HallOfFame order by yearid, playerID limit 10")) {
-              resultSet.getMetaData().isWrapperFor(Class.class);
+                resultSet.getMetaData().isWrapperFor(Class.class);
             }
         }
     }
-    @org.junit.Test(expected = SQLFeatureNotSupportedException.class)
+
+    @Test(expected = SQLFeatureNotSupportedException.class)
     public void testMetadataUnwrap() throws Exception {
 
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());

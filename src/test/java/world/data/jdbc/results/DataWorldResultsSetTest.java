@@ -39,7 +39,6 @@ import java.sql.Statement;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class DataWorldResultsSetTest {
     private static String lastUri;
@@ -59,13 +58,13 @@ public class DataWorldResultsSetTest {
             return newResponse(NanoHTTPD.Response.Status.OK, resultMimeType, IOUtils.toString(SparqlTest.class.getResourceAsStream("/" + resultResourceName)));
         }
     };
-    
+
     @Test(expected = SQLFeatureNotSupportedException.class)
     public void isWrapperFor() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.isWrapperFor(Class.class); 
+            resultSet.isWrapperFor(Class.class);
         }
     }
 
@@ -861,7 +860,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateBlob(3, (Blob)null);
+            resultSet.updateBlob(3, (Blob) null);
         }
     }
 
@@ -888,7 +887,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateBlob("foo", (Blob)null);
+            resultSet.updateBlob("foo", (Blob) null);
         }
     }
 
@@ -897,7 +896,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateBlob("foo", (InputStream)null);
+            resultSet.updateBlob("foo", (InputStream) null);
         }
     }
 
@@ -924,7 +923,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateByte(3, (byte)2);
+            resultSet.updateByte(3, (byte) 2);
         }
     }
 
@@ -933,7 +932,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateByte("foo", (byte)2);
+            resultSet.updateByte("foo", (byte) 2);
         }
     }
 
@@ -1023,7 +1022,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateClob(3, (Clob)null);
+            resultSet.updateClob(3, (Clob) null);
         }
     }
 
@@ -1050,7 +1049,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateClob("foo", (Clob)null);
+            resultSet.updateClob("foo", (Clob) null);
         }
     }
 
@@ -1059,7 +1058,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateClob("foo", (Reader)null);
+            resultSet.updateClob("foo", (Reader) null);
         }
     }
 
@@ -1221,7 +1220,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateNClob(3, (NClob)null);
+            resultSet.updateNClob(3, (NClob) null);
         }
     }
 
@@ -1248,7 +1247,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateNClob("foo", (NClob)null);
+            resultSet.updateNClob("foo", (NClob) null);
         }
     }
 
@@ -1257,7 +1256,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateNClob("foo", (Reader)null);
+            resultSet.updateNClob("foo", (Reader) null);
         }
     }
 
@@ -1311,7 +1310,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateObject("bar", null , 2);
+            resultSet.updateObject("bar", null, 2);
         }
     }
 
@@ -1401,7 +1400,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateShort(3, (short)2);
+            resultSet.updateShort(3, (short) 2);
         }
     }
 
@@ -1410,7 +1409,7 @@ public class DataWorldResultsSetTest {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
              final ResultSet resultSet = statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.}")) {
-            resultSet.updateShort("foo", (short)2);
+            resultSet.updateShort("foo", (short) 2);
         }
     }
 

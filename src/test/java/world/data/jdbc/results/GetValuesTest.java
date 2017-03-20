@@ -38,8 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class GetValuesTest {
     private static String lastUri;
-    private static String resultResourceName = "hall_of_fame.json";
-    private static String resultMimeType = "application/json";
+    private static final String resultResourceName = "hall_of_fame.json";
+    private static final String resultMimeType = "application/json";
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {

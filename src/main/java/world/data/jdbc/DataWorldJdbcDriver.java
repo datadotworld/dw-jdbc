@@ -28,7 +28,6 @@ import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 
 public class DataWorldJdbcDriver implements Driver {
@@ -45,7 +44,7 @@ public class DataWorldJdbcDriver implements Driver {
         DriverManager.registerDriver(new DataWorldJdbcDriver());
     }
 
-    private int majorVer, minorVer;
+    private final int majorVer, minorVer;
 
     public DataWorldJdbcDriver() {
         this.majorVer = 0;
@@ -60,8 +59,9 @@ public class DataWorldJdbcDriver implements Driver {
     @SuppressWarnings("unchecked")
     @Override
     public final Connection connect(String url, Properties props) throws SQLException {
-        if (!this.acceptsURL(url))
+        if (!this.acceptsURL(url)) {
             return null;
+        }
 
         final Properties effectiveProps = new Properties();
         final String[] split = url.split(":");
@@ -70,10 +70,9 @@ public class DataWorldJdbcDriver implements Driver {
         effectiveProps.setProperty("datasetid", split[5]);
         effectiveProps.setProperty("querybaseurl", "https://query.data.world");
         if (props != null) {
-            for (Map.Entry<Object, Object> e : props.entrySet()) {
-                String key = e.getKey().toString().toLowerCase(Locale.ENGLISH);
-                Object value = e.getValue();
-                effectiveProps.put(key, value);
+            for (String key : props.stringPropertyNames()) {
+                String value = props.getProperty(key);
+                effectiveProps.setProperty(key.toLowerCase(Locale.ENGLISH), value);
             }
         }
 

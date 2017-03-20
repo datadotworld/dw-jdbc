@@ -21,7 +21,6 @@ import fi.iki.elonen.NanoHTTPD;
 import org.apache.commons.io.IOUtils;
 import org.junit.ClassRule;
 import org.junit.Test;
-import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.NanoHTTPDResource;
 import world.data.jdbc.SparqlTest;
 import world.data.jdbc.TestConfigSource;
@@ -35,12 +34,11 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class DataWorldPreparedStatementTest {
     private static String lastUri;
-    private static String resultResourceName = "select.json";
-    private static String resultMimeType = "application/json";
+    private static final String resultResourceName = "select.json";
+    private static final String resultMimeType = "application/json";
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
@@ -208,16 +206,17 @@ public class DataWorldPreparedStatementTest {
     public void setByte() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
-                statement.setByte(1, (byte)4);
+                statement.setByte(1, (byte) 4);
                 assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"4\"^^<http://www.w3.org/2001/XMLSchema#byte>");
             }
         }
     }
+
     @Test
     public void setShort() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties())) {
             try (final DataWorldPreparedStatement statement = (DataWorldPreparedStatement) connection.prepareStatement("select * from Fielding where yearid = ? ")) {
-                statement.setShort(1, (short)4);
+                statement.setShort(1, (short) 4);
                 assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"4\"^^<http://www.w3.org/2001/XMLSchema#short>");
             }
         }

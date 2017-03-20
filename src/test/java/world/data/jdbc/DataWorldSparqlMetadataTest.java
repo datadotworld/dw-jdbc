@@ -212,6 +212,7 @@ public class DataWorldSparqlMetadataTest {
         final DatabaseMetaData metaData = connection.getMetaData();
         metaData.unwrap(Class.class);
     }
+
     @Test(expected = SQLException.class)
     public void testNullConnection() throws SQLException {
         final DatabaseMetaData metaData = new DataWorldSqlMetadata(null);
@@ -220,7 +221,7 @@ public class DataWorldSparqlMetadataTest {
 
     private int getResultSetSize(final ResultSet resultSet) throws SQLException {
         int count = 0;
-        while(resultSet.next()){
+        while (resultSet.next()) {
             count++;
         }
         return count;

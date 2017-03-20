@@ -39,8 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AskResultsTest {
 
     private static String lastUri;
-    private static String resultResourceName = "ask.json";
-    private static String resultMimeType = "application/json";
+    private static final String resultResourceName = "ask.json";
+    private static final String resultMimeType = "application/json";
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
@@ -343,7 +343,7 @@ public class AskResultsTest {
         }
     }
 
-    @org.junit.Test
+    @Test
     public void testAsk() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
              final Statement statement = connection.createStatement();
@@ -351,13 +351,17 @@ public class AskResultsTest {
             ResultSetMetaData rsmd = resultSet.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) System.out.print(",  ");
+                if (i > 1) {
+                    System.out.print(",  ");
+                }
                 System.out.print(rsmd.getColumnName(i));
             }
             System.out.println("");
             while (resultSet.next()) {
                 for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
+                    if (i > 1) {
+                        System.out.print(",  ");
+                    }
                     String columnValue = resultSet.getString(i);
                     System.out.print(columnValue);
                 }

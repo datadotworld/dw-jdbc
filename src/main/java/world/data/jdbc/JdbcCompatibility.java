@@ -50,7 +50,6 @@ import java.sql.Types;
  * {@link #MEDIUM} compatibility level, see the documentation on the constants
  * and helper methods to understand exactly what each level means.
  * </p>
- *
  */
 public class JdbcCompatibility {
 
@@ -113,8 +112,7 @@ public class JdbcCompatibility {
      * Normalizes the compatibility level given to be within the acceptable
      * range of 1-9
      *
-     * @param level
-     *            Level
+     * @param level Level
      * @return Normalized level
      */
     public static int normalizeLevel(int level) {
@@ -131,8 +129,7 @@ public class JdbcCompatibility {
      * Returns whether a result set is expected to determine the column types
      * from the returned data
      *
-     * @param level
-     *            Desired compatibility level
+     * @param level Desired compatibility level
      * @return True if column types should be detected, false otherwise
      */
     public static boolean shouldDetectColumnTypes(int level) {
@@ -144,8 +141,7 @@ public class JdbcCompatibility {
      * Returns whether a result set is expected to type returned columns as
      * strings
      *
-     * @param level
-     *            Desired compatibility level
+     * @param level Desired compatibility level
      * @return True if columns should be typed as string, false otherwise
      */
     public static boolean shouldTypeColumnsAsString(int level) {
@@ -156,18 +152,14 @@ public class JdbcCompatibility {
     /**
      * Detects the column type information based on an example value
      *
-     * @param var
-     *            Variable Name i.e. the column label
-     * @param value
-     *            Example value
-     * @param allowsNulls
-     *            Whether the result set we are detecting the type for allows
-     *            null values in this column
+     * @param var         Variable Name i.e. the column label
+     * @param value       Example value
+     * @param allowsNulls Whether the result set we are detecting the type for allows
+     *                    null values in this column
      * @return Column Information
-     * @throws SQLException
-     *             Thrown if the column type cannot be detected, this should
-     *             only occur if you state that the column does not allow nulls
-     *             and then provide a null example value
+     * @throws SQLException Thrown if the column type cannot be detected, this should
+     *                      only occur if you state that the column does not allow nulls
+     *                      and then provide a null example value
      */
     public static ColumnInfo detectColumnType(String var, Node value, boolean allowsNulls) throws SQLException {
         if (allowsNulls && value == null) {
@@ -208,14 +200,10 @@ public class JdbcCompatibility {
     /**
      * Select the column type based on the data type URI
      *
-     * @param var
-     *            Variable Name i.e. the column label
-     * @param dtUri
-     *            Data type URI
-     * @param nullable
-     *            Whether the column is nullable
+     * @param var      Variable Name i.e. the column label
+     * @param dtUri    Data type URI
+     * @param nullable Whether the column is nullable
      * @return Column type
-     * @throws SQLException
      */
     private static ColumnInfo selectColumnType(String var, String dtUri, int nullable) throws SQLException {
         if (dtUri.equals(XSD.date.toString())) {
@@ -282,8 +270,7 @@ public class JdbcCompatibility {
      * integer value (or can be parsed as such) then the returned compatibility
      * level will be {@link #DEFAULT}
      *
-     * @param object
-     *            Object to parse
+     * @param object Object to parse
      * @return Normalized JDBC compatibility level
      */
     public static int parseLevel(Object object) {

@@ -119,6 +119,7 @@ public class DataWorldConnectionTest {
         connection.close();
         connection.rollback();
     }
+
     @Test
     public void testRollbackNotClosed() throws SQLException {
         final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -131,6 +132,7 @@ public class DataWorldConnectionTest {
         connection.close();
         connection.commit();
     }
+
     @Test
     public void testCommitNotClosed() throws SQLException {
         final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -363,6 +365,7 @@ public class DataWorldConnectionTest {
         final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
         connection.prepareStatement("", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE, 0);
     }
+
     @Test(expected = SQLFeatureNotSupportedException.class)
     public void testCreateStatementScrolling() throws SQLException {
         final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());

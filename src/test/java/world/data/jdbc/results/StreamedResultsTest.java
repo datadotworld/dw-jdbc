@@ -22,11 +22,9 @@ import fi.iki.elonen.NanoHTTPD;
 import org.apache.commons.io.IOUtils;
 import org.junit.ClassRule;
 import org.junit.Test;
-import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.NanoHTTPDResource;
 import world.data.jdbc.SparqlTest;
 import world.data.jdbc.TestConfigSource;
-import world.data.jdbc.connections.DataWorldConnection;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -39,8 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class StreamedResultsTest {
     private static String lastUri;
-    private static String resultResourceName = "select.json";
-    private static String resultMimeType = "application/json";
+    private static final String resultResourceName = "select.json";
+    private static final String resultMimeType = "application/json";
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
@@ -110,6 +108,7 @@ public class StreamedResultsTest {
             assertThat(resultSet.absolute(2));
         }
     }
+
     @Test
     public void absoluteMoveLast() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -150,6 +149,7 @@ public class StreamedResultsTest {
             resultSet.afterLast();
         }
     }
+
     @Test
     public void absoluteAfterLast() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -190,6 +190,7 @@ public class StreamedResultsTest {
             resultSet.beforeFirst();
         }
     }
+
     @Test(expected = SQLException.class)
     public void firstClosed() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -199,6 +200,7 @@ public class StreamedResultsTest {
             resultSet.first();
         }
     }
+
     @Test(expected = SQLException.class)
     public void firstMoved() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -269,6 +271,7 @@ public class StreamedResultsTest {
             resultSet.isLast();
         }
     }
+
     @Test(expected = SQLException.class)
     public void lastClosed() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -297,6 +300,7 @@ public class StreamedResultsTest {
             resultSet.setFetchSize(0);
         }
     }
+
     @Test(expected = SQLFeatureNotSupportedException.class)
     public void setFetchDirection() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -305,6 +309,7 @@ public class StreamedResultsTest {
             resultSet.setFetchDirection(ResultSet.FETCH_REVERSE);
         }
     }
+
     @Test
     public void setFetchDirectionOk() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
@@ -341,6 +346,7 @@ public class StreamedResultsTest {
             resultSet.relative(-2);
         }
     }
+
     @Test
     public void relativeShort() throws Exception {
         try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());

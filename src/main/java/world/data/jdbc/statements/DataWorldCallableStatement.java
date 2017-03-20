@@ -50,7 +50,7 @@ import java.util.Map;
 
 
 public class DataWorldCallableStatement extends DataWorldPreparedStatement implements CallableStatement {
-    protected Map<String, Node> namedParams = new HashMap<>();
+    private final Map<String, Node> namedParams = new HashMap<>();
 
     public DataWorldCallableStatement(String query, DataWorldConnection connection, HttpAuthenticator authenticator, QueryBuilder queryBuilder) throws SQLException {
         super(query, connection, authenticator, queryBuilder);

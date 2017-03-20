@@ -25,8 +25,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-
 
 
 final String QUERY = "select * from HallOfFame where playerID = ? order by yearid, playerID limit 10";

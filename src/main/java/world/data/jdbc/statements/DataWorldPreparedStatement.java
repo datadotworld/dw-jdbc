@@ -62,12 +62,11 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     private final String query;
     private final ParameterMetaData paramMetadata;
-    protected Map<Integer, Node> params = new HashMap<>();
+    final Map<Integer, Node> params = new HashMap<>();
 
     /**
      * Creates a new prepared statement
      *
-     * @param query
      * @param connection Connection
      * @throws SQLException Thrown if there is a problem preparing the statement
      */
@@ -605,7 +604,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
         return execution;
     }
 
-    protected String formatParams() {
+    String formatParams() {
         StringBuilder out = new StringBuilder();
         boolean first = true;
         for (Map.Entry<Integer, Node> param : params.entrySet()) {
@@ -622,7 +621,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
         return out.toString();
     }
 
-    protected String normalizeValue(final String string) {
+    String normalizeValue(final String string) {
         if (string.contains("^^")) {
             return string.replace("^^", "^^<") + ">";
         } else {

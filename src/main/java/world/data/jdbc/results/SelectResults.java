@@ -37,7 +37,6 @@ import java.util.List;
 
 /**
  * Represents SPARQL SELECT results
- *
  */
 public class SelectResults extends StreamedResults<Binding> {
 
@@ -48,14 +47,10 @@ public class SelectResults extends StreamedResults<Binding> {
     /**
      * Creates new select results
      *
-     * @param statement
-     *            Statement that created the result set
-     * @param qe
-     *            Query Execution
-     * @param results
-     *            SPARQL Results
-     * @throws SQLException
-     *             Thrown if the arguments are invalid
+     * @param statement Statement that created the result set
+     * @param qe        Query Execution
+     * @param results   SPARQL Results
+     * @throws SQLException Thrown if the arguments are invalid
      */
     public SelectResults(DataWorldStatement statement, QueryExecution qe, org.apache.jena.query.ResultSet results)
             throws SQLException {
@@ -76,8 +71,9 @@ public class SelectResults extends StreamedResults<Binding> {
     }
 
     public int findColumn(String columnLabel) throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
+        }
         for (int i = 0; i < this.columns.size(); i++) {
             if (this.columns.get(i).equals(columnLabel)) {
                 // Remember that JDBC uses a 1 based index
@@ -89,8 +85,9 @@ public class SelectResults extends StreamedResults<Binding> {
 
     @Override
     protected String findColumnLabel(int columnIndex) throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
+        }
         if (columnIndex >= 1 && columnIndex <= this.columns.size()) {
             // Remember that JDBC uses a 1 based index
             return this.columns.get(columnIndex - 1);
@@ -101,12 +98,15 @@ public class SelectResults extends StreamedResults<Binding> {
 
     @Override
     protected Node getNode(String columnLabel) throws SQLException {
-        if (this.isClosed())
+        if (this.isClosed()) {
             throw new SQLException("Result Set is closed");
-        if (this.getCurrentRow() == null)
+        }
+        if (this.getCurrentRow() == null) {
             throw new SQLException("Not currently at a row");
-        if (!this.columns.contains(columnLabel))
+        }
+        if (!this.columns.contains(columnLabel)) {
             throw new SQLException("The given column does not exist in the result set");
+        }
         return this.getCurrentRow().get(Var.alloc(columnLabel));
     }
 
