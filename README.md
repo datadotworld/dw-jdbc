@@ -1,4 +1,5 @@
 # dw-jdbc
+
 dw-jdbc is a JDBC driver for connecting to datasets hosted on data.world.
 It can be used to provide read-only access to any dataset provided by data.world
 from any JVM language.  dw-jdbc supports query access both in dwSQL 
@@ -60,13 +61,28 @@ try (final Connection connection =    // get a connection to the database, which
 
 ## Using dw-jdbc in your project
 
-If using Maven, you can use dw-jdbc by just including the following in your pom.xml file
+If using Maven, you can use dw-jdbc by just including the following in your pom.xml file:
 
+```xml
 <dependency>
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
     <version>0.1.1</version>
 </dependency>
+```
+
+For some database tools it's easier to install the jdbc driver if it's a single jar.  For this reason we also
+provide dw-jdbc bundled with all its dependencies under the following:
+
+```xml
+<dependency>
+    <groupId>world.data</groupId>
+    <artifactId>dw-jdbc</artifactId>
+    <classifier>shaded</classifier>
+    <version>0.2</version>
+</dependency>
+```
+
 
 ## Finding your Token
 
