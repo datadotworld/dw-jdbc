@@ -18,24 +18,29 @@
 */
 package world.data.jdbc;
 
+import org.junit.Rule;
 import org.junit.Test;
+import world.data.jdbc.testing.SqlHelper;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
+import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
 public class DataWorldSqlMetadataTest {
+
+    @Rule
+    public final SqlHelper sql = new SqlHelper();
+
     @Test
     public void test() throws SQLException {
-        final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-        final DatabaseMetaData metaData = connection.getMetaData();
+        Connection connection = sql.connect();
+        DatabaseMetaData metaData = connection.getMetaData();
         assertThat(metaData.allProceduresAreCallable()).isFalse();
         assertThat(metaData.allTablesAreSelectable()).isTrue();
         assertThat(metaData.autoCommitFailureClosesAllResultSets()).isFalse();
@@ -203,32 +208,23 @@ public class DataWorldSqlMetadataTest {
         assertThat(getResultSetSize(metaData.getSchemas())).isEqualTo(1);
     }
 
-    @Test(expected = SQLFeatureNotSupportedException.class)
-    public void testIsWrapperFor() throws SQLException {
-        final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-        final DatabaseMetaData metaData = connection.getMetaData();
-        metaData.isWrapperFor(Class.class);
-    }
-
-    @Test(expected = SQLFeatureNotSupportedException.class)
-    public void testUnwrap() throws SQLException {
-        final Connection connection = DriverManager.getConnection("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-        final DatabaseMetaData metaData = connection.getMetaData();
-        metaData.unwrap(Class.class);
-    }
-
-    @Test(expected = SQLException.class)
+    @Test
     public void testNullConnection() throws SQLException {
-        final DatabaseMetaData metaData = new DataWorldSqlMetadata(null);
-        metaData.unwrap(Class.class);
+        assertSQLException(() -> new DataWorldSqlMetadata(null));
     }
 
-    private int getResultSetSize(final ResultSet resultSet) throws SQLException {
+    @Test
+    public void testAllNotSupported() throws SQLException {
+        DatabaseMetaData metaData = sql.connect().getMetaData();
+        assertSQLFeatureNotSupported(() -> metaData.isWrapperFor(Class.class));
+        assertSQLFeatureNotSupported(() -> metaData.unwrap(Class.class));
+    }
+
+    private int getResultSetSize(ResultSet resultSet) throws SQLException {
         int count = 0;
         while (resultSet.next()) {
             count++;
         }
         return count;
     }
-
 }
