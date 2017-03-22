@@ -22,8 +22,10 @@ import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
 import org.apache.http.HttpHeaders;
-import org.apache.jena.ext.com.google.common.base.Throwables;
 import org.junit.rules.ExternalResource;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * JUnit @{code @Rule} for a simple HTTP server for use in unit tests.
@@ -39,7 +41,7 @@ public abstract class NanoHTTPDResource extends ExternalResource {
                     return NanoHTTPDResource.this.serve(session);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return newResponse(Response.Status.INTERNAL_ERROR, "text/plain", Throwables.getStackTraceAsString(e));
+                    return newResponse(Response.Status.INTERNAL_ERROR, "text/plain", getStackTraceAsString(e));
                 }
             }
         };
@@ -61,5 +63,11 @@ public abstract class NanoHTTPDResource extends ExternalResource {
         Response response = NanoHTTPD.newFixedLengthResponse(status, mimeType, body);
         response.addHeader(HttpHeaders.CONNECTION, "close");  // avoid errors due to ignoring the POST body
         return response;
+    }
+
+    private String getStackTraceAsString(Throwable t) {
+        StringWriter buf = new StringWriter();
+        t.printStackTrace(new PrintWriter(buf));
+        return buf.toString();
     }
 }
