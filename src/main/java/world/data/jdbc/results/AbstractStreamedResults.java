@@ -25,17 +25,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 
+import static world.data.jdbc.util.Conditions.check;
+import static world.data.jdbc.util.Conditions.checkSupported;
+
 /**
  * Represents a set of streamed results backed by some {@link QueryExecution},
  * streamed results are considered to be forward only
  *
  * @param <T> Type of the underlying result rows
  */
-abstract class StreamedResults<T> extends QueryExecutionResults {
+abstract class AbstractStreamedResults<T> extends AbstractQueryExecutionResults {
 
     private T currItem;
-    private boolean finished = false;
-    private int currRow = 0;
+    private int currRow;
+    private boolean finished;
 
     /**
      * Creates new streamed results
@@ -44,7 +47,7 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
      * @param qe        Query Execution
      * @throws SQLException Thrown if the arguments are invalid
      */
-    StreamedResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
+    AbstractStreamedResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
         super(statement, qe);
     }
 
@@ -55,10 +58,8 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
      * @throws SQLException Thrown if the result set is closed
      */
     T getCurrentRow() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result set is closed");
-        }
-        return this.currItem;
+        checkClosed();
+        return currItem;
     }
 
     /**
@@ -82,90 +83,74 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final boolean absolute(int row) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Cannot move to a row after the result set has been closed");
-        } else if (row == 1) {
+        checkClosed();
+        if (row == 1) {
             // Try and move to the first row
-            return this.first();
+            return first();
         } else if (row == -1) {
             // Try and move to the last row
-            return this.last();
+            return last();
         } else if (row <= 0) {
-            // Can't move to an arbitrary relative row from the end of the
-            // results
-            throw new SQLException(
-                    "data.world JDBC result sets are forward only, cannot move to a row which is relative to the end of the result set since the number of result rows is not known in advance");
-        } else if (row == this.currRow) {
+            // Can't move to an arbitrary relative row from the end of the results
+            throw new SQLException("data.world JDBC result sets are forward only, cannot move to a row which is relative to the end of the result set since the number of result rows is not known in advance");
+        } else if (row == currRow) {
             // Already at the desired row
             return true;
-        } else if (row < this.currRow) {
+        } else if (row < currRow) {
             throw new SQLException("data.world JDBC result sets are forward only, cannot move backwards");
         } else {
             // Before the desired row
-            while (this.hasNext() && this.currRow < row) {
-                this.currItem = this.moveNext();
-                this.currRow++;
+            while (hasNext() && currRow < row) {
+                currItem = moveNext();
+                currRow++;
             }
             // If we didn't reach it we hit the end of the result set
-            if (this.currRow < row) {
-                this.finished = true;
-                this.currItem = null;
+            if (currRow < row) {
+                finished = true;
+                currItem = null;
             }
-            return (row == this.currRow);
+            return (row == currRow);
         }
     }
 
     @Override
     public final void afterLast() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
+        checkClosed();
         if (finished) {
             return;
         }
-
         // Move to end of results
-        while (this.hasNext()) {
-            this.currItem = this.moveNext();
-            this.currRow++;
+        while (hasNext()) {
+            currItem = moveNext();
+            currRow++;
         }
-        this.currItem = null;
-        this.finished = true;
+        currItem = null;
+        finished = true;
     }
 
     @Override
     public final void beforeFirst() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
+        checkClosed();
         // If we've started throw an error as we can't move backwards
-        if (this.currRow > 0) {
-            throw new SQLException(
-                    "data.world JDBC result sets are forward only, can't move to before the start of the result set after navigation through the result set has begun");
-        }
+        check(currRow == 0, "data.world JDBC result sets are forward only, can't move to before the start of the result set after navigation through the result set has begun");
         // Otherwise OK
-        this.currItem = null;
+        currItem = null;
     }
 
     @Override
     protected final void closeInternal() throws SQLException {
-        this.currItem = null;
-        this.finished = true;
-        this.closeStreamInternal();
+        currItem = null;
+        finished = true;
+        closeStreamInternal();
     }
 
     protected abstract void closeStreamInternal() throws SQLException;
 
     @Override
     public final boolean first() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        if (this.currRow == 1) {
-            return true;
-        }
-        throw new SQLException(
-                "data.world JDBC result sets are forward only, can't move backwards to the first row after the first row has been passed");
+        checkClosed();
+        check(currRow == 1, "data.world JDBC result sets are forward only, can't move backwards to the first row after the first row has been passed");
+        return true;
     }
 
     @Override
@@ -180,7 +165,7 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final int getRow() {
-        return this.currRow;
+        return currRow;
     }
 
     @Override
@@ -190,99 +175,81 @@ abstract class StreamedResults<T> extends QueryExecutionResults {
 
     @Override
     public final boolean isAfterLast() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        return this.finished;
+        checkClosed();
+        return finished;
     }
 
     @Override
     public final boolean isBeforeFirst() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        return this.currRow == 0;
+        checkClosed();
+        return currRow == 0;
     }
 
     @Override
     public final boolean isFirst() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        return this.currRow == 1;
+        checkClosed();
+        return currRow == 1;
     }
 
     @Override
     public final boolean isLast() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        return !this.hasNext();
+        checkClosed();
+        return !hasNext();
     }
 
     @Override
     public final boolean last() throws SQLException {
-        if (this.isClosed() || this.finished) {
-            throw new SQLException("data.world JDBC Result Sets are forward-only");
-        } else {
-            while (this.hasNext()) {
-                this.currItem = this.moveNext();
-                this.currRow++;
-            }
-            return true;
+        checkClosed();
+        check(!finished, "data.world JDBC Result Sets are forward-only");
+        while (hasNext()) {
+            currItem = moveNext();
+            currRow++;
         }
+        return true;
     }
 
     @Override
     public final boolean next() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Cannot move to the next row in a closed result set");
+        checkClosed();
+        if (hasNext()) {
+            currItem = moveNext();
+            currRow++;
+            return true;
         } else {
-            if (this.hasNext()) {
-                this.currItem = this.moveNext();
-                this.currRow++;
-                return true;
-            } else {
-                if (!this.finished) {
-                    this.currRow++;
-                }
-                this.finished = true;
-                return false;
+            if (!finished) {
+                currRow++;
             }
+            finished = true;
+            return false;
         }
     }
 
     @Override
     public final boolean relative(int rows) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Cannot move to a row after the result set has been closed");
-        } else if (rows == 0) {
+        checkClosed();
+        check(rows >= 0, "data.world JDBC result sets are forward only, cannot move backwards");
+        if (rows == 0) {
             // Already at the desired row
             return true;
-        } else if (rows < 0) {
-            throw new SQLException("data.world JDBC result sets are forward only, cannot move backwards");
-        } else {
-            // Before the desired row
-            int moved = 0;
-            while (this.hasNext() && moved < rows) {
-                this.currItem = this.moveNext();
-                this.currRow++;
-                moved++;
-            }
-            // If we didn't reach it we hit the end of the result set
-            if (moved < rows) {
-                this.finished = true;
-                this.currItem = null;
-            }
-            return (rows == moved);
         }
+        // Before the desired row
+        int moved = 0;
+        while (hasNext() && moved < rows) {
+            currItem = moveNext();
+            currRow++;
+            moved++;
+        }
+        // If we didn't reach it we hit the end of the result set
+        if (moved < rows) {
+            finished = true;
+            currItem = null;
+        }
+        return (rows == moved);
     }
 
     @Override
     public final void setFetchDirection(int direction) throws SQLException {
-        if (direction != ResultSet.FETCH_FORWARD) {
-            throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets only support forward fetch");
-        }
+        checkSupported(direction == ResultSet.FETCH_FORWARD, "data.world JDBC Result Sets only support forward fetch");
     }
 
     @Override

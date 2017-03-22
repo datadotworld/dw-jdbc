@@ -35,14 +35,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static world.data.jdbc.util.Conditions.check;
+
 /**
  * Represents SPARQL SELECT results
  */
-public class SelectResults extends StreamedResults<Binding> {
+public class SelectResults extends AbstractStreamedResults<Binding> {
 
     private ResultSetPeekable innerResults;
-    private List<String> columns;
-    private SelectResultsMetadata metadata;
+    private final List<String> columns;
+    private final SelectResultsMetadata metadata;
 
     /**
      * Creates new select results
@@ -56,26 +58,24 @@ public class SelectResults extends StreamedResults<Binding> {
             throws SQLException {
         super(statement, qe);
         this.innerResults = ResultSetFactory.makePeekable(results);
-        this.columns = new ArrayList<>(this.innerResults.getResultVars());
-        this.metadata = new SelectResultsMetadata(this, this.innerResults);
+        this.columns = new ArrayList<>(innerResults.getResultVars());
+        this.metadata = new SelectResultsMetadata(this, innerResults);
     }
 
     @Override
     public void closeStreamInternal() {
-        if (this.innerResults != null) {
-            if (this.innerResults instanceof Closeable) {
-                ((Closeable) this.innerResults).close();
+        if (innerResults != null) {
+            if (innerResults instanceof Closeable) {
+                ((Closeable) innerResults).close();
             }
-            this.innerResults = null;
+            innerResults = null;
         }
     }
 
     public int findColumn(String columnLabel) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        for (int i = 0; i < this.columns.size(); i++) {
-            if (this.columns.get(i).equals(columnLabel)) {
+        checkClosed();
+        for (int i = 0; i < columns.size(); i++) {
+            if (columns.get(i).equals(columnLabel)) {
                 // Remember that JDBC uses a 1 based index
                 return i + 1;
             }
@@ -85,34 +85,23 @@ public class SelectResults extends StreamedResults<Binding> {
 
     @Override
     protected String findColumnLabel(int columnIndex) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        if (columnIndex >= 1 && columnIndex <= this.columns.size()) {
-            // Remember that JDBC uses a 1 based index
-            return this.columns.get(columnIndex - 1);
-        } else {
-            throw new SQLException("Column Index is out of bounds");
-        }
+        checkClosed();
+        check(columnIndex >= 1 && columnIndex <= columns.size(), "Column Index is out of bounds");
+        // Remember that JDBC uses a 1 based index
+        return columns.get(columnIndex - 1);
     }
 
     @Override
     protected Node getNode(String columnLabel) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        if (this.getCurrentRow() == null) {
-            throw new SQLException("Not currently at a row");
-        }
-        if (!this.columns.contains(columnLabel)) {
-            throw new SQLException("The given column does not exist in the result set");
-        }
-        return this.getCurrentRow().get(Var.alloc(columnLabel));
+        checkClosed();
+        check(getCurrentRow() != null, "Not currently at a row");
+        check(columns.contains(columnLabel), "The given column does not exist in the result set");
+        return getCurrentRow().get(Var.alloc(columnLabel));
     }
 
     @Override
     public ResultSetMetaData getMetaData() {
-        return this.metadata;
+        return metadata;
     }
 
     /**
@@ -123,10 +112,9 @@ public class SelectResults extends StreamedResults<Binding> {
         // No null check here because superclass will not call us after we are
         // closed and set to null
         try {
-            return this.innerResults.hasNext();
+            return innerResults.hasNext();
         } catch (QueryCancelledException e) {
-            throw new SQLException("Query was cancelled, it is likely that your query exceeded the specified execution timeout",
-                    e);
+            throw new SQLException("Query was cancelled, it is likely that your query exceeded the specified execution timeout", e);
         } catch (Throwable e) {
             // Wrap as SQL exception
             throw new SQLException("Unexpected error while moving through results", e);
@@ -141,10 +129,9 @@ public class SelectResults extends StreamedResults<Binding> {
         // No null check here because superclass will not call us after we are
         // closed and set to null
         try {
-            return this.innerResults.nextBinding();
+            return innerResults.nextBinding();
         } catch (QueryCancelledException e) {
-            throw new SQLException("Query was cancelled, it is likely that your query exceeded the specified execution timeout",
-                    e);
+            throw new SQLException("Query was cancelled, it is likely that your query exceeded the specified execution timeout", e);
         } catch (Throwable e) {
             // Wrap as SQL exception
             throw new SQLException("Unexpected error while moving through results", e);

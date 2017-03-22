@@ -22,7 +22,6 @@ import org.apache.jena.jdbc.JdbcCompatibility;
 import org.apache.jena.jdbc.results.metadata.columns.BooleanColumn;
 import org.apache.jena.jdbc.results.metadata.columns.ColumnInfo;
 import world.data.jdbc.results.AskResults;
-import world.data.jdbc.results.DataWorldResultsSet;
 
 import java.sql.SQLException;
 
@@ -64,7 +63,7 @@ public class AskResultsMetadata extends DataWorldResultsMetadata {
      * @param results Results
      * @throws SQLException Thrown if the metadata cannot be created
      */
-    public AskResultsMetadata(DataWorldResultsSet results) throws SQLException {
+    public AskResultsMetadata(AskResults results) throws SQLException {
         super(results, AskResultsMetadata.getColumns());
     }
 

@@ -31,16 +31,18 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Iterator;
 
+import static world.data.jdbc.util.Conditions.check;
+
 /**
  * Represents results of a CONSTRUCT/DESCRIBE query where the results are
  * streamed
  */
-public class TripleIteratorResults extends StreamedResults<Triple> {
+public class TriplesResults extends AbstractStreamedResults<Triple> {
 
-    private TripleResultsMetadata metadata;
+    private final TripleResultsMetadata metadata;
     private PeekIterator<Triple> triples;
-    private String subjColumn, predColumn, objColumn;
-    private int numColumns;
+    private final String subjColumn, predColumn, objColumn;
+    private final int numColumns;
 
     /**
      * Creates a new result set which is backed by a triple iterator
@@ -50,27 +52,27 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
      * @param ts        Triple Iterator
      * @throws SQLException Thrown if there is a problem creating the results
      */
-    public TripleIteratorResults(DataWorldStatement statement, QueryExecution qe, Iterator<Triple> ts)
+    public TriplesResults(DataWorldStatement statement, QueryExecution qe, Iterator<Triple> ts)
             throws SQLException {
         super(statement, qe);
         this.triples = PeekIterator.create(ts);
-        this.metadata = new TripleResultsMetadata(this, this.triples);
-        this.numColumns = this.metadata.getColumnCount();
-        this.subjColumn = this.metadata.getSubjectColumnLabel();
-        this.predColumn = this.metadata.getPredicateColumnLabel();
-        this.objColumn = this.metadata.getObjectColumnLabel();
+        this.metadata = new TripleResultsMetadata(this, triples);
+        this.numColumns = metadata.getColumnCount();
+        this.subjColumn = metadata.getSubjectColumnLabel();
+        this.predColumn = metadata.getPredicateColumnLabel();
+        this.objColumn = metadata.getObjectColumnLabel();
     }
 
     @Override
     public int findColumn(String columnLabel) throws SQLException {
-        if (this.subjColumn != null && this.subjColumn.equals(columnLabel)) {
+        if (subjColumn != null && subjColumn.equals(columnLabel)) {
             return TripleResultsMetadata.COLUMN_INDEX_SUBJECT;
-        } else if (this.predColumn != null && this.predColumn.equals(columnLabel)) {
-            return this.subjColumn == null ? TripleResultsMetadata.COLUMN_INDEX_SUBJECT
+        } else if (predColumn != null && predColumn.equals(columnLabel)) {
+            return subjColumn == null ? TripleResultsMetadata.COLUMN_INDEX_SUBJECT
                     : TripleResultsMetadata.COLUMN_INDEX_PREDICATE;
-        } else if (this.objColumn != null && this.objColumn.equals(columnLabel)) {
-            return this.subjColumn == null && this.predColumn == null ? TripleResultsMetadata.COLUMN_INDEX_SUBJECT
-                    : (this.subjColumn == null || this.predColumn == null ? TripleResultsMetadata.COLUMN_INDEX_PREDICATE
+        } else if (objColumn != null && objColumn.equals(columnLabel)) {
+            return subjColumn == null && predColumn == null ? TripleResultsMetadata.COLUMN_INDEX_SUBJECT
+                    : (subjColumn == null || predColumn == null ? TripleResultsMetadata.COLUMN_INDEX_PREDICATE
                     : TripleResultsMetadata.COLUMN_INDEX_OBJECT);
         } else {
             throw new SQLException("Column " + columnLabel + " does not exist in these results");
@@ -82,10 +84,9 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
         // No null check here because superclass will not call us after we are
         // closed and set to null
         try {
-            return this.triples.hasNext();
+            return triples.hasNext();
         } catch (QueryCancelledException e) {
-            throw new SQLException("Query was cancelled, it is likely that your query exceeded the specified execution timeout",
-                    e);
+            throw new SQLException("Query was cancelled, it is likely that your query exceeded the specified execution timeout", e);
         } catch (Throwable e) {
             // Wrap as SQL exception
             throw new SQLException("Unexpected error while moving through results", e);
@@ -95,10 +96,9 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
     @Override
     protected Triple moveNext() throws SQLException {
         try {
-            return this.triples.next();
+            return triples.next();
         } catch (QueryCancelledException e) {
-            throw new SQLException("Query was cancelled, it is likely that your query exceeded the specified execution timeout",
-                    e);
+            throw new SQLException("Query was cancelled, it is likely that your query exceeded the specified execution timeout", e);
         } catch (Throwable e) {
             // Wrap as SQL exception
             throw new SQLException("Unexpected error while moving through results", e);
@@ -107,11 +107,11 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
 
     @Override
     protected void closeStreamInternal() {
-        if (this.triples != null) {
-            if (this.triples instanceof Closeable) {
-                ((Closeable) this.triples).close();
+        if (triples != null) {
+            if (triples instanceof Closeable) {
+                ((Closeable) triples).close();
             }
-            this.triples = null;
+            triples = null;
         }
     }
 
@@ -122,43 +122,33 @@ public class TripleIteratorResults extends StreamedResults<Triple> {
 
     @Override
     protected String findColumnLabel(int columnIndex) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        if (columnIndex >= 1 && columnIndex <= this.numColumns) {
-            switch (columnIndex) {
-                case TripleResultsMetadata.COLUMN_INDEX_SUBJECT:
-                    return this.subjColumn != null ? this.subjColumn : (this.predColumn != null ? this.predColumn : this.objColumn);
-                case TripleResultsMetadata.COLUMN_INDEX_PREDICATE:
-                    return this.subjColumn != null && this.predColumn != null ? this.predColumn : this.objColumn;
-                case TripleResultsMetadata.COLUMN_INDEX_OBJECT:
-                    return this.objColumn;
-                default:
-                    throw new SQLException("Column Index is out of bounds");
-            }
-        } else {
-            throw new SQLException("Column Index is out of bounds");
+        checkClosed();
+        check(columnIndex >= 1 && columnIndex <= numColumns, "Column Index is out of bounds");
+        switch (columnIndex) {
+            case TripleResultsMetadata.COLUMN_INDEX_SUBJECT:
+                return subjColumn != null ? subjColumn : (predColumn != null ? predColumn : objColumn);
+            case TripleResultsMetadata.COLUMN_INDEX_PREDICATE:
+                return subjColumn != null && predColumn != null ? predColumn : objColumn;
+            case TripleResultsMetadata.COLUMN_INDEX_OBJECT:
+                return objColumn;
+            default:
+                throw new SQLException("Column Index is out of bounds");
         }
     }
 
     @Override
     protected Node getNode(String columnLabel) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        if (this.getCurrentRow() == null) {
-            throw new SQLException("Not currently at a row");
-        }
-        Triple t = this.getCurrentRow();
-        if (this.subjColumn != null && this.subjColumn.equals(columnLabel)) {
+        checkClosed();
+        check(getCurrentRow() != null, "Not currently at a row");
+        Triple t = getCurrentRow();
+        if (subjColumn != null && subjColumn.equals(columnLabel)) {
             return t.getSubject();
-        } else if (this.predColumn != null && this.predColumn.equals(columnLabel)) {
+        } else if (predColumn != null && predColumn.equals(columnLabel)) {
             return t.getPredicate();
-        } else if (this.objColumn != null && this.objColumn.equals(columnLabel)) {
+        } else if (objColumn != null && objColumn.equals(columnLabel)) {
             return t.getObject();
         } else {
             throw new SQLException("Unknown column label");
         }
     }
 }
-

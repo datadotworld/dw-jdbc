@@ -27,11 +27,9 @@ import org.apache.jena.sparql.resultset.ResultSetPeekable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.results.DataWorldResultsSet;
 import world.data.jdbc.results.SelectResults;
 
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Types;
 import java.util.List;
 
@@ -48,7 +46,7 @@ public class SelectResultsMetadata extends DataWorldResultsMetadata {
      * @param results JDBC result set
      * @param rset    Underlying SPARQL results
      */
-    public SelectResultsMetadata(DataWorldResultsSet results, ResultSetPeekable rset) throws SQLException {
+    public SelectResultsMetadata(SelectResults results, ResultSetPeekable rset) throws SQLException {
         super(results, makeColumns(results, rset));
     }
 
@@ -61,7 +59,7 @@ public class SelectResultsMetadata extends DataWorldResultsMetadata {
      * @return Column information
      * @throws SQLException Thrown if the column information cannot be created
      */
-    private static ColumnInfo[] makeColumns(DataWorldResultsSet results, ResultSetPeekable rset) throws SQLException {
+    private static ColumnInfo[] makeColumns(SelectResults results, ResultSetPeekable rset) throws SQLException {
         List<String> vars = rset.getResultVars();
         ColumnInfo[] columns = new ColumnInfo[vars.size()];
 
@@ -93,14 +91,12 @@ public class SelectResultsMetadata extends DataWorldResultsMetadata {
                 // NVARCHAR with String as the column class
                 columns[i] = new StringColumn(vars.get(i), columnNullable);
                 LOGGER.info("Medium JDBC compatibility, column " + vars.get(i) + " is being typed as String");
-            } else if (columnsDetected) {
+            } else {
                 // High compatibility, detect columns types based on first row
                 // of results
                 columns[i] = JdbcCompatibility.detectColumnType(vars.get(i), b.get(Var.alloc(vars.get(i))), true);
                 LOGGER.info("High compatibility, column " + vars.get(i) + " was detected as being of type "
                         + columns[i].getClassName());
-            } else {
-                throw new SQLFeatureNotSupportedException("Unknown JDBC compatibility level was set");
             }
         }
 

@@ -183,7 +183,7 @@ public class DataWorldConnectionTest {
         assertSQLFeatureNotSupported(connection::getNetworkTimeout);
         assertSQLFeatureNotSupported(connection::getSchema);
         assertSQLFeatureNotSupported(connection::getTypeMap);
-        assertSQLFeatureNotSupported(() -> connection.isWrapperFor(this.getClass()));
+        assertSQLFeatureNotSupported(() -> connection.isWrapperFor(getClass()));
         assertSQLFeatureNotSupported(() -> connection.nativeSQL(""));
         assertSQLFeatureNotSupported(() -> connection.prepareStatement("", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE, 0));
         assertSQLFeatureNotSupported(() -> connection.prepareStatement("", ResultSet.TYPE_SCROLL_INSENSITIVE, 0, 0));
@@ -196,6 +196,6 @@ public class DataWorldConnectionTest {
         assertSQLFeatureNotSupported(() -> connection.setSchema("foo"));
         assertSQLFeatureNotSupported(() -> connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED));
         assertSQLFeatureNotSupported(() -> connection.setTypeMap(null));
-        assertSQLFeatureNotSupported(() -> connection.unwrap(this.getClass()));
+        assertSQLFeatureNotSupported(() -> connection.unwrap(getClass()));
     }
 }
