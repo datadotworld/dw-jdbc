@@ -20,354 +20,247 @@ package world.data.jdbc.results;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import world.data.jdbc.NanoHTTPDResource;
-import world.data.jdbc.SparqlTest;
-import world.data.jdbc.TestConfigSource;
+import world.data.jdbc.testing.NanoHTTPDHandler;
+import world.data.jdbc.testing.NanoHTTPDResource;
+import world.data.jdbc.testing.SparqlHelper;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 
+import static fi.iki.elonen.NanoHTTPD.Method.GET;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
+import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
 public class AskResultsTest {
 
-    private static String lastUri;
-    private static final String resultResourceName = "ask.json";
+    private static NanoHTTPDHandler lastBackendRequest;
+    private static final String resultResourceName = "/ask.json";
     private static final String resultMimeType = "application/json";
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
         @Override
         protected NanoHTTPD.Response serve(NanoHTTPD.IHTTPSession session) throws Exception {
-            final String queryParameterString = session.getQueryParameterString();
-            if (queryParameterString != null) {
-                lastUri = "http://localhost:3333" + session.getUri() + '?' + queryParameterString;
-            } else {
-                lastUri = "http://localhost:3333" + session.getUri();
-            }
-            return newResponse(NanoHTTPD.Response.Status.OK, resultMimeType, IOUtils.toString(SparqlTest.class.getResourceAsStream("/" + resultResourceName)));
+            NanoHTTPDHandler.invoke(session, lastBackendRequest);
+            String body = IOUtils.toString(getClass().getResourceAsStream(resultResourceName), UTF_8);
+            return newResponse(NanoHTTPD.Response.Status.OK, resultMimeType, body);
         }
     };
 
+    @Rule
+    public final SparqlHelper sparql = new SparqlHelper();
+
+    @Before
+    public void setup() {
+        lastBackendRequest = mock(NanoHTTPDHandler.class);
+    }
+
+    private ResultSet sampleResultSet() throws SQLException {
+        Statement statement = sparql.createStatement(sparql.connect());
+        return sparql.executeQuery(statement, "ask{?s ?p ?o.}");
+    }
+
     @Test
     public void absolute() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.absolute(1)).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(1);
-            assertThat(resultSet.absolute(-1)).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(1);
-            assertThat(resultSet.absolute(0)).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(1);
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.absolute(1)).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(1);
+        assertThat(resultSet.absolute(-1)).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(1);
+        assertThat(resultSet.absolute(0)).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(1);
     }
 
     @Test
     public void relative() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.relative(1)).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(1);
-            assertThat(resultSet.relative(-1)).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(0);
-            assertThat(resultSet.relative(0)).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(0);
-            assertThat(resultSet.relative(2)).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(2);
-            assertThat(resultSet.relative(-2)).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(0);
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.relative(1)).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(1);
+        assertThat(resultSet.relative(-1)).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(0);
+        assertThat(resultSet.relative(0)).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(0);
+        assertThat(resultSet.relative(2)).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(2);
+        assertThat(resultSet.relative(-2)).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(0);
     }
 
-    @Test(expected = SQLException.class)
-    public void relativeClosed() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.close();
-            assertThat(resultSet.relative(1)).isTrue();
-        }
-    }
-
-    @Test(expected = SQLException.class)
+    @Test
     public void relativeOOBE() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.relative(3)).isTrue();
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertSQLException(() -> resultSet.relative(3));
     }
 
-    @Test(expected = SQLException.class)
+    @Test
     public void absoluteFail() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.absolute(3)).isTrue();
-        }
-    }
-
-    @Test(expected = SQLException.class)
-    public void absoluteClosed() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.close();
-            assertThat(resultSet.absolute(1)).isTrue();
-        }
-    }
-
-    @Test(expected = SQLException.class)
-    public void absoluteTooFar() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.close();
-            assertThat(resultSet.absolute(3)).isFalse();
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertSQLException(() -> resultSet.absolute(3));
     }
 
     @Test
     public void afterLast() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.afterLast();
-            assertThat(resultSet.isAfterLast()).isTrue();
-            assertThat(resultSet.getRow()).isEqualTo(2);
-            assertThat(resultSet.isAfterLast()).isTrue();
-        }
+        ResultSet resultSet = sampleResultSet();
+        resultSet.afterLast();
+        assertThat(resultSet.isAfterLast()).isTrue();
+        assertThat(resultSet.getRow()).isEqualTo(2);
+        assertThat(resultSet.isAfterLast()).isTrue();
     }
 
     @Test
     public void beforeFirst() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.isBeforeFirst()).isTrue();
-            resultSet.beforeFirst();
-            assertThat(resultSet.getRow()).isEqualTo(0);
-            assertThat(resultSet.isBeforeFirst()).isTrue();
-            resultSet.afterLast();
-            assertThat(resultSet.isBeforeFirst()).isFalse();
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.isBeforeFirst()).isTrue();
+        resultSet.beforeFirst();
+        assertThat(resultSet.getRow()).isEqualTo(0);
+        assertThat(resultSet.isBeforeFirst()).isTrue();
+        resultSet.afterLast();
+        assertThat(resultSet.isBeforeFirst()).isFalse();
     }
 
     @Test
     public void findColumn() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.findColumn("ASK")).isEqualTo(1);
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.findColumn("ASK")).isEqualTo(1);
     }
 
-    @Test(expected = SQLException.class)
+    @Test
     public void findColumnFail() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.findColumn("BAD_ASK")).isEqualTo(1);
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertSQLException(() -> resultSet.findColumn("BAD_ASK"));
     }
 
     @Test
     public void getFetchDirection() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.getFetchDirection()).isEqualTo(ResultSet.FETCH_FORWARD);
-            assertThat(resultSet.getType()).isEqualTo(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.getFetchDirection()).isEqualTo(ResultSet.FETCH_FORWARD);
+        assertThat(resultSet.getType()).isEqualTo(ResultSet.TYPE_SCROLL_INSENSITIVE);
     }
 
     @Test
     public void getFetchSize() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.getFetchSize()).isEqualTo(1);
-        }
-    }
-
-    @Test(expected = SQLException.class)
-    public void isAfterLastClosed() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.close();
-            assertThat(resultSet.isAfterLast()).isFalse();
-        }
-    }
-
-    @Test(expected = SQLException.class)
-    public void isBeforeFirstClosed() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.close();
-            assertThat(resultSet.isBeforeFirst()).isFalse();
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.getFetchSize()).isEqualTo(1);
     }
 
     @Test
     public void isClosed() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.isClosed()).isFalse();
-            resultSet.close();
-            assertThat(resultSet.isClosed()).isTrue();
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.isClosed()).isFalse();
+        resultSet.close();
+        assertThat(resultSet.isClosed()).isTrue();
     }
 
-    @Test(expected = SQLException.class)
+    @Test
     public void isFirst() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.isFirst()).isFalse();
-            resultSet.next();
-            assertThat(resultSet.isFirst()).isTrue();
-            resultSet.close();
-            assertThat(resultSet.isFirst()).isTrue();
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.isFirst()).isFalse();
+        resultSet.next();
+        assertThat(resultSet.isFirst()).isTrue();
     }
 
-    @Test(expected = SQLException.class)
+    @Test
     public void isLast() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.isLast()).isFalse();
-            resultSet.next();
-            assertThat(resultSet.isLast()).isTrue();
-            resultSet.close();
-            assertThat(resultSet.isLast()).isTrue();
-        }
-    }
-
-    @Test(expected = SQLFeatureNotSupportedException.class)
-    public void setFetchDirectionFail() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.setFetchDirection(ResultSet.FETCH_REVERSE);
-        }
+        ResultSet resultSet = sampleResultSet();
+        assertThat(resultSet.isLast()).isFalse();
+        resultSet.next();
+        assertThat(resultSet.isLast()).isTrue();
     }
 
     @Test
     public void setFetchDirection() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.setFetchDirection(ResultSet.FETCH_FORWARD);
-        }
+        ResultSet resultSet = sampleResultSet();
+        resultSet.setFetchDirection(ResultSet.FETCH_FORWARD);
     }
 
-    @Test(expected = SQLFeatureNotSupportedException.class)
-    public void setFetchSize() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.setFetchSize(3);
-        }
-    }
-
-    @Test(expected = SQLException.class)
+    @Test
     public void findColumnLabel() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final AskResults resultSet = (AskResults) statement.executeQuery("ask{?s ?p ?o.}")) {
-            assertThat(resultSet.findColumnLabel(1)).isEqualTo("ASK");
-            assertThat(resultSet.findColumnLabel(0));
-        }
+        AskResults resultSet = (AskResults) sampleResultSet();
+        assertThat(resultSet.findColumnLabel(1)).isEqualTo("ASK");
+        assertSQLException(() -> resultSet.findColumnLabel(0));
     }
 
-    @Test(expected = SQLException.class)
+    @Test
     public void getNode() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final AskResults resultSet = (AskResults) statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.next();
-            assertThat(resultSet.getNode("FOO"));
-        }
+        AskResults resultSet = (AskResults) sampleResultSet();
+        resultSet.next();
+        assertSQLException(() -> resultSet.getNode("FOO"));
     }
 
     @Test
     public void getBoolean() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final AskResults resultSet = (AskResults) statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.next();
-            assertThat(resultSet.getBoolean("ASK")).isTrue();
-        }
+        ResultSet resultSet = sampleResultSet();
+        resultSet.next();
+        assertThat(resultSet.getBoolean("ASK")).isTrue();
     }
 
-    @Test(expected = SQLException.class)
-    public void getBooleanClosed() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final AskResults resultSet = (AskResults) statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.close();
-            assertThat(resultSet.getBoolean("ASK")).isTrue();
-        }
-    }
-
-    @Test(expected = SQLException.class)
+    @Test
     public void getBooleanBadRow() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final AskResults resultSet = (AskResults) statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.beforeFirst();
-            assertThat(resultSet.getBoolean("ASK")).isTrue();
-        }
+        ResultSet resultSet = sampleResultSet();
+        resultSet.beforeFirst();
+        assertSQLException(() -> resultSet.getBoolean("ASK"));
     }
 
-    @Test(expected = SQLException.class)
-    public void getBooleanBaColumn() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final AskResults resultSet = (AskResults) statement.executeQuery("ask{?s ?p ?o.}")) {
-            resultSet.next();
-            assertThat(resultSet.getBoolean("FOO")).isTrue();
-        }
+    @Test
+    public void getBooleanBadColumn() throws Exception {
+        ResultSet resultSet = sampleResultSet();
+        resultSet.next();
+        assertSQLException(() -> resultSet.getBoolean("FOO"));
     }
 
     @Test
     public void testAsk() throws Exception {
-        try (final Connection connection = DriverManager.getConnection("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset", TestConfigSource.testProperties());
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("ask{?s ?p ?o.}")) {
-            ResultSetMetaData rsmd = resultSet.getMetaData();
-            int columnsNumber = rsmd.getColumnCount();
+        ResultSet resultSet = sampleResultSet();
+        ResultSetMetaData rsmd = resultSet.getMetaData();
+        int columnsNumber = rsmd.getColumnCount();
+        for (int i = 1; i <= columnsNumber; i++) {
+            if (i > 1) {
+                System.out.print(",  ");
+            }
+            System.out.print(rsmd.getColumnName(i));
+        }
+        System.out.println("");
+        while (resultSet.next()) {
             for (int i = 1; i <= columnsNumber; i++) {
                 if (i > 1) {
                     System.out.print(",  ");
                 }
-                System.out.print(rsmd.getColumnName(i));
+                String columnValue = resultSet.getString(i);
+                System.out.print(columnValue);
             }
             System.out.println("");
-            while (resultSet.next()) {
-                for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) {
-                        System.out.print(",  ");
-                    }
-                    String columnValue = resultSet.getString(i);
-                    System.out.print(columnValue);
-                }
-                System.out.println("");
-            }
         }
-        assertThat(lastUri).isEqualTo("http://localhost:3333/sparql/dave/lahman-sabremetrics-dataset?query=ASK%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0A");
+        verify(lastBackendRequest).handle(GET, "/sparql/dave/lahman-sabremetrics-dataset", "query=ASK%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0A");
+    }
+
+    @Test
+    public void testAllClosed() throws Exception {
+        ResultSet resultSet = sampleResultSet();
+        resultSet.close();
+        assertSQLException(() -> resultSet.absolute(1));
+        assertSQLException(() -> resultSet.absolute(3));
+        assertSQLException(() -> resultSet.getBoolean("ASK"));
+        assertSQLException(resultSet::isAfterLast);
+        assertSQLException(resultSet::isBeforeFirst);
+        assertSQLException(resultSet::isFirst);
+        assertSQLException(resultSet::isLast);
+        assertSQLException(() -> resultSet.relative(1));
+    }
+
+    @Test
+    public void testAllNotSupported() throws Exception {
+        ResultSet resultSet = sampleResultSet();
+        assertSQLFeatureNotSupported(() -> resultSet.setFetchDirection(ResultSet.FETCH_REVERSE));
+        assertSQLFeatureNotSupported(() -> resultSet.setFetchSize(3));
     }
 }

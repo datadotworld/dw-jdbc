@@ -16,15 +16,15 @@
 *
 * This product includes software developed at data.world, Inc.(http://www.data.world/).
 */
-package world.data.jdbc;
+package world.data.jdbc.testing;
 
 import java.util.Properties;
 
-public class TestConfigSource {
-    public static Properties testProperties() {
-        final Properties out = new Properties();
+class TestConfigSource {
+    static Properties testProperties() {
+        Properties out = new Properties();
         out.setProperty("user", "");
-        out.setProperty("password", "token");
+        out.setProperty("password", "access-token");
         out.setProperty("querybaseurl", "http://localhost:3333");
         return out;
     }

@@ -16,9 +16,11 @@
 *
 * This product includes software developed at data.world, Inc.(http://www.data.world/).
 */
-package world.data.jdbc;
+package world.data.jdbc.testing;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.IHTTPSession;
+import fi.iki.elonen.NanoHTTPD.Response;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ext.com.google.common.base.Throwables;
 import org.junit.rules.ExternalResource;
@@ -53,10 +55,10 @@ public abstract class NanoHTTPDResource extends ExternalResource {
         apiServer.stop();
     }
 
-    protected abstract NanoHTTPD.Response serve(final NanoHTTPD.IHTTPSession session) throws Exception;
+    protected abstract Response serve(IHTTPSession session) throws Exception;
 
-    protected static NanoHTTPD.Response newResponse(NanoHTTPD.Response.Status status, String mimeType, String body) {
-        NanoHTTPD.Response response = NanoHTTPD.newFixedLengthResponse(status, mimeType, body);
+    protected static Response newResponse(Response.Status status, String mimeType, String body) {
+        Response response = NanoHTTPD.newFixedLengthResponse(status, mimeType, body);
         response.addHeader(HttpHeaders.CONNECTION, "close");  // avoid errors due to ignoring the POST body
         return response;
     }
