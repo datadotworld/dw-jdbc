@@ -27,15 +27,14 @@ import org.apache.jena.jdbc.results.metadata.columns.StringColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.results.DataWorldResultsSet;
-import world.data.jdbc.results.TripleIteratorResults;
+import world.data.jdbc.results.TriplesResults;
 
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Types;
 
 /**
- * Result set metadata for {@link TripleIteratorResults} instances
+ * Result set metadata for {@link TriplesResults} instances
  */
 public class TripleResultsMetadata extends DataWorldResultsMetadata {
 
@@ -80,7 +79,7 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
      * @param ts      Underlying triples
      * @return Column Information
      */
-    private static ColumnInfo[] makeColumns(DataWorldResultsSet results, PeekIterator<Triple> ts) throws SQLException {
+    private static ColumnInfo[] makeColumns(TriplesResults results, PeekIterator<Triple> ts) throws SQLException {
         return makeColumns(results, ts, COLUMN_LABEL_SUBJECT, COLUMN_LABEL_PREDICATE, COLUMN_LABEL_OBJECT);
     }
 
@@ -97,7 +96,7 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
      *                  column
      * @return Column Information
      */
-    private static ColumnInfo[] makeColumns(DataWorldResultsSet results, PeekIterator<Triple> ts, String subjLabel, String predLabel,
+    private static ColumnInfo[] makeColumns(TriplesResults results, PeekIterator<Triple> ts, String subjLabel, String predLabel,
                                             String objLabel) throws SQLException {
         int numColumns = 0;
         if (subjLabel != null) {
@@ -182,7 +181,7 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
      * @param ts      Triple iterator
      * @throws SQLException Thrown if the metadata cannot be created
      */
-    public TripleResultsMetadata(DataWorldResultsSet results, PeekIterator<Triple> ts) throws SQLException {
+    public TripleResultsMetadata(TriplesResults results, PeekIterator<Triple> ts) throws SQLException {
         super(results, makeColumns(results, ts));
         this.subjColumn = COLUMN_LABEL_SUBJECT;
         this.predColumn = COLUMN_LABEL_PREDICATE;
@@ -195,7 +194,7 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
      * @return Column label or {@code null} if the column is omitted
      */
     public String getSubjectColumnLabel() {
-        return this.subjColumn;
+        return subjColumn;
     }
 
     /**
@@ -204,7 +203,7 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
      * @return Column label or {@code null} if the column is omitted
      */
     public String getPredicateColumnLabel() {
-        return this.predColumn;
+        return predColumn;
     }
 
     /**
@@ -213,6 +212,6 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
      * @return Column label or {@code null} if the column is omitted
      */
     public String getObjectColumnLabel() {
-        return this.objColumn;
+        return objColumn;
     }
 }

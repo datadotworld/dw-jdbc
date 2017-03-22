@@ -29,15 +29,19 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 
+import static world.data.jdbc.util.Conditions.check;
+import static world.data.jdbc.util.Conditions.checkSupported;
+
 /**
  * Represents an ASK result
  */
-public class AskResults extends DataWorldResultsSet {
+public class AskResults extends AbstractResultsSet {
 
-    private boolean result, closed = false;
-    private int currRow = 0;
-    private AskResultsMetadata metadata;
-    private String columnLabel;
+    private final boolean result;
+    private final AskResultsMetadata metadata;
+    private final String columnLabel;
+    private int currRow;
+    private boolean closed;
 
     /**
      * Creates a new ASK result
@@ -50,18 +54,17 @@ public class AskResults extends DataWorldResultsSet {
         super(statement);
         this.result = result;
         this.metadata = new AskResultsMetadata(this);
-        this.columnLabel = this.metadata.getColumnLabel(AskResultsMetadata.COLUMN_INDEX_ASK);
+        this.columnLabel = metadata.getColumnLabel(AskResultsMetadata.COLUMN_INDEX_ASK);
     }
 
     public boolean absolute(int row) throws SQLException {
+        checkClosed();
         // We can move backwards and forwards in an ASK result but there
         // is only ever a single row
-        if (this.isClosed()) {
-            throw new SQLException("Cannot move to a row after the result set has been closed");
-        } else if (row == 1) {
-            return this.first();
+        if (row == 1) {
+            return first();
         } else if (row == -1) {
-            return this.last();
+            return last();
         } else if (row == 0) {
             return true;
         } else {
@@ -70,32 +73,28 @@ public class AskResults extends DataWorldResultsSet {
     }
 
     public void afterLast() {
-        this.currRow = 2;
+        currRow = 2;
     }
 
     public void beforeFirst() {
-        this.currRow = 0;
+        currRow = 0;
     }
 
     public void close() throws SQLException {
-        if (this.closed) {
+        if (closed) {
             return;
         }
-        this.closed = true;
+        closed = true;
     }
 
     public int findColumn(String columnLabel) throws SQLException {
-        if (this.columnLabel.equals(columnLabel)) {
-            return 1;
-        }
-        throw new SQLException("The given column does not exist in this result set");
+        check(this.columnLabel.equals(columnLabel), "The given column does not exist in this result set");
+        return 1;
     }
 
     public boolean first() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Cannot move to a row after the result set has been closed");
-        }
-        this.currRow = 1;
+        checkClosed();
+        currRow = 1;
         return true;
     }
 
@@ -108,7 +107,7 @@ public class AskResults extends DataWorldResultsSet {
     }
 
     public int getRow() {
-        return this.currRow;
+        return currRow;
     }
 
     public int getType() {
@@ -116,66 +115,53 @@ public class AskResults extends DataWorldResultsSet {
     }
 
     public boolean isAfterLast() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        return this.currRow == 2;
+        checkClosed();
+        return currRow == 2;
     }
 
     public boolean isBeforeFirst() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        return this.currRow == 0;
+        checkClosed();
+        return currRow == 0;
     }
 
     public boolean isClosed() {
-        return this.closed;
+        return closed;
     }
 
     public boolean isFirst() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        return this.currRow == 1;
+        checkClosed();
+        return currRow == 1;
     }
 
     public boolean isLast() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        return this.currRow == 1;
+        checkClosed();
+        return currRow == 1;
     }
 
     public boolean last() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Cannot move to a row after the result set has been closed");
-        }
-        this.currRow = 1;
+        checkClosed();
+        currRow = 1;
         return true;
     }
 
     public boolean next() throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Cannot move to a row after the result set has been closed");
+        checkClosed();
+        if (currRow < 2) {
+            currRow++;
         }
-        if (this.currRow < 2) {
-            this.currRow++;
-        }
-        return this.currRow == 1;
+        return currRow == 1;
     }
 
     public boolean relative(int rows) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Cannot move to a row after the result set has been closed");
-        } else if (this.currRow == 0 && (rows >= 0 && rows <= 2)) {
-            this.currRow += rows;
+        checkClosed();
+        if (currRow == 0 && (rows >= 0 && rows <= 2)) {
+            currRow += rows;
             return true;
-        } else if (this.currRow == 1 && (rows >= -1 && rows <= 1)) {
-            this.currRow += rows;
+        } else if (currRow == 1 && (rows >= -1 && rows <= 1)) {
+            currRow += rows;
             return true;
-        } else if (this.currRow == 2 && (rows >= -2 && rows <= 0)) {
-            this.currRow += rows;
+        } else if (currRow == 2 && (rows >= -2 && rows <= 0)) {
+            currRow += rows;
             return true;
         } else {
             throw new SQLException("Moving the requested number of rows would be outside the allowable range of rows");
@@ -183,9 +169,7 @@ public class AskResults extends DataWorldResultsSet {
     }
 
     public void setFetchDirection(int direction) throws SQLException {
-        if (direction != ResultSet.FETCH_FORWARD) {
-            throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets only support forward fetch");
-        }
+        checkSupported(direction == ResultSet.FETCH_FORWARD, "data.world JDBC Result Sets only support forward fetch");
     }
 
     public void setFetchSize(int rows) throws SQLException {
@@ -194,47 +178,33 @@ public class AskResults extends DataWorldResultsSet {
 
     @Override
     public ResultSetMetaData getMetaData() {
-        return this.metadata;
+        return metadata;
     }
 
     @Override
     protected String findColumnLabel(int columnIndex) throws SQLException {
-        if (columnIndex == AskResultsMetadata.COLUMN_INDEX_ASK) {
-            return this.columnLabel;
-        }
-        throw new SQLException("Column Index is out of bounds");
+        check(columnIndex == AskResultsMetadata.COLUMN_INDEX_ASK, "Column Index is out of bounds");
+        return columnLabel;
     }
 
     @Override
     protected Node getNode(String columnLabel) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        if (this.currRow != 1) {
-            throw new SQLException("Not currently at a row");
-        }
-        if (this.columnLabel.equals(columnLabel)) {
-            return NodeFactory.createLiteral(Boolean.toString(this.result), XSDDatatype.XSDboolean);
-        } else {
-            throw new SQLException("The given column does not exist in the result set");
-        }
+        checkClosed();
+        check(currRow == 1, "Not currently at a row");
+        check(this.columnLabel.equals(columnLabel), "The given column does not exist in the result set");
+        return NodeFactory.createLiteral(Boolean.toString(result), XSDDatatype.XSDboolean);
     }
 
     @Override
     public boolean getBoolean(String columnLabel) throws SQLException {
-        if (this.isClosed()) {
-            throw new SQLException("Result Set is closed");
-        }
-        if (this.currRow != 1) {
-            throw new SQLException("Not currently at a row");
-        }
-        if (this.columnLabel.equals(columnLabel)) {
-            this.setNull(false);
-            return this.result;
-        } else {
-            throw new SQLException("The given column does not exist in the result set");
-        }
+        checkClosed();
+        check(currRow == 1, "Not currently at a row");
+        check(this.columnLabel.equals(columnLabel), "The given column does not exist in the result set");
+        setNull(false);
+        return result;
     }
 
-
+    private void checkClosed() throws SQLException {
+        check(!closed, "Result Set is closed");
+    }
 }

@@ -37,6 +37,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import static world.data.jdbc.util.Conditions.check;
+
 /**
  * <p>
  * Class containing constants and helper methods related to JDBC compatibility
@@ -166,34 +168,33 @@ public class JdbcCompatibility {
             // If we are allowing nulls and the value is null just type the
             // column as string
             return new StringColumn(var, ResultSetMetaData.columnNullable);
-        } else if (!allowsNulls && value == null) {
-            throw new SQLException("Unable to determine column type, column is non-nullable but example value is null");
-        } else {
-            // We know we have a non-null value so now we need to determine the
-            // column type appropriately
-            int nullable = allowsNulls ? ResultSetMetaData.columnNullable : ResultSetMetaData.columnNoNulls;
-            if (value.isBlank()) {
-                // Type blank nodes as strings
-                return new StringColumn(var, nullable);
-            } else if (value.isURI()) {
-                // Type URIs as strings
-                // TODO: Does JDBC have a URL type?
-                return new StringColumn(var, nullable);
-            } else if (value.isLiteral()) {
-                // Literals will be typed based on the declared data type where
-                // applicable
-                String dtUri = value.getLiteralDatatypeURI();
-                if (dtUri != null) {
-                    // Is a typed literal
-                    return selectColumnType(var, dtUri, nullable);
-                } else {
-                    // Untyped literals are typed as strings
-                    return new StringColumn(var, nullable);
-                }
+        }
+        check(allowsNulls || value != null, "Unable to determine column type, column is non-nullable but example value is null");
+
+        // We know we have a non-null value so now we need to determine the
+        // column type appropriately
+        int nullable = allowsNulls ? ResultSetMetaData.columnNullable : ResultSetMetaData.columnNoNulls;
+        if (value.isBlank()) {
+            // Type blank nodes as strings
+            return new StringColumn(var, nullable);
+        } else if (value.isURI()) {
+            // Type URIs as strings
+            // TODO: Does JDBC have a URL type?
+            return new StringColumn(var, nullable);
+        } else if (value.isLiteral()) {
+            // Literals will be typed based on the declared data type where
+            // applicable
+            String dtUri = value.getLiteralDatatypeURI();
+            if (dtUri != null) {
+                // Is a typed literal
+                return selectColumnType(var, dtUri, nullable);
             } else {
-                // Anything else we treat as a string
+                // Untyped literals are typed as strings
                 return new StringColumn(var, nullable);
             }
+        } else {
+            // Anything else we treat as a string
+            return new StringColumn(var, nullable);
         }
     }
 

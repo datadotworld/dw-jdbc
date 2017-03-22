@@ -73,7 +73,7 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setBigDecimal(String parameterName, BigDecimal value) throws SQLException {
-        this.setParameter(parameterName, LiteralFactory.bigDecimalToNode(value));
+        setParameter(parameterName, LiteralFactory.bigDecimalToNode(value));
     }
 
     @Override
@@ -108,12 +108,12 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setBoolean(String parameterName, boolean value) throws SQLException {
-        this.setParameter(parameterName, LiteralFactory.booleanToNode(value));
+        setParameter(parameterName, LiteralFactory.booleanToNode(value));
     }
 
     @Override
     public void setByte(String parameterName, byte value) throws SQLException {
-        this.setParameter(parameterName, LiteralFactory.byteToNode(value));
+        setParameter(parameterName, LiteralFactory.byteToNode(value));
     }
 
     @Override
@@ -153,7 +153,7 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setDate(String parameterName, Date value) throws SQLException {
-        this.setParameter(parameterName, LiteralFactory.dateTimeToNode(value));
+        setParameter(parameterName, LiteralFactory.dateTimeToNode(value));
     }
 
     @Override
@@ -163,22 +163,22 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setDouble(String parameterName, double value) throws SQLException {
-        this.setParameter(parameterName, LiteralFactory.doubleToNode(value));
+        setParameter(parameterName, LiteralFactory.doubleToNode(value));
     }
 
     @Override
     public void setFloat(String parameterName, float value) throws SQLException {
-        this.setParameter(parameterName, LiteralFactory.floatToNode(value));
+        setParameter(parameterName, LiteralFactory.floatToNode(value));
     }
 
     @Override
     public void setInt(String parameterName, int value) throws SQLException {
-        this.setParameter(parameterName, NodeFactoryExtra.intToNode(value));
+        setParameter(parameterName, NodeFactoryExtra.intToNode(value));
     }
 
     @Override
     public void setLong(String parameterName, long value) throws SQLException {
-        this.setParameter(parameterName, NodeFactoryExtra.intToNode(value));
+        setParameter(parameterName, NodeFactoryExtra.intToNode(value));
     }
 
     @Override
@@ -208,7 +208,7 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setNString(String parameterName, String value) throws SQLException {
-        this.setParameter(parameterName, NodeFactory.createLiteral(value));
+        setParameter(parameterName, NodeFactory.createLiteral(value));
     }
 
     @Override
@@ -223,12 +223,12 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setObject(String parameterName, Object value) throws SQLException {
-        this.setParameter(parameterName, objectToNode(value));
+        setParameter(parameterName, objectToNode(value));
     }
 
     @Override
     public void setObject(String parameterName, Object value, int targetSqlType) throws SQLException {
-        this.setParameter(parameterName, objectToNode(value, targetSqlType));
+        setParameter(parameterName, objectToNode(value, targetSqlType));
     }
 
     @Override
@@ -258,17 +258,17 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setShort(String parameterName, short value) throws SQLException {
-        this.setParameter(parameterName, LiteralFactory.shortToNode(value));
+        setParameter(parameterName, LiteralFactory.shortToNode(value));
     }
 
     @Override
     public void setString(String parameterName, String value) throws SQLException {
-        this.setParameter(parameterName, NodeFactory.createLiteral(value));
+        setParameter(parameterName, NodeFactory.createLiteral(value));
     }
 
     @Override
     public void setTime(String parameterName, Time value) throws SQLException {
-        this.setParameter(parameterName, LiteralFactory.timeToNode(value));
+        setParameter(parameterName, LiteralFactory.timeToNode(value));
     }
 
     @Override
@@ -288,377 +288,377 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setURL(String parameterName, URL value) throws SQLException {
-        this.setParameter(parameterName, NodeFactory.createURI(value.toString()));
+        setParameter(parameterName, NodeFactory.createURI(value.toString()));
     }
 
     @Override
     public <T> T getObject(String parameterName, Class<T> type) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public <T> T getObject(int parameterName, Class<T> type) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Array getArray(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Array getArray(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public BigDecimal getBigDecimal(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public BigDecimal getBigDecimal(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public BigDecimal getBigDecimal(int parameterName, int scale) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Blob getBlob(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Blob getBlob(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public boolean getBoolean(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public boolean getBoolean(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public byte getByte(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public byte getByte(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public byte[] getBytes(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public byte[] getBytes(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Reader getCharacterStream(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Reader getCharacterStream(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Clob getClob(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Clob getClob(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Date getDate(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Date getDate(String parameterName, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Date getDate(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Date getDate(int parameterName, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public double getDouble(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public double getDouble(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public float getFloat(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public float getFloat(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public int getInt(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public int getInt(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public long getLong(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public long getLong(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Reader getNCharacterStream(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Reader getNCharacterStream(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public NClob getNClob(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public NClob getNClob(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public String getNString(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public String getNString(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Object getObject(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Object getObject(String parameterName, Map<String, Class<?>> map) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Object getObject(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Object getObject(int parameterName, Map<String, Class<?>> map) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Ref getRef(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Ref getRef(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public RowId getRowId(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public RowId getRowId(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public SQLXML getSQLXML(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public SQLXML getSQLXML(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public short getShort(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public short getShort(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public String getString(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public String getString(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Time getTime(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Time getTime(String parameterName, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Time getTime(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Time getTime(int parameterName, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Timestamp getTimestamp(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Timestamp getTimestamp(String parameterName, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Timestamp getTimestamp(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public Timestamp getTimestamp(int parameterName, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public URL getURL(String parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public URL getURL(int parameterName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(int parameterName, SQLType sqlType) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(int parameterName, SQLType sqlType, int scale) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(int parameterName, SQLType sqlType, String typeName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(String parameterName, SQLType sqlType) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(String parameterName, SQLType sqlType, int scale) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(String parameterName, SQLType sqlType, String typeName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(int parameterName, int sqlType) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(int parameterName, int sqlType, int scale) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(int parameterName, int sqlType, String typeName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(String parameterName, int sqlType) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(String parameterName, int sqlType, int scale) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public void registerOutParameter(String parameterName, int sqlType, String typeName) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     @Override
     public boolean wasNull() throws SQLException {
-        throw new SQLFeatureNotSupportedException("Output parameters not supported");
+        throw newOutputParametersNotSupportedException();
     }
 
     private void setParameter(String parameterName, Node n) throws SQLException {
@@ -699,5 +699,9 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
             out.append(normalizeValue(param.getValue().toString()));
         }
         return out.toString();
+    }
+
+    private SQLFeatureNotSupportedException newOutputParametersNotSupportedException() {
+        return new SQLFeatureNotSupportedException("Output parameters not supported");
     }
 }

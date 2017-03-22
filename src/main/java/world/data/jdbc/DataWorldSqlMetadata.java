@@ -18,7 +18,6 @@
 */
 package world.data.jdbc;
 
-import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.jdbc.metadata.MetadataSchema;
 import org.apache.jena.jdbc.metadata.results.MetaResultSet;
 import org.apache.jena.vocabulary.XSD;
@@ -31,6 +30,8 @@ import java.sql.RowIdLifetime;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Types;
+
+import static world.data.jdbc.util.Conditions.check;
 
 /**
  * Database metadata for Sql connections
@@ -95,9 +96,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
      * @param connection Connection
      */
     public DataWorldSqlMetadata(DataWorldConnection connection) throws SQLException {
-        if (connection == null) {
-            throw new SQLException("Connection cannot be null");
-        }
+        check(connection != null, "Connection cannot be null");
         this.connection = connection;
     }
 
@@ -189,7 +188,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public final Connection getConnection() {
-        return this.connection;
+        return connection;
     }
 
     @Override
@@ -401,7 +400,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getNumericFunctions() {
-        return StrUtils.strjoin(",", SQL_NUMERIC_FUNCTIONS);
+        return String.join(",", SQL_NUMERIC_FUNCTIONS);
     }
 
     @Override
@@ -440,7 +439,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     public String getSQLKeywords() {
         // TODO Use http://developer.mimer.com/validator/sql-reserved-words.tml
         // as a reference to remove those that also count as SQL Keywords
-        return StrUtils.strjoin(",", SQL_KEYWORDS);
+        return String.join(",", SQL_KEYWORDS);
     }
 
     @Override
@@ -462,7 +461,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
         if (DEFAULT_CATALOG.equals(catalog)) {
             if (schemaPattern == null || DEFAULT_SCHEMA.equals(schemaPattern)) {
-                return this.getSchemas();
+                return getSchemas();
             } else {
                 return new MetaResultSet(MetadataSchema.getSchemaColumns());
             }
@@ -478,7 +477,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getStringFunctions() {
-        return StrUtils.strjoin(",", SQL_STR_FUNCTIONS);
+        return String.join(",", SQL_STR_FUNCTIONS);
     }
 
     @Override
@@ -514,7 +513,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getTimeDateFunctions() {
-        return StrUtils.strjoin(",", SQL_DATETIME_FUNCTIONS);
+        return String.join(",", SQL_DATETIME_FUNCTIONS);
     }
 
     @Override
@@ -642,7 +641,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public boolean isReadOnly() throws SQLException {
-        return this.connection.isReadOnly();
+        return connection.isReadOnly();
     }
 
     @Override

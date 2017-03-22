@@ -20,6 +20,7 @@ package world.data.jdbc.metadata;
 
 
 import org.apache.jena.jdbc.results.metadata.columns.ColumnInfo;
+import world.data.jdbc.util.Conditions;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -28,6 +29,8 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static world.data.jdbc.util.Conditions.check;
 
 /**
  * Abstract implementation of JDBC result set metadata
@@ -61,8 +64,8 @@ public class DataWorldResultsMetadata implements ResultSetMetaData {
 
     @Override
     public String getCatalogName(int column) throws SQLException {
-        if (this.results != null) {
-            return this.results.getStatement().getConnection().getCatalog();
+        if (results != null) {
+            return results.getStatement().getConnection().getCatalog();
         } else {
             return "";
         }
@@ -70,21 +73,18 @@ public class DataWorldResultsMetadata implements ResultSetMetaData {
 
     private ColumnInfo getColumnInfo(int column) throws SQLException {
         // Remember JDBC columns use a 1 based index
-        if (column >= 1 && column <= this.columns.size()) {
-            return this.columns.get(column - 1);
-        } else {
-            throw new SQLException("Column Index is out of bounds");
-        }
+        check(column >= 1 && column <= columns.size(), "Column Index is out of bounds");
+        return columns.get(column - 1);
     }
 
     @Override
     public String getColumnClassName(int column) throws SQLException {
-        return this.getColumnInfo(column).getClassName();
+        return getColumnInfo(column).getClassName();
     }
 
     @Override
     public int getColumnCount() {
-        return this.columns.size();
+        return columns.size();
     }
 
     /**
@@ -98,37 +98,37 @@ public class DataWorldResultsMetadata implements ResultSetMetaData {
      */
     @Override
     public int getColumnDisplaySize(int column) throws SQLException {
-        return this.getColumnInfo(column).getDisplaySize();
+        return getColumnInfo(column).getDisplaySize();
     }
 
     @Override
     public String getColumnName(int column) throws SQLException {
-        return this.getColumnInfo(column).getLabel();
+        return getColumnInfo(column).getLabel();
     }
 
     @Override
     public String getColumnLabel(int column) throws SQLException {
-        return this.getColumnInfo(column).getLabel();
+        return getColumnInfo(column).getLabel();
     }
 
     @Override
     public int getColumnType(int column) throws SQLException {
-        return this.getColumnInfo(column).getType();
+        return getColumnInfo(column).getType();
     }
 
     @Override
     public String getColumnTypeName(int column) throws SQLException {
-        return this.getColumnInfo(column).getTypeName();
+        return getColumnInfo(column).getTypeName();
     }
 
     @Override
     public int getPrecision(int column) throws SQLException {
-        return this.getColumnInfo(column).getPrecision();
+        return getColumnInfo(column).getPrecision();
     }
 
     @Override
     public int getScale(int column) throws SQLException {
-        return this.getColumnInfo(column).getScale();
+        return getColumnInfo(column).getScale();
     }
 
     @Override
@@ -145,46 +145,46 @@ public class DataWorldResultsMetadata implements ResultSetMetaData {
 
     @Override
     public boolean isAutoIncrement(int column) throws SQLException {
-        return this.getColumnInfo(column).isAutoIncrement();
+        return getColumnInfo(column).isAutoIncrement();
     }
 
     @Override
     public boolean isCaseSensitive(int column) throws SQLException {
-        return this.getColumnInfo(column).isCaseSensitive();
+        return getColumnInfo(column).isCaseSensitive();
     }
 
     @Override
     public boolean isCurrency(int column) throws SQLException {
-        return this.getColumnInfo(column).isCurrency();
+        return getColumnInfo(column).isCurrency();
     }
 
     @Override
     public boolean isDefinitelyWritable(int column) throws SQLException {
-        return this.isWritable(column);
+        return isWritable(column);
     }
 
     @Override
     public int isNullable(int column) throws SQLException {
-        return this.getColumnInfo(column).getNullability();
+        return getColumnInfo(column).getNullability();
     }
 
     @Override
     public boolean isReadOnly(int column) throws SQLException {
-        return this.getColumnInfo(column).isReadOnly();
+        return getColumnInfo(column).isReadOnly();
     }
 
     @Override
     public boolean isSearchable(int column) throws SQLException {
-        return this.getColumnInfo(column).isSearchable();
+        return getColumnInfo(column).isSearchable();
     }
 
     @Override
     public boolean isSigned(int column) throws SQLException {
-        return this.getColumnInfo(column).isSigned();
+        return getColumnInfo(column).isSigned();
     }
 
     @Override
     public boolean isWritable(int column) throws SQLException {
-        return this.getColumnInfo(column).isWritable();
+        return getColumnInfo(column).isWritable();
     }
 }

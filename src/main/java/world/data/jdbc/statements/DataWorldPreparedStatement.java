@@ -55,6 +55,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import static world.data.jdbc.util.Conditions.check;
+
 /**
  * data.world JDBC implementation of a prepared statement
  */
@@ -73,13 +75,13 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     public DataWorldPreparedStatement(String query, DataWorldConnection connection,
                                       HttpAuthenticator authenticator, QueryBuilder queryBuilder) throws SQLException {
         super(connection, authenticator, queryBuilder);
-        paramMetadata = queryBuilder.buildParameterMetadata(query);
+        this.paramMetadata = queryBuilder.buildParameterMetadata(query);
         this.query = query;
     }
 
     @Override
     public void addBatch() {
-        this.addBatch(query);
+        addBatch(query);
     }
 
     @Override
@@ -89,17 +91,17 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public boolean execute() throws SQLException {
-        return this.execute(query);
+        return execute(query);
     }
 
     @Override
     public ResultSet executeQuery() throws SQLException {
-        return this.executeQuery(query);
+        return executeQuery(query);
     }
 
     @Override
     public int executeUpdate() throws SQLException {
-        return this.executeUpdate(query);
+        return executeUpdate(query);
     }
 
     @Override
@@ -110,14 +112,12 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public ParameterMetaData getParameterMetaData() {
-        return this.paramMetadata;
+        return paramMetadata;
     }
 
     private void setParameter(int parameterIndex, Node n) throws SQLException {
         // Remember that JDBC used a 1 based index
-        if (parameterIndex < 1 || parameterIndex > this.paramMetadata.getParameterCount()) {
-            throw new SQLException("Parameter Index is out of bounds");
-        }
+        check(parameterIndex >= 1 && parameterIndex <= paramMetadata.getParameterCount(), "Parameter Index is out of bounds");
         params.put(parameterIndex, n);
     }
 
@@ -143,7 +143,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setBigDecimal(int parameterIndex, BigDecimal value) throws SQLException {
-        this.setParameter(parameterIndex, LiteralFactory.bigDecimalToNode(value));
+        setParameter(parameterIndex, LiteralFactory.bigDecimalToNode(value));
     }
 
     @Override
@@ -178,12 +178,12 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setBoolean(int parameterIndex, boolean value) throws SQLException {
-        this.setParameter(parameterIndex, LiteralFactory.booleanToNode(value));
+        setParameter(parameterIndex, LiteralFactory.booleanToNode(value));
     }
 
     @Override
     public void setByte(int parameterIndex, byte value) throws SQLException {
-        this.setParameter(parameterIndex, LiteralFactory.byteToNode(value));
+        setParameter(parameterIndex, LiteralFactory.byteToNode(value));
     }
 
     @Override
@@ -223,7 +223,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setDate(int parameterIndex, Date value) throws SQLException {
-        this.setParameter(parameterIndex, LiteralFactory.dateTimeToNode(value));
+        setParameter(parameterIndex, LiteralFactory.dateTimeToNode(value));
     }
 
     @Override
@@ -233,22 +233,22 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setDouble(int parameterIndex, double value) throws SQLException {
-        this.setParameter(parameterIndex, LiteralFactory.doubleToNode(value));
+        setParameter(parameterIndex, LiteralFactory.doubleToNode(value));
     }
 
     @Override
     public void setFloat(int parameterIndex, float value) throws SQLException {
-        this.setParameter(parameterIndex, LiteralFactory.floatToNode(value));
+        setParameter(parameterIndex, LiteralFactory.floatToNode(value));
     }
 
     @Override
     public void setInt(int parameterIndex, int value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode(value));
+        setParameter(parameterIndex, NodeFactoryExtra.intToNode(value));
     }
 
     @Override
     public void setLong(int parameterIndex, long value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactoryExtra.intToNode(value));
+        setParameter(parameterIndex, NodeFactoryExtra.intToNode(value));
     }
 
     @Override
@@ -278,7 +278,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setNString(int parameterIndex, String value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactory.createLiteral(value));
+        setParameter(parameterIndex, NodeFactory.createLiteral(value));
     }
 
     @Override
@@ -293,13 +293,12 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setObject(int parameterIndex, Object value) throws SQLException {
-        this.setParameter(parameterIndex, objectToNode(value));
+        setParameter(parameterIndex, objectToNode(value));
     }
 
     Node objectToNode(Object value) throws SQLException {
-        if (value == null) {
-            throw new SQLException("Setting a null value is not permitted");
-        } else if (value instanceof Node) {
+        check(value != null, "Setting a null value is not permitted");
+        if (value instanceof Node) {
             return (Node) value;
         } else if (value instanceof RDFNode) {
             return ((RDFNode) value).asNode();
@@ -334,20 +333,17 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
         } else if (value instanceof IRI) {
             return NodeFactory.createURI(value.toString());
         } else {
-            throw new SQLException(
-                    "setObject() received a value that could not be converted to a RDF node for use in a SPARQL query");
+            throw new SQLException("setObject() received a value that could not be converted to a RDF node for use in a SPARQL query");
         }
     }
 
     @Override
     public void setObject(int parameterIndex, Object value, int targetSqlType) throws SQLException {
-        this.setParameter(parameterIndex, objectToNode(value, targetSqlType));
+        setParameter(parameterIndex, objectToNode(value, targetSqlType));
     }
 
     Node objectToNode(Object value, int targetSqlType) throws SQLException {
-        if (value == null) {
-            throw new SQLException("Setting a null value is not permitted");
-        }
+        check(value != null, "Setting a null value is not permitted");
         try {
             switch (targetSqlType) {
                 case Types.ARRAY:
@@ -556,17 +552,17 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setShort(int parameterIndex, short value) throws SQLException {
-        this.setParameter(parameterIndex, LiteralFactory.shortToNode(value));
+        setParameter(parameterIndex, LiteralFactory.shortToNode(value));
     }
 
     @Override
     public void setString(int parameterIndex, String value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactory.createLiteral(value));
+        setParameter(parameterIndex, NodeFactory.createLiteral(value));
     }
 
     @Override
     public void setTime(int parameterIndex, Time value) throws SQLException {
-        this.setParameter(parameterIndex, LiteralFactory.timeToNode(value));
+        setParameter(parameterIndex, LiteralFactory.timeToNode(value));
     }
 
     @Override
@@ -586,7 +582,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
 
     @Override
     public void setURL(int parameterIndex, URL value) throws SQLException {
-        this.setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
+        setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
     }
 
     @Deprecated

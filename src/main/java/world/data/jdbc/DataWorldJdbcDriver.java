@@ -53,13 +53,13 @@ public class DataWorldJdbcDriver implements Driver {
 
     @Override
     public boolean acceptsURL(String url) {
-        return url.startsWith("jdbc:data:world:sql:") || url.startsWith("jdbc:data:world:sparql:");
+        return url.startsWith("jdbc:data:world:sql:") ||
+                url.startsWith("jdbc:data:world:sparql:");
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public final Connection connect(String url, Properties props) throws SQLException {
-        if (!this.acceptsURL(url)) {
+        if (!acceptsURL(url)) {
             return null;
         }
 
@@ -83,18 +83,18 @@ public class DataWorldJdbcDriver implements Driver {
                 effectiveProps.get("datasetid"));
         effectiveProps.put("query", queryEndpoint);
 
-        HttpAuthenticator authenticator = this.configureAuthenticator(effectiveProps);
+        HttpAuthenticator authenticator = configureAuthenticator(effectiveProps);
         return new DataWorldConnection(effectiveProps.getProperty("query"), authenticator, effectiveProps.getProperty("lang"));
     }
 
     @Override
     public int getMajorVersion() {
-        return this.minorVer;
+        return minorVer;
     }
 
     @Override
     public int getMinorVersion() {
-        return this.majorVer;
+        return majorVer;
     }
 
     public final DriverPropertyInfo[] getPropertyInfo(String url, Properties props) throws SQLException {

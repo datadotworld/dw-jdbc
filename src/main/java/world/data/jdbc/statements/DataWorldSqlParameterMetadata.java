@@ -25,17 +25,17 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Types;
 
+import static world.data.jdbc.util.Conditions.check;
+
 public class DataWorldSqlParameterMetadata implements ParameterMetaData {
 
-    private int paramCount;
+    private final int paramCount;
 
     /**
      * Creates new parameter metadata
      */
     public DataWorldSqlParameterMetadata(String query) throws SQLException {
-        if (query == null) {
-            throw new SQLException("Parameterized query String cannot be null");
-        }
+        check(query != null, "Parameterized query String cannot be null");
         this.paramCount = countParameters(query);
     }
 
@@ -67,14 +67,12 @@ public class DataWorldSqlParameterMetadata implements ParameterMetaData {
     }
 
     private void checkParamIndex(final int param) throws SQLException {
-        if (param < 1 || param > this.paramCount) {
-            throw new SQLException("Parameter Index is out of bounds");
-        }
+        check(param >= 1 && param <= paramCount, "Parameter Index is out of bounds");
     }
 
     @Override
     public int getParameterCount() {
-        return this.paramCount;
+        return paramCount;
     }
 
     @Override

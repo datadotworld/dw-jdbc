@@ -25,12 +25,14 @@ import world.data.jdbc.statements.DataWorldStatement;
 
 import java.sql.SQLException;
 
+import static world.data.jdbc.util.Conditions.check;
+
 /**
  * Abstract base class for result sets that are backed by a {@link QueryExecution}
  */
-public abstract class QueryExecutionResults extends DataWorldResultsSet {
+abstract class AbstractQueryExecutionResults extends AbstractResultsSet {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QueryExecutionResults.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractQueryExecutionResults.class);
 
     private QueryExecution qe;
 
@@ -41,11 +43,9 @@ public abstract class QueryExecutionResults extends DataWorldResultsSet {
      * @param qe        Query Execution
      * @throws SQLException Thrown if there is an issue creating the results
      */
-    public QueryExecutionResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
+    AbstractQueryExecutionResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
         super(statement);
-        if (qe == null) {
-            throw new SQLException("Query Execution cannot be null");
-        }
+        check(qe != null, "Query Execution cannot be null");
         this.qe = qe;
     }
 
@@ -54,18 +54,18 @@ public abstract class QueryExecutionResults extends DataWorldResultsSet {
      */
     @Override
     public final void close() throws SQLException {
-        if (this.qe != null) {
+        if (qe != null) {
             try {
                 // Close the query execution
-                this.qe.close();
+                qe.close();
             } catch (Exception e) {
                 LOGGER.error("Unexpected error closing underlying query execution", e);
                 throw new SQLException("Unexpected error closing the query execution", e);
             } finally {
-                this.qe = null;
+                qe = null;
             }
         }
-        this.closeInternal();
+        closeInternal();
     }
 
     /**
@@ -77,8 +77,10 @@ public abstract class QueryExecutionResults extends DataWorldResultsSet {
 
     @Override
     public final boolean isClosed() {
-        return this.qe == null;
+        return qe == null;
     }
 
-
+    void checkClosed() throws SQLException {
+        check(!isClosed(), "Result Set is closed");
+    }
 }

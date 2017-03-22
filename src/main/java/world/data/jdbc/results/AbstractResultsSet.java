@@ -47,19 +47,19 @@ import java.sql.Types;
 import java.util.Calendar;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+import static world.data.jdbc.util.Conditions.check;
+
 /**
  * Abstract implementation of a JDBC Result Set which makes all update methods
  * throw {@link SQLFeatureNotSupportedException}
  */
-public abstract class DataWorldResultsSet implements ResultSet {
+abstract class AbstractResultsSet implements ResultSet {
 
-    private static final int DEFAULT_HOLDABILITY = ResultSet.CLOSE_CURSORS_AT_COMMIT;
-
-    private SQLWarning warnings;
     private final DataWorldStatement statement;
-    private boolean wasNull = false;
-    private final int holdability = DEFAULT_HOLDABILITY;
-    private int compatibilityLevel = JdbcCompatibility.DEFAULT;
+    private final int compatibilityLevel;
+    private SQLWarning warnings;
+    private boolean wasNull;
 
     /**
      * Creates a new result set
@@ -67,10 +67,9 @@ public abstract class DataWorldResultsSet implements ResultSet {
      * @param statement Statement that originated the result set
      * @throws SQLException Thrown if the arguments are invalid
      */
-    public DataWorldResultsSet(DataWorldStatement statement) throws SQLException {
-        this.statement = statement;
-        this.compatibilityLevel = JdbcCompatibility
-                .normalizeLevel(this.statement.getJdbcCompatibilityLevel());
+    AbstractResultsSet(DataWorldStatement statement) throws SQLException {
+        this.statement = requireNonNull(statement, "statement");
+        this.compatibilityLevel = JdbcCompatibility.normalizeLevel(statement.getJdbcCompatibilityLevel());
     }
 
     /**
@@ -81,22 +80,12 @@ public abstract class DataWorldResultsSet implements ResultSet {
      * @return JDBC compatibility level, see {@link JdbcCompatibility}
      */
     public int getJdbcCompatibilityLevel() {
-        return this.compatibilityLevel;
+        return compatibilityLevel;
     }
 
     @Override
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
-    public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
-    public void cancelRowUpdates() throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+    public Statement getStatement() {
+        return statement;
     }
 
     @Override
@@ -105,13 +94,8 @@ public abstract class DataWorldResultsSet implements ResultSet {
     }
 
     @Override
-    public void deleteRow() throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
-    }
-
-    @Override
     public final int getHoldability() {
-        return this.holdability;
+        return ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
 
     @Override
@@ -147,329 +131,354 @@ public abstract class DataWorldResultsSet implements ResultSet {
 
     @Override
     public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
-        return this.getBigDecimal(this.findColumnLabel(columnIndex));
+        return getBigDecimal(findColumnLabel(columnIndex));
     }
 
     @Override
     public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return null;
         } else {
             // Try to marshal into a decimal
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toDecimal(n);
         }
     }
 
     @Override
     public boolean getBoolean(int columnIndex) throws SQLException {
-        return this.getBoolean(this.findColumnLabel(columnIndex));
+        return getBoolean(findColumnLabel(columnIndex));
     }
 
     @Override
     public boolean getBoolean(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return false;
         } else {
             // Try to marshal into a boolean
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toBoolean(n);
         }
     }
 
     @Override
     public byte getByte(int columnIndex) throws SQLException {
-        return this.getByte(this.findColumnLabel(columnIndex));
+        return getByte(findColumnLabel(columnIndex));
     }
 
     @Override
     public byte getByte(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return 0;
         } else {
             // Try to marshal into a byte
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toByte(n);
         }
     }
 
     @Override
     public Date getDate(int columnIndex) throws SQLException {
-        return this.getDate(this.findColumnLabel(columnIndex));
+        return getDate(findColumnLabel(columnIndex));
     }
 
     @Override
     public Date getDate(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return null;
         } else {
             // Try to marshal into a date
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toDate(n);
         }
     }
 
     @Override
     public double getDouble(int columnIndex) throws SQLException {
-        return this.getDouble(this.findColumnLabel(columnIndex));
+        return getDouble(findColumnLabel(columnIndex));
     }
 
     @Override
     public double getDouble(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return 0;
         } else {
             // Try to marshal into a date
-            this.setNull(false);
+            setNull(false);
             return toDouble(n);
         }
     }
 
     @Override
     public float getFloat(int columnIndex) throws SQLException {
-        return this.getFloat(this.findColumnLabel(columnIndex));
+        return getFloat(findColumnLabel(columnIndex));
     }
 
     @Override
     public float getFloat(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return 0;
         } else {
             // Try to marshal into a date
-            this.setNull(false);
+            setNull(false);
             return toFloat(n);
         }
     }
 
     @Override
     public int getInt(int columnIndex) throws SQLException {
-        return this.getInt(this.findColumnLabel(columnIndex));
+        return getInt(findColumnLabel(columnIndex));
     }
 
     @Override
     public int getInt(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return 0;
         } else {
             // Try to marshal into an integer
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toInt(n);
         }
     }
 
     @Override
     public long getLong(int columnIndex) throws SQLException {
-        return this.getLong(this.findColumnLabel(columnIndex));
+        return getLong(findColumnLabel(columnIndex));
     }
 
     @Override
     public long getLong(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return 0;
         } else {
             // Try to marshal into an integer
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toLong(n);
         }
     }
 
     @Override
     public String getNString(int columnIndex) throws SQLException {
-        return this.getNString(this.findColumnLabel(columnIndex));
+        return getNString(findColumnLabel(columnIndex));
     }
 
     @Override
     public String getNString(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return null;
         } else {
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toString(n);
         }
     }
 
     @Override
     public Object getObject(int columnIndex) throws SQLException {
-        return this.getObject(this.findColumnLabel(columnIndex));
+        return getObject(findColumnLabel(columnIndex));
     }
 
     @Override
     public Object getObject(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return null;
-        } else {
-            // Need to marshal to an appropriate type based on declared JDBC
-            // type of the column in order to comply with the JDBC semantics of
-            // the getObject() method
-            int jdbcType = this.getMetaData().getColumnType(this.findColumn(columnLabel));
-            this.setNull(false);
+        }
+        // Need to marshal to an appropriate type based on declared JDBC
+        // type of the column in order to comply with the JDBC semantics of
+        // the getObject() method
+        int jdbcType = getMetaData().getColumnType(findColumn(columnLabel));
+        setNull(false);
 
-            switch (jdbcType) {
-                case Types.ARRAY:
-                case Types.BINARY:
-                case Types.BIT:
-                case Types.BLOB:
-                case Types.CLOB:
-                case Types.DATALINK:
-                case Types.DISTINCT:
-                case Types.LONGNVARCHAR:
-                case Types.LONGVARBINARY:
-                case Types.LONGVARCHAR:
-                case Types.NCHAR:
-                case Types.NCLOB:
-                case Types.NULL:
-                case Types.NUMERIC:
-                case Types.OTHER:
-                case Types.REAL:
-                case Types.REF:
-                case Types.ROWID:
-                case Types.SQLXML:
-                case Types.STRUCT:
-                case Types.VARBINARY:
-                    throw new SQLException("Unable to marhsal a RDF Node to the declared column type " + jdbcType);
-                case Types.BOOLEAN:
-                    return JdbcNodeUtils.toBoolean(n);
-                case Types.BIGINT:
-                    return JdbcNodeUtils.toLong(n);
-                case Types.DATE:
-                    return JdbcNodeUtils.toDate(n);
-                case Types.DECIMAL:
-                    return JdbcNodeUtils.toDecimal(n);
-                case Types.DOUBLE:
-                    return JdbcNodeUtils.toDouble(n);
-                case Types.FLOAT:
-                    return JdbcNodeUtils.toFloat(n);
-                case Types.INTEGER:
-                    return JdbcNodeUtils.toInt(n);
-                case Types.JAVA_OBJECT:
-                    return n;
-                case Types.CHAR:
-                case Types.VARCHAR:
-                case Types.NVARCHAR:
-                    return JdbcNodeUtils.toString(n);
-                case Types.SMALLINT:
-                    return JdbcNodeUtils.toShort(n);
-                case Types.TIME:
-                    return JdbcNodeUtils.toTime(n);
-                case Types.TIMESTAMP:
-                    return JdbcNodeUtils.toTimestamp(n);
-                case Types.TINYINT:
-                    return JdbcNodeUtils.toByte(n);
-                default:
-                    throw new SQLException("Unable to marshal a RDF Node to the declared unknown column type " + jdbcType);
-            }
+        switch (jdbcType) {
+            case Types.ARRAY:
+            case Types.BINARY:
+            case Types.BIT:
+            case Types.BLOB:
+            case Types.CLOB:
+            case Types.DATALINK:
+            case Types.DISTINCT:
+            case Types.LONGNVARCHAR:
+            case Types.LONGVARBINARY:
+            case Types.LONGVARCHAR:
+            case Types.NCHAR:
+            case Types.NCLOB:
+            case Types.NULL:
+            case Types.NUMERIC:
+            case Types.OTHER:
+            case Types.REAL:
+            case Types.REF:
+            case Types.ROWID:
+            case Types.SQLXML:
+            case Types.STRUCT:
+            case Types.VARBINARY:
+                throw new SQLException("Unable to marhsal a RDF Node to the declared column type " + jdbcType);
+            case Types.BOOLEAN:
+                return JdbcNodeUtils.toBoolean(n);
+            case Types.BIGINT:
+                return JdbcNodeUtils.toLong(n);
+            case Types.DATE:
+                return JdbcNodeUtils.toDate(n);
+            case Types.DECIMAL:
+                return JdbcNodeUtils.toDecimal(n);
+            case Types.DOUBLE:
+                return JdbcNodeUtils.toDouble(n);
+            case Types.FLOAT:
+                return JdbcNodeUtils.toFloat(n);
+            case Types.INTEGER:
+                return JdbcNodeUtils.toInt(n);
+            case Types.JAVA_OBJECT:
+                return n;
+            case Types.CHAR:
+            case Types.VARCHAR:
+            case Types.NVARCHAR:
+                return JdbcNodeUtils.toString(n);
+            case Types.SMALLINT:
+                return JdbcNodeUtils.toShort(n);
+            case Types.TIME:
+                return JdbcNodeUtils.toTime(n);
+            case Types.TIMESTAMP:
+                return JdbcNodeUtils.toTimestamp(n);
+            case Types.TINYINT:
+                return JdbcNodeUtils.toByte(n);
+            default:
+                throw new SQLException("Unable to marshal a RDF Node to the declared unknown column type " + jdbcType);
         }
     }
 
     @Override
     public short getShort(int columnIndex) throws SQLException {
-        return this.getShort(this.findColumnLabel(columnIndex));
+        return getShort(findColumnLabel(columnIndex));
     }
 
     @Override
     public short getShort(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return 0;
         } else {
             // Try to marshal into an integer
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toShort(n);
         }
     }
 
     @Override
     public String getString(int columnIndex) throws SQLException {
-        return this.getString(this.findColumnLabel(columnIndex));
+        return getString(findColumnLabel(columnIndex));
     }
 
     @Override
     public String getString(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return null;
         } else {
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toString(n);
         }
     }
 
     @Override
     public Time getTime(int columnIndex) throws SQLException {
-        return this.getTime(this.findColumnLabel(columnIndex));
+        return getTime(findColumnLabel(columnIndex));
     }
 
     @Override
     public Time getTime(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return null;
         } else {
             // Try to marshal into a time
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toTime(n);
         }
     }
 
     @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
-        return this.getTimestamp(this.findColumnLabel(columnIndex));
+        return getTimestamp(findColumnLabel(columnIndex));
     }
 
     @Override
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return null;
         } else {
             // Try to marshal into a timestamp
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toTimestamp(n);
         }
     }
 
     @Override
     public URL getURL(int columnIndex) throws SQLException {
-        return this.getURL(this.findColumnLabel(columnIndex));
+        return getURL(findColumnLabel(columnIndex));
     }
 
     @Override
     public URL getURL(String columnLabel) throws SQLException {
-        Node n = this.getNode(columnLabel);
+        Node n = getNode(columnLabel);
         if (n == null) {
-            this.setNull(true);
+            setNull(true);
             return null;
         } else {
-            this.setNull(false);
+            setNull(false);
             return JdbcNodeUtils.toURL(n);
         }
     }
 
+    @Override
+    public boolean wasNull() {
+        return wasNull;
+    }
+
+    /**
+     * Helper method for setting the wasNull() status of the last column read
+     *
+     * @param wasNull Whether the last column was null
+     */
+    protected void setNull(boolean wasNull) {
+        this.wasNull = wasNull;
+    }
+
+    //
     // Get Methods for things we don't support
+    //
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
+    }
 
     @Override
     public Array getArray(int columnIndex) throws SQLException {
@@ -639,11 +648,6 @@ public abstract class DataWorldResultsSet implements ResultSet {
     }
 
     @Override
-    public Statement getStatement() {
-        return this.statement;
-    }
-
-    @Override
     public Time getTime(int columnIndex, Calendar cal) throws SQLException {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getTime() is supported");
     }
@@ -677,13 +681,22 @@ public abstract class DataWorldResultsSet implements ResultSet {
 
     @Override
     public final SQLWarning getWarnings() {
-        return this.warnings;
+        return warnings;
     }
 
+    @Override
+    public void cancelRowUpdates() throws SQLException {
+        throw newReadOnlyException();
+    }
+
+    @Override
+    public void deleteRow() throws SQLException {
+        throw newReadOnlyException();
+    }
 
     @Override
     public void insertRow() throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
@@ -693,7 +706,7 @@ public abstract class DataWorldResultsSet implements ResultSet {
 
     @Override
     public void moveToInsertRow() throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
@@ -723,431 +736,417 @@ public abstract class DataWorldResultsSet implements ResultSet {
 
     @Override
     public void updateArray(int columnIndex, Array x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateArray(String columnLabel, Array x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateAsciiStream(String columnLabel, InputStream x, int length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateAsciiStream(String columnLabel, InputStream x, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBigDecimal(String columnLabel, BigDecimal x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBinaryStream(String columnLabel, InputStream x, int length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBinaryStream(String columnLabel, InputStream x, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBlob(int columnIndex, Blob x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBlob(int columnIndex, InputStream inputStream, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBlob(int columnIndex, InputStream inputStream) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBlob(String columnLabel, Blob x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBlob(String columnLabel, InputStream inputStream, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBlob(String columnLabel, InputStream inputStream) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBoolean(int columnIndex, boolean x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBoolean(String columnLabel, boolean x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateByte(int columnIndex, byte x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateByte(String columnLabel, byte x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBytes(int columnIndex, byte[] x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateBytes(String columnLabel, byte[] x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateCharacterStream(String columnLabel, Reader reader, int length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateCharacterStream(String columnLabel, Reader reader) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateClob(int columnIndex, Clob x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateClob(int columnIndex, Reader reader, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateClob(int columnIndex, Reader reader) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateClob(String columnLabel, Clob x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateClob(String columnLabel, Reader reader, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateClob(String columnLabel, Reader reader) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateDate(int columnIndex, Date x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateDate(String columnLabel, Date x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateDouble(int columnIndex, double x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateDouble(String columnLabel, double x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateFloat(int columnIndex, float x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateFloat(String columnLabel, float x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateInt(int columnIndex, int x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateInt(String columnLabel, int x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateLong(int columnIndex, long x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateLong(String columnLabel, long x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNCharacterStream(String columnLabel, Reader reader) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNClob(int columnIndex, NClob nClob) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNClob(int columnIndex, Reader reader, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNClob(int columnIndex, Reader reader) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNClob(String columnLabel, NClob nClob) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNClob(String columnLabel, Reader reader, long length) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNClob(String columnLabel, Reader reader) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNString(int columnIndex, String nString) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNString(String columnLabel, String nString) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNull(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateNull(String columnLabel) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateObject(int columnIndex, Object x, int scaleOrLength) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateObject(int columnIndex, Object x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateObject(String columnLabel, Object x, int scaleOrLength) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateObject(String columnLabel, Object x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateRef(int columnIndex, Ref x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateRef(String columnLabel, Ref x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateRow() throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateRowId(int columnIndex, RowId x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateRowId(String columnLabel, RowId x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateSQLXML(int columnIndex, SQLXML xmlObject) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateSQLXML(String columnLabel, SQLXML xmlObject) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateShort(int columnIndex, short x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateShort(String columnLabel, short x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateString(int columnIndex, String x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateString(String columnLabel, String x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateTime(int columnIndex, Time x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateTime(String columnLabel, Time x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
+        throw newReadOnlyException();
     }
 
     @Override
     public void updateTimestamp(String columnLabel, Timestamp x) throws SQLException {
-        throw new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
-    }
-
-    @Override
-    public boolean wasNull() {
-        return this.wasNull;
-    }
-
-    /**
-     * Helper method for setting the wasNull() status of the last column read
-     *
-     * @param wasNull Whether the last column was null
-     */
-    protected void setNull(boolean wasNull) {
-        this.wasNull = wasNull;
+        throw newReadOnlyException();
     }
 
     private static double toDouble(Node n) throws SQLException {
@@ -1155,11 +1154,8 @@ public abstract class DataWorldResultsSet implements ResultSet {
             if (n == null) {
                 return 0;
             }
-            if (n.isLiteral()) {
-                return Double.parseDouble(n.getLiteralLexicalForm());
-            } else {
-                throw new SQLException("Unable to marshal a non-literal to an integer");
-            }
+            check(n.isLiteral(), "Unable to marshal a non-literal to an integer");
+            return Double.parseDouble(n.getLiteralLexicalForm());
         } catch (SQLException e) {
             // Throw as is
             throw e;
@@ -1174,11 +1170,8 @@ public abstract class DataWorldResultsSet implements ResultSet {
             if (n == null) {
                 return 0;
             }
-            if (n.isLiteral()) {
-                return Float.parseFloat(n.getLiteralLexicalForm());
-            } else {
-                throw new SQLException("Unable to marshal a non-literal to an integer");
-            }
+            check(n.isLiteral(), "Unable to marshal a non-literal to an integer");
+            return Float.parseFloat(n.getLiteralLexicalForm());
         } catch (SQLException e) {
             // Throw as is
             throw e;
@@ -1186,5 +1179,9 @@ public abstract class DataWorldResultsSet implements ResultSet {
             // Wrap other exceptions
             throw new SQLException("Unable to marshal the value to an integer", e);
         }
+    }
+
+    private SQLFeatureNotSupportedException newReadOnlyException() {
+        return new SQLFeatureNotSupportedException("data.world JDBC Result Sets are read-only");
     }
 }

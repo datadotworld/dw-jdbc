@@ -18,7 +18,6 @@
 */
 package world.data.jdbc;
 
-import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.jdbc.metadata.MetadataSchema;
 import org.apache.jena.jdbc.metadata.results.MetaResultSet;
 import org.apache.jena.vocabulary.XSD;
@@ -31,6 +30,8 @@ import java.sql.RowIdLifetime;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Types;
+
+import static world.data.jdbc.util.Conditions.check;
 
 /**
  * Database metadata for Sparql connections
@@ -99,9 +100,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
      * @param connection Connection
      */
     public DataWorldSparqlMetadata(DataWorldConnection connection) throws SQLException {
-        if (connection == null) {
-            throw new SQLException("Connection cannot be null");
-        }
+        check(connection != null, "Connection cannot be null");
         this.connection = connection;
     }
 
@@ -197,7 +196,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
 
     @Override
     public final Connection getConnection() {
-        return this.connection;
+        return connection;
     }
 
     @Override
@@ -415,7 +414,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getNumericFunctions() {
-        return StrUtils.strjoin(",", SPARQL_NUMERIC_FUNCTIONS);
+        return String.join(",", SPARQL_NUMERIC_FUNCTIONS);
     }
 
     @Override
@@ -452,7 +451,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getSQLKeywords() {
-        return StrUtils.strjoin(",", SPARQL_KEYWORDS);
+        return String.join(",", SPARQL_KEYWORDS);
     }
 
     @Override
@@ -474,7 +473,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
     public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
         if (DEFAULT_CATALOG.equals(catalog)) {
             if (schemaPattern == null || DEFAULT_SCHEMA.equals(schemaPattern)) {
-                return this.getSchemas();
+                return getSchemas();
             } else {
                 return new MetaResultSet(MetadataSchema.getSchemaColumns());
             }
@@ -491,7 +490,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getStringFunctions() {
-        return StrUtils.strjoin(",", SPARQL_STR_FUNCTIONS);
+        return String.join(",", SPARQL_STR_FUNCTIONS);
     }
 
     @Override
@@ -527,7 +526,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getTimeDateFunctions() {
-        return StrUtils.strjoin(",", SPARQL_DATETIME_FUNCTIONS);
+        return String.join(",", SPARQL_DATETIME_FUNCTIONS);
     }
 
     @Override
@@ -655,7 +654,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
 
     @Override
     public boolean isReadOnly() throws SQLException {
-        return this.connection.isReadOnly();
+        return connection.isReadOnly();
     }
 
     @Override
