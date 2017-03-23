@@ -57,7 +57,7 @@ import static world.data.jdbc.util.Conditions.check;
 abstract class AbstractResultsSet implements ResultSet {
 
     private final DataWorldStatement statement;
-    private final int compatibilityLevel;
+    private final JdbcCompatibility compatibilityLevel;
     private SQLWarning warnings;
     private boolean wasNull;
 
@@ -69,7 +69,7 @@ abstract class AbstractResultsSet implements ResultSet {
      */
     AbstractResultsSet(DataWorldStatement statement) throws SQLException {
         this.statement = requireNonNull(statement, "statement");
-        this.compatibilityLevel = JdbcCompatibility.normalizeLevel(statement.getJdbcCompatibilityLevel());
+        this.compatibilityLevel = statement.getJdbcCompatibilityLevel();
     }
 
     /**
@@ -79,7 +79,7 @@ abstract class AbstractResultsSet implements ResultSet {
      *
      * @return JDBC compatibility level, see {@link JdbcCompatibility}
      */
-    public int getJdbcCompatibilityLevel() {
+    public JdbcCompatibility getJdbcCompatibilityLevel() {
         return compatibilityLevel;
     }
 

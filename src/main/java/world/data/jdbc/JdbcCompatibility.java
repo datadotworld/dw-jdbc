@@ -53,13 +53,7 @@ import static world.data.jdbc.util.Conditions.check;
  * and helper methods to understand exactly what each level means.
  * </p>
  */
-public class JdbcCompatibility {
-
-    /**
-     * Private constructor prevents instantiation
-     */
-    private JdbcCompatibility() {
-    }
+public enum  JdbcCompatibility {
 
     /**
      * Constant for low JDBC compatibility level
@@ -74,7 +68,7 @@ public class JdbcCompatibility {
      * as {@link Types#JAVA_OBJECT} and Java type is the ARQ {@link Node} type.</li>
      * </ul>
      */
-    public static final int LOW = 1;
+    LOW,
 
     /**
      * Constant for medium JDBC compatibility level
@@ -88,7 +82,7 @@ public class JdbcCompatibility {
      * as {@link Types#NVARCHAR} and Java type is {@link String}.</li>
      * </ul>
      */
-    public static final int MEDIUM = 5;
+    MEDIUM,
 
     /**
      * Constant for high JDBC compatibility level
@@ -103,29 +97,12 @@ public class JdbcCompatibility {
      * forth may be reported depending on the query.</li>
      * </ul>
      */
-    public static final int HIGH = 9;
+    HIGH;
 
     /**
      * Constant for default JDBC compatibility which is set to {@link #MEDIUM}
      */
-    public static final int DEFAULT = MEDIUM;
-
-    /**
-     * Normalizes the compatibility level given to be within the acceptable
-     * range of 1-9
-     *
-     * @param level Level
-     * @return Normalized level
-     */
-    public static int normalizeLevel(int level) {
-        if (level < LOW) {
-            return LOW;
-        } else if (level > HIGH) {
-            return HIGH;
-        } else {
-            return level;
-        }
-    }
+    public static final JdbcCompatibility DEFAULT = MEDIUM;
 
     /**
      * Returns whether a result set is expected to determine the column types
@@ -134,8 +111,7 @@ public class JdbcCompatibility {
      * @param level Desired compatibility level
      * @return True if column types should be detected, false otherwise
      */
-    public static boolean shouldDetectColumnTypes(int level) {
-        level = normalizeLevel(level);
+    public static boolean shouldDetectColumnTypes(JdbcCompatibility level) {
         return level == HIGH;
     }
 
@@ -146,9 +122,8 @@ public class JdbcCompatibility {
      * @param level Desired compatibility level
      * @return True if columns should be typed as string, false otherwise
      */
-    public static boolean shouldTypeColumnsAsString(int level) {
-        level = normalizeLevel(level);
-        return level >= MEDIUM && level < HIGH;
+    public static boolean shouldTypeColumnsAsString(JdbcCompatibility level) {
+        return level == MEDIUM;
     }
 
     /**
@@ -262,30 +237,6 @@ public class JdbcCompatibility {
         } else {
             // Anything else we'll treat as a String
             return new StringColumn(var, nullable);
-        }
-    }
-
-    /**
-     * Parses the JDBC compatibility level from the given object and normalizes
-     * it if necessary. If the given object is null or does not contain a valid
-     * integer value (or can be parsed as such) then the returned compatibility
-     * level will be {@link #DEFAULT}
-     *
-     * @param object Object to parse
-     * @return Normalized JDBC compatibility level
-     */
-    public static int parseLevel(Object object) {
-        if (object == null) {
-            return DEFAULT;
-        } else if (object instanceof Integer) {
-            return normalizeLevel((Integer) object);
-        } else {
-            try {
-                int level = Integer.parseInt(object.toString());
-                return normalizeLevel(level);
-            } catch (NumberFormatException e) {
-                return DEFAULT;
-            }
         }
     }
 }

@@ -54,7 +54,9 @@ public class AskResultsMetadata extends DataWorldResultsMetadata {
         if (label == null) {
             label = COLUMN_LABEL_ASK;
         }
-        return new ColumnInfo[]{new BooleanColumn(label, columnNoNulls)};
+        return new ColumnInfo[]{
+                new BooleanColumn(label, columnNoNulls)
+        };
     }
 
     /**

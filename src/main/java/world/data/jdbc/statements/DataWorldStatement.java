@@ -46,10 +46,9 @@ public class DataWorldStatement implements ReadOnlyStatement {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataWorldStatement.class);
 
     private static final int NO_LIMIT = 0;
-    private static final int USE_CONNECTION_COMPATIBILITY = Integer.MIN_VALUE;
 
     private int timeout = NO_LIMIT;
-    private int compatibilityLevel = USE_CONNECTION_COMPATIBILITY;
+    private JdbcCompatibility compatibilityLevel;
     private SQLWarning warnings = null;
 
     private final QueryBuilder queryBuilder;
@@ -71,18 +70,15 @@ public class DataWorldStatement implements ReadOnlyStatement {
      * {@link JdbcCompatibility} for explanations
      * <p>
      * By default this is set at the connection level and inherited, however you
-     * may call {@link #setJdbcCompatibilityLevel(int)} to set the compatibility
+     * may call {@link #setJdbcCompatibilityLevel(JdbcCompatibility)} to set the compatibility
      * level for this statement. This allows you to change the compatibility
      * level on a per-query basis if so desired.
      * </p>
      *
      * @return Compatibility level
      */
-    public int getJdbcCompatibilityLevel() {
-        if (compatibilityLevel == USE_CONNECTION_COMPATIBILITY) {
-            return connection.getJdbcCompatibilityLevel();
-        }
-        return compatibilityLevel;
+    public JdbcCompatibility getJdbcCompatibilityLevel() {
+        return compatibilityLevel != null ? compatibilityLevel : connection.getJdbcCompatibilityLevel();
     }
 
     /**
@@ -99,14 +95,10 @@ public class DataWorldStatement implements ReadOnlyStatement {
      * this case will be implementation specific.
      * </p>
      *
-     * @param level Compatibility level
+     * @param compatibilityLevel Compatibility level
      */
-    public void setJdbcCompatibilityLevel(int level) {
-        if (level == USE_CONNECTION_COMPATIBILITY) {
-            compatibilityLevel = USE_CONNECTION_COMPATIBILITY;
-        } else {
-            compatibilityLevel = JdbcCompatibility.normalizeLevel(level);
-        }
+    public void setJdbcCompatibilityLevel(JdbcCompatibility compatibilityLevel) {
+        this.compatibilityLevel = compatibilityLevel;
     }
 
     public void clearWarnings() {

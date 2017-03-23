@@ -120,7 +120,7 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
             names[2] = objLabel;
         }
 
-        int level = JdbcCompatibility.normalizeLevel(results.getJdbcCompatibilityLevel());
+        JdbcCompatibility level = results.getJdbcCompatibilityLevel();
         boolean columnsAsStrings = JdbcCompatibility.shouldTypeColumnsAsString(level);
         boolean columnsDetected = JdbcCompatibility.shouldDetectColumnTypes(level);
 
@@ -160,14 +160,12 @@ public class TripleResultsMetadata extends DataWorldResultsMetadata {
                 // NVARChar with String as the column class
                 columns[i] = new StringColumn(names[i], columnNoNulls);
                 LOGGER.info("Medium JDBC compatibility, column " + names[i] + " is being typed as String");
-            } else if (columnsDetected) {
+            } else {
                 // High compatibility, detect columns types based on first row
                 // of results
                 columns[i] = JdbcCompatibility.detectColumnType(names[i], values[i], false);
                 LOGGER.info("High compatibility, column " + names[i] + " was detected as being of type "
                         + columns[i].getClassName());
-            } else {
-                throw new SQLFeatureNotSupportedException("Unknown JDBC compatibility level was set");
             }
         }
 

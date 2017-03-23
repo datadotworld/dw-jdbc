@@ -18,7 +18,6 @@
 */
 package world.data.jdbc;
 
-import org.apache.jena.query.ARQ;
 import world.data.jdbc.connections.DataWorldConnection;
 
 import java.sql.Connection;
@@ -32,13 +31,30 @@ import java.util.Properties;
 
 public class DataWorldJdbcDriver implements Driver {
 
+    /**
+     * Constant for the primary Jena JDBC Driver prefix, implementations supply
+     * an additional prefix which will form the next portion of the JDBC URL
+     */
+    public static final String DRIVER_PREFIX = "jdbc:data:world:";
+
+    /**
+     * Constant for the connection URL parameter which sets the desired JDBC
+     * compatibility level
+     */
+    public static final String PARAM_JDBC_COMPATIBILITY = "jdbc-compatibility";
+
+    /**
+     * Constant for the standard JDBC connection URL parameter used to set
+     * password for drivers that support authentication
+     */
+    public static final String PARAM_PASSWORD = "password";
+
+
     public static final String VERSION = Versions.findVersionString();
 
     private static final int[] VERSION_NUMBERS = Versions.parseVersionNumbers(VERSION);
 
     static {
-        ARQ.init();
-
         try {
             register();
         } catch (SQLException e) {
@@ -79,7 +95,7 @@ public class DataWorldJdbcDriver implements Driver {
         String lang = effectiveProps.getProperty("lang");
         String agentId = effectiveProps.getProperty("agentid");
         String datasetId = effectiveProps.getProperty("datasetid");
-        String password = effectiveProps.getProperty("password");
+        String password = effectiveProps.getProperty(PARAM_PASSWORD);
 
         String queryEndpoint = String.format("%s/%s/%s/%s", queryBaseUrl, lang, agentId, datasetId);
 
