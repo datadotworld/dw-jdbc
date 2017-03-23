@@ -1141,6 +1141,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
         return false;
     }
 
+    @Override
     @SuppressWarnings("javadoc")
     public ResultSet getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern)
             throws SQLException {
@@ -1148,6 +1149,7 @@ public class DataWorldSparqlMetadata implements DatabaseMetaData {
     }
 
     // Java 6/7 compatibility
+    @Override
     @SuppressWarnings("javadoc")
     public boolean generatedKeyAlwaysReturned() {
         // We don't support returning keys

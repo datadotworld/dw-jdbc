@@ -101,22 +101,27 @@ public class DataWorldStatement implements ReadOnlyStatement {
         this.compatibilityLevel = compatibilityLevel;
     }
 
+    @Override
     public void clearWarnings() {
         warnings = null;
     }
 
+    @Override
     public int getFetchDirection() {
         return ResultSet.FETCH_FORWARD;
     }
 
+    @Override
     public int getFetchSize() {
         return 0;
     }
 
+    @Override
     public int getMaxFieldSize() {
         return NO_LIMIT;
     }
 
+    @Override
     public int getMaxRows() {
         return NO_LIMIT;
     }
@@ -124,18 +129,22 @@ public class DataWorldStatement implements ReadOnlyStatement {
     /**
      * Gets that result sets are read-only
      */
+    @Override
     public final int getResultSetConcurrency() {
         return ResultSet.CONCUR_READ_ONLY;
     }
 
+    @Override
     public int getResultSetHoldability() {
         return ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
 
+    @Override
     public final int getResultSetType() {
         return ResultSet.TYPE_FORWARD_ONLY;
     }
 
+    @Override
     public SQLWarning getWarnings() {
         return warnings;
     }
@@ -268,41 +277,50 @@ public class DataWorldStatement implements ReadOnlyStatement {
         setWarning(new SQLWarning(warning));
     }
 
+    @Override
     public void setEscapeProcessing(boolean enable) {
     }
 
+    @Override
     public void setFetchDirection(int direction) throws SQLException {
         checkSupported(direction == ResultSet.FETCH_FORWARD, "Only ResultSet.FETCH_FORWARD is supported as a fetch direction");
     }
 
+    @Override
     public void setFetchSize(int rows) {
         setWarning("setMaxFieldSize() was called but there is no fetch size control for data.world JDBC connections");
     }
 
+    @Override
     public void setMaxFieldSize(int max) {
         // Ignored
         setWarning("setMaxFieldSize() was called but there is no field size limit for data.world JDBC connections");
     }
 
+    @Override
     public void setMaxRows(int max) {
         setWarning("setMaxRows() was called but there is no row size limit for data.world JDBC connections");
     }
 
+    @Override
     public void setPoolable(boolean poolable) {
         setWarning("setPoolable() was called but data.world JDBC statements are always considered poolable");
     }
 
+    @Override
     public void setQueryTimeout(int seconds) {
         timeout = Math.max(seconds, 0);
     }
 
     // Java 6/7 compatibility
+    @Override
     @SuppressWarnings("javadoc")
     public boolean isCloseOnCompletion() {
         // Statements do not automatically close
         return false;
     }
 
+    @Override
     @SuppressWarnings("javadoc")
     public void closeOnCompletion() throws SQLException {
         // We don't support the JDBC 4.1 feature of closing statements
@@ -310,6 +328,7 @@ public class DataWorldStatement implements ReadOnlyStatement {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public final boolean isPoolable() {
         return true;
     }

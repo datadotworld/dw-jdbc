@@ -72,6 +72,7 @@ public class SelectResults extends AbstractStreamedResults<Binding> {
         }
     }
 
+    @Override
     public int findColumn(String columnLabel) throws SQLException {
         checkClosed();
         for (int i = 0; i < columns.size(); i++) {

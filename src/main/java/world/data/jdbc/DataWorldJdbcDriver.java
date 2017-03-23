@@ -112,6 +112,7 @@ public class DataWorldJdbcDriver implements Driver {
         return VERSION_NUMBERS[1];
     }
 
+    @Override
     public final DriverPropertyInfo[] getPropertyInfo(String url, Properties props) throws SQLException {
         return new DriverPropertyInfo[0];
     }
@@ -128,6 +129,7 @@ public class DataWorldJdbcDriver implements Driver {
     }
 
     // Java6/7 compatibility
+    @Override
     public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }

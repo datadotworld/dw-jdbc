@@ -557,22 +557,27 @@ public class DataWorldConnection implements Connection {
     }
 
     //--- Java6/7 compatibility.
+    @Override
     public void setSchema(String schema) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public String getSchema() throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public void abort(java.util.concurrent.Executor executor) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public int getNetworkTimeout() throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public void setNetworkTimeout(java.util.concurrent.Executor executor, int milliseconds) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }

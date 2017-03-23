@@ -57,6 +57,7 @@ public class AskResults extends AbstractResultsSet {
         this.columnLabel = metadata.getColumnLabel(AskResultsMetadata.COLUMN_INDEX_ASK);
     }
 
+    @Override
     public boolean absolute(int row) throws SQLException {
         checkClosed();
         // We can move backwards and forwards in an ASK result but there
@@ -72,14 +73,17 @@ public class AskResults extends AbstractResultsSet {
         }
     }
 
+    @Override
     public void afterLast() {
         currRow = 2;
     }
 
+    @Override
     public void beforeFirst() {
         currRow = 0;
     }
 
+    @Override
     public void close() throws SQLException {
         if (closed) {
             return;
@@ -87,63 +91,76 @@ public class AskResults extends AbstractResultsSet {
         closed = true;
     }
 
+    @Override
     public int findColumn(String columnLabel) throws SQLException {
         check(this.columnLabel.equals(columnLabel), "The given column does not exist in this result set");
         return 1;
     }
 
+    @Override
     public boolean first() throws SQLException {
         checkClosed();
         currRow = 1;
         return true;
     }
 
+    @Override
     public int getFetchDirection() {
         return ResultSet.FETCH_FORWARD;
     }
 
+    @Override
     public int getFetchSize() {
         return 1;
     }
 
+    @Override
     public int getRow() {
         return currRow;
     }
 
+    @Override
     public int getType() {
         return ResultSet.TYPE_SCROLL_INSENSITIVE;
     }
 
+    @Override
     public boolean isAfterLast() throws SQLException {
         checkClosed();
         return currRow == 2;
     }
 
+    @Override
     public boolean isBeforeFirst() throws SQLException {
         checkClosed();
         return currRow == 0;
     }
 
+    @Override
     public boolean isClosed() {
         return closed;
     }
 
+    @Override
     public boolean isFirst() throws SQLException {
         checkClosed();
         return currRow == 1;
     }
 
+    @Override
     public boolean isLast() throws SQLException {
         checkClosed();
         return currRow == 1;
     }
 
+    @Override
     public boolean last() throws SQLException {
         checkClosed();
         currRow = 1;
         return true;
     }
 
+    @Override
     public boolean next() throws SQLException {
         checkClosed();
         if (currRow < 2) {
@@ -152,6 +169,7 @@ public class AskResults extends AbstractResultsSet {
         return currRow == 1;
     }
 
+    @Override
     public boolean relative(int rows) throws SQLException {
         checkClosed();
         if (currRow == 0 && (rows >= 0 && rows <= 2)) {
@@ -168,10 +186,12 @@ public class AskResults extends AbstractResultsSet {
         }
     }
 
+    @Override
     public void setFetchDirection(int direction) throws SQLException {
         checkSupported(direction == ResultSet.FETCH_FORWARD, "data.world JDBC Result Sets only support forward fetch");
     }
 
+    @Override
     public void setFetchSize(int rows) throws SQLException {
         throw new SQLFeatureNotSupportedException("Fetch Size is not relevant for ASK results");
     }

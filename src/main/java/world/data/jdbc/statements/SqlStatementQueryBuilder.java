@@ -28,6 +28,7 @@ import java.sql.SQLException;
 
 public class SqlStatementQueryBuilder implements QueryBuilder {
 
+    @Override
     public Query buildQuery(final String sql) throws SQLException {
         return new SqlQuery(sql);
     }
@@ -37,6 +38,7 @@ public class SqlStatementQueryBuilder implements QueryBuilder {
         return new DataWorldSqlParameterMetadata(query);
     }
 
+    @Override
     public SelectResults buildResults(final DataWorldStatement statement, final Query q, final QueryExecution qe) throws SQLException {
         return new SelectResults(statement, qe, qe.execSelect());
     }

@@ -607,11 +607,13 @@ abstract class AbstractResultsSet implements ResultSet {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getObject() is supported");
     }
 
+    @Override
     @SuppressWarnings("javadoc")
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getObject() is supported");
     }
 
+    @Override
     @SuppressWarnings("javadoc")
     public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getObject() is supported");
