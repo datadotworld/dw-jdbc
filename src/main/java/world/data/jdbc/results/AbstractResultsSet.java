@@ -19,8 +19,8 @@
 package world.data.jdbc.results;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.jdbc.JdbcCompatibility;
 import org.apache.jena.jdbc.utils.JdbcNodeUtils;
+import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.statements.DataWorldStatement;
 
 import java.io.InputStream;

@@ -18,9 +18,9 @@
 */
 package world.data.jdbc.metadata;
 
-import org.apache.jena.jdbc.JdbcCompatibility;
 import org.apache.jena.jdbc.results.metadata.columns.BooleanColumn;
 import org.apache.jena.jdbc.results.metadata.columns.ColumnInfo;
+import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.results.AskResults;
 
 import java.sql.SQLException;
