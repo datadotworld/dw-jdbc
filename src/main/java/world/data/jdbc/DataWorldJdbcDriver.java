@@ -32,6 +32,10 @@ import java.util.Properties;
 
 public class DataWorldJdbcDriver implements Driver {
 
+    public static final String VERSION = Versions.findVersionString();
+
+    private static final int[] VERSION_NUMBERS = Versions.parseVersionNumbers(VERSION);
+
     static {
         try {
             register();
@@ -44,17 +48,10 @@ public class DataWorldJdbcDriver implements Driver {
         DriverManager.registerDriver(new DataWorldJdbcDriver());
     }
 
-    private final int majorVer, minorVer;
-
-    public DataWorldJdbcDriver() {
-        this.majorVer = 0;
-        this.minorVer = 1;
-    }
-
     @Override
     public boolean acceptsURL(String url) {
-        return url.startsWith("jdbc:data:world:sql:") ||
-                url.startsWith("jdbc:data:world:sparql:");
+        return url.startsWith("jdbc:data:world:sparql:") ||
+                url.startsWith("jdbc:data:world:sql:");
     }
 
     @Override
@@ -89,12 +86,12 @@ public class DataWorldJdbcDriver implements Driver {
 
     @Override
     public int getMajorVersion() {
-        return minorVer;
+        return VERSION_NUMBERS[0];
     }
 
     @Override
     public int getMinorVersion() {
-        return majorVer;
+        return VERSION_NUMBERS[1];
     }
 
     public final DriverPropertyInfo[] getPropertyInfo(String url, Properties props) throws SQLException {
@@ -124,5 +121,4 @@ public class DataWorldJdbcDriver implements Driver {
         props.put("authenticator", authenticator);
         return authenticator;
     }
-
 }

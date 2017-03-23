@@ -51,13 +51,21 @@ public class DataWorldJdbcDriverTest {
     @Test
     public void getMajorVersion() throws Exception {
         DataWorldJdbcDriver driver = new DataWorldJdbcDriver();
-        assertThat(driver.getMajorVersion()).isEqualTo(1);
+        if (isMavenBuild()) {
+            assertThat(driver.getMajorVersion()).isGreaterThan(0);
+        } else {
+            assertThat(driver.getMajorVersion()).isEqualTo(0);
+        }
     }
 
     @Test
     public void getMinorVersion() throws Exception {
         DataWorldJdbcDriver driver = new DataWorldJdbcDriver();
-        assertThat(driver.getMinorVersion()).isEqualTo(0);
+        if (isMavenBuild()) {
+            assertThat(driver.getMajorVersion()).isGreaterThanOrEqualTo(0);
+        } else {
+            assertThat(driver.getMinorVersion()).isEqualTo(0);
+        }
     }
 
     @Test
@@ -76,5 +84,10 @@ public class DataWorldJdbcDriverTest {
     public void testAllNotSupported() throws Exception {
         DataWorldJdbcDriver driver = new DataWorldJdbcDriver();
         assertSQLFeatureNotSupported(driver::getParentLogger);
+    }
+
+    private boolean isMavenBuild() {
+        String resourceName = "/META-INF/maven/world.data/dw-jdbc/pom.properties";
+        return getClass().getResource(resourceName) != null;
     }
 }
