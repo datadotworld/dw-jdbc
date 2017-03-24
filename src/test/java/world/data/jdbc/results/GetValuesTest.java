@@ -25,7 +25,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.statements.DataWorldStatement;
+import world.data.jdbc.statements.Statement;
 import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SqlHelper;
@@ -33,7 +33,6 @@ import world.data.jdbc.testing.SqlHelper;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -179,7 +178,7 @@ public class GetValuesTest {
 
     @Test
     public void getObjectHiCompatability() throws Exception {
-        DataWorldStatement statement = sql.createStatement(sql.connect());
+        Statement statement = sql.createStatement(sql.connect());
         statement.setJdbcCompatibilityLevel(JdbcCompatibility.HIGH);
         ResultSet resultSet = sql.executeQuery(statement, "select * from HallOfFame limit 10");
         resultSet.next();

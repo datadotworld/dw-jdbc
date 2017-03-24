@@ -22,7 +22,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import world.data.jdbc.testing.SparqlHelper;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -31,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
-public class DataWorldConnectionTest {
+public class ConnectionTest {
 
     @Rule
     public final SparqlHelper sparql = new SparqlHelper();

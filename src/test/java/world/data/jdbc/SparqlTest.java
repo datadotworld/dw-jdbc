@@ -24,15 +24,15 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import world.data.jdbc.connections.Connection;
+import world.data.jdbc.statements.PreparedStatement;
+import world.data.jdbc.statements.Statement;
 import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SparqlHelper;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.Statement;
 
 import static fi.iki.elonen.NanoHTTPD.Method.GET;
 import static java.nio.charset.StandardCharsets.UTF_8;

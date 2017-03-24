@@ -30,6 +30,6 @@ interface QueryBuilder {
 
     ParameterMetaData buildParameterMetadata(String query) throws SQLException;
 
-    ResultSet buildResults(DataWorldStatement statement, Query q, QueryExecution qe) throws SQLException;
+    ResultSet buildResults(Statement statement, Query q, QueryExecution qe) throws SQLException;
 
 }

@@ -37,7 +37,6 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.Blob;
-import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Date;
 import java.sql.JDBCType;
@@ -62,8 +61,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
-public class DataWorldCallableStatementTest {
-    private static final Logger log = LoggerFactory.getLogger(DataWorldCallableStatementTest.class);
+public class CallableStatementTest {
+    private static final Logger log = LoggerFactory.getLogger(CallableStatementTest.class);
 
     private static NanoHTTPDHandler lastBackendRequest;
     private static final String resultResourceName = "/select.json";
@@ -90,11 +89,11 @@ public class DataWorldCallableStatementTest {
         lastBackendRequest = mock(NanoHTTPDHandler.class);
     }
 
-    private DataWorldCallableStatement sampleSqlCallableStatement() throws SQLException {
+    private CallableStatement sampleSqlCallableStatement() throws SQLException {
         return sql.prepareCall(sql.connect(), "select * from Fielding where yearid = ?");
     }
 
-    private DataWorldCallableStatement sampleSparqlCallableStatement() throws SQLException {
+    private CallableStatement sampleSparqlCallableStatement() throws SQLException {
         return sparql.prepareCall(sparql.connect(), "select ?s ?p ?o where {?s ?p ?o.} limit 10");
     }
 

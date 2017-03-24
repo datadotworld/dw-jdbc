@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import world.data.jdbc.statements.Statement;
 import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SparqlHelper;
@@ -31,7 +32,6 @@ import world.data.jdbc.testing.SparqlHelper;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import static fi.iki.elonen.NanoHTTPD.Method.GET;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
-public class AskResultsTest {
+public class AskResultSetTest {
 
     private static NanoHTTPDHandler lastBackendRequest;
     private static final String resultResourceName = "/ask.json";
@@ -185,14 +185,14 @@ public class AskResultsTest {
 
     @Test
     public void findColumnLabel() throws Exception {
-        AskResults resultSet = (AskResults) sampleResultSet();
+        AskResultSet resultSet = (AskResultSet) sampleResultSet();
         assertThat(resultSet.findColumnLabel(1)).isEqualTo("ASK");
         assertSQLException(() -> resultSet.findColumnLabel(0));
     }
 
     @Test
     public void getNode() throws Exception {
-        AskResults resultSet = (AskResults) sampleResultSet();
+        AskResultSet resultSet = (AskResultSet) sampleResultSet();
         resultSet.next();
         assertSQLException(() -> resultSet.getNode("FOO"));
     }

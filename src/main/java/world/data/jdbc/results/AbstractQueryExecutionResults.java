@@ -21,7 +21,7 @@ package world.data.jdbc.results;
 import org.apache.jena.query.QueryExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import world.data.jdbc.statements.DataWorldStatement;
+import world.data.jdbc.statements.Statement;
 
 import java.sql.SQLException;
 
@@ -30,7 +30,7 @@ import static world.data.jdbc.util.Conditions.check;
 /**
  * Abstract base class for result sets that are backed by a {@link QueryExecution}
  */
-abstract class AbstractQueryExecutionResults extends AbstractResultsSet {
+abstract class AbstractQueryExecutionResults extends AbstractResultSet {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractQueryExecutionResults.class);
 
@@ -43,7 +43,7 @@ abstract class AbstractQueryExecutionResults extends AbstractResultsSet {
      * @param qe        Query Execution
      * @throws SQLException Thrown if there is an issue creating the results
      */
-    AbstractQueryExecutionResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
+    AbstractQueryExecutionResults(Statement statement, QueryExecution qe) throws SQLException {
         super(statement);
         check(qe != null, "Query Execution cannot be null");
         this.qe = qe;

@@ -24,13 +24,12 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.connections.DataWorldConnection;
+import world.data.jdbc.connections.Connection;
 import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SparqlHelper;
 
 import java.sql.ResultSet;
-import java.sql.Statement;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +37,7 @@ import static org.mockito.Mockito.mock;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
-public class DataWorldStatementTest {
+public class StatementTest {
     private static NanoHTTPDHandler lastBackendRequest;
     private static final String resultResourceName = "/select.json";
     private static final String resultMimeType = "application/json";
@@ -63,29 +62,29 @@ public class DataWorldStatementTest {
 
     @Test
     public void getJdbcCompatibilityLevel() throws Exception {
-        DataWorldStatement statement = sparql.createStatement(sparql.connect());
+        Statement statement = sparql.createStatement(sparql.connect());
         assertThat(statement.getJdbcCompatibilityLevel()).isEqualTo(JdbcCompatibility.MEDIUM);
     }
 
     @Test
     public void getJdbcCompatibilityInheritedLevel() throws Exception {
-        DataWorldConnection connection = sparql.connect();
+        Connection connection = sparql.connect();
         connection.setJdbcCompatibilityLevel(JdbcCompatibility.LOW);
-        DataWorldStatement statement = sparql.createStatement(connection);
+        Statement statement = sparql.createStatement(connection);
         assertThat(statement.getJdbcCompatibilityLevel()).isEqualTo(JdbcCompatibility.LOW);
     }
 
     @Test
     public void setJdbcCompatibilityLevel() throws Exception {
-        DataWorldConnection connection = sparql.connect();
+        Connection connection = sparql.connect();
         connection.setJdbcCompatibilityLevel(JdbcCompatibility.HIGH);
-        DataWorldStatement statement = sparql.createStatement(connection);
+        Statement statement = sparql.createStatement(connection);
         assertThat(statement.getJdbcCompatibilityLevel()).isEqualTo(JdbcCompatibility.HIGH);
     }
 
     @Test
     public void getFetchDirection() throws Exception {
-        DataWorldStatement statement = sparql.createStatement(sparql.connect());
+        Statement statement = sparql.createStatement(sparql.connect());
         statement.setJdbcCompatibilityLevel(JdbcCompatibility.HIGH);
         assertThat(statement.getFetchDirection()).isEqualTo(ResultSet.FETCH_FORWARD);
         assertThat(statement.getFetchSize()).isEqualTo(0);

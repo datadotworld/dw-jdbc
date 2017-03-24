@@ -53,7 +53,7 @@ import static world.data.jdbc.util.Conditions.check;
  * and helper methods to understand exactly what each level means.
  * </p>
  */
-public enum  JdbcCompatibility {
+public enum JdbcCompatibility {
 
     /**
      * Constant for low JDBC compatibility level

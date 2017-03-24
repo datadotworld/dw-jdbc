@@ -24,14 +24,12 @@ import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.connections.DataWorldConnection;
+import world.data.jdbc.connections.Connection;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLWarning;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,8 +40,8 @@ import static java.util.Objects.requireNonNull;
 import static world.data.jdbc.util.Conditions.check;
 import static world.data.jdbc.util.Conditions.checkSupported;
 
-public class DataWorldStatement implements ReadOnlyStatement {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataWorldStatement.class);
+public class Statement implements ReadOnlyStatement {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Statement.class);
 
     private static final int NO_LIMIT = 0;
 
@@ -52,7 +50,7 @@ public class DataWorldStatement implements ReadOnlyStatement {
     private SQLWarning warnings = null;
 
     private final QueryBuilder queryBuilder;
-    private final DataWorldConnection connection;
+    private final Connection connection;
 
     private final List<String> commands = new ArrayList<>();
     private final Queue<ResultSet> results = new LinkedList<>();
@@ -60,7 +58,7 @@ public class DataWorldStatement implements ReadOnlyStatement {
     private ResultSet currResults;
     private boolean closed;
 
-    public DataWorldStatement(final DataWorldConnection connection, final QueryBuilder queryBuilder) {
+    public Statement(final Connection connection, final QueryBuilder queryBuilder) {
         this.connection = requireNonNull(connection, "connection");
         this.queryBuilder = requireNonNull(queryBuilder, "queryBuilder");
     }

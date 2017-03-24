@@ -21,12 +21,12 @@ package world.data.jdbc.statements;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import world.data.jdbc.query.SqlQuery;
-import world.data.jdbc.results.SelectResults;
+import world.data.jdbc.results.SelectResultSet;
 
 import java.sql.ParameterMetaData;
 import java.sql.SQLException;
 
-public class SqlStatementQueryBuilder implements QueryBuilder {
+public class SqlQueryBuilder implements QueryBuilder {
 
     @Override
     public Query buildQuery(final String sql) throws SQLException {
@@ -35,12 +35,12 @@ public class SqlStatementQueryBuilder implements QueryBuilder {
 
     @Override
     public ParameterMetaData buildParameterMetadata(final String query) throws SQLException {
-        return new DataWorldSqlParameterMetadata(query);
+        return new SqlParameterMetadata(query);
     }
 
     @Override
-    public SelectResults buildResults(final DataWorldStatement statement, final Query q, final QueryExecution qe) throws SQLException {
-        return new SelectResults(statement, qe, qe.execSelect());
+    public SelectResultSet buildResults(final Statement statement, final Query q, final QueryExecution qe) throws SQLException {
+        return new SelectResultSet(statement, qe, qe.execSelect());
     }
 
 }

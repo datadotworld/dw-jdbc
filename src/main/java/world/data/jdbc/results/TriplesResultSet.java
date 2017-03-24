@@ -24,8 +24,8 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryCancelledException;
 import org.apache.jena.query.QueryExecution;
-import world.data.jdbc.metadata.TripleResultsMetadata;
-import world.data.jdbc.statements.DataWorldStatement;
+import world.data.jdbc.metadata.TriplesResultSetMetadata;
+import world.data.jdbc.statements.Statement;
 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -37,9 +37,9 @@ import static world.data.jdbc.util.Conditions.check;
  * Represents results of a CONSTRUCT/DESCRIBE query where the results are
  * streamed
  */
-public class TriplesResults extends AbstractStreamedResults<Triple> {
+public class TriplesResultSet extends AbstractStreamingResultSet<Triple> {
 
-    private final TripleResultsMetadata metadata;
+    private final TriplesResultSetMetadata metadata;
     private PeekIterator<Triple> triples;
     private final String subjColumn, predColumn, objColumn;
     private final int numColumns;
@@ -52,11 +52,11 @@ public class TriplesResults extends AbstractStreamedResults<Triple> {
      * @param ts        Triple Iterator
      * @throws SQLException Thrown if there is a problem creating the results
      */
-    public TriplesResults(DataWorldStatement statement, QueryExecution qe, Iterator<Triple> ts)
+    public TriplesResultSet(Statement statement, QueryExecution qe, Iterator<Triple> ts)
             throws SQLException {
         super(statement, qe);
         this.triples = PeekIterator.create(ts);
-        this.metadata = new TripleResultsMetadata(this, triples);
+        this.metadata = new TriplesResultSetMetadata(this, triples);
         this.numColumns = metadata.getColumnCount();
         this.subjColumn = metadata.getSubjectColumnLabel();
         this.predColumn = metadata.getPredicateColumnLabel();
@@ -66,14 +66,14 @@ public class TriplesResults extends AbstractStreamedResults<Triple> {
     @Override
     public int findColumn(String columnLabel) throws SQLException {
         if (subjColumn != null && subjColumn.equals(columnLabel)) {
-            return TripleResultsMetadata.COLUMN_INDEX_SUBJECT;
+            return TriplesResultSetMetadata.COLUMN_INDEX_SUBJECT;
         } else if (predColumn != null && predColumn.equals(columnLabel)) {
-            return subjColumn == null ? TripleResultsMetadata.COLUMN_INDEX_SUBJECT
-                    : TripleResultsMetadata.COLUMN_INDEX_PREDICATE;
+            return subjColumn == null ? TriplesResultSetMetadata.COLUMN_INDEX_SUBJECT
+                    : TriplesResultSetMetadata.COLUMN_INDEX_PREDICATE;
         } else if (objColumn != null && objColumn.equals(columnLabel)) {
-            return subjColumn == null && predColumn == null ? TripleResultsMetadata.COLUMN_INDEX_SUBJECT
-                    : (subjColumn == null || predColumn == null ? TripleResultsMetadata.COLUMN_INDEX_PREDICATE
-                    : TripleResultsMetadata.COLUMN_INDEX_OBJECT);
+            return subjColumn == null && predColumn == null ? TriplesResultSetMetadata.COLUMN_INDEX_SUBJECT
+                    : (subjColumn == null || predColumn == null ? TriplesResultSetMetadata.COLUMN_INDEX_PREDICATE
+                    : TriplesResultSetMetadata.COLUMN_INDEX_OBJECT);
         } else {
             throw new SQLException("Column " + columnLabel + " does not exist in these results");
         }
@@ -125,11 +125,11 @@ public class TriplesResults extends AbstractStreamedResults<Triple> {
         checkClosed();
         check(columnIndex >= 1 && columnIndex <= numColumns, "Column Index is out of bounds");
         switch (columnIndex) {
-            case TripleResultsMetadata.COLUMN_INDEX_SUBJECT:
+            case TriplesResultSetMetadata.COLUMN_INDEX_SUBJECT:
                 return subjColumn != null ? subjColumn : (predColumn != null ? predColumn : objColumn);
-            case TripleResultsMetadata.COLUMN_INDEX_PREDICATE:
+            case TriplesResultSetMetadata.COLUMN_INDEX_PREDICATE:
                 return subjColumn != null && predColumn != null ? predColumn : objColumn;
-            case TripleResultsMetadata.COLUMN_INDEX_OBJECT:
+            case TriplesResultSetMetadata.COLUMN_INDEX_OBJECT:
                 return objColumn;
             default:
                 throw new SQLException("Column Index is out of bounds");

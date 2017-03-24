@@ -21,7 +21,7 @@ package world.data.jdbc.results;
 import org.apache.jena.graph.Node;
 import org.apache.jena.jdbc.utils.JdbcNodeUtils;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.statements.DataWorldStatement;
+import world.data.jdbc.statements.Statement;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -40,7 +40,6 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
-import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -54,9 +53,9 @@ import static world.data.jdbc.util.Conditions.check;
  * Abstract implementation of a JDBC Result Set which makes all update methods
  * throw {@link SQLFeatureNotSupportedException}
  */
-abstract class AbstractResultsSet implements ResultSet {
+abstract class AbstractResultSet implements ResultSet {
 
-    private final DataWorldStatement statement;
+    private final Statement statement;
     private final JdbcCompatibility compatibilityLevel;
     private SQLWarning warnings;
     private boolean wasNull;
@@ -67,7 +66,7 @@ abstract class AbstractResultsSet implements ResultSet {
      * @param statement Statement that originated the result set
      * @throws SQLException Thrown if the arguments are invalid
      */
-    AbstractResultsSet(DataWorldStatement statement) throws SQLException {
+    AbstractResultSet(Statement statement) throws SQLException {
         this.statement = requireNonNull(statement, "statement");
         this.compatibilityLevel = statement.getJdbcCompatibilityLevel();
     }

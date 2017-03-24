@@ -21,9 +21,8 @@ package world.data.jdbc.statements;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.sql.Statement;
 
-interface ReadOnlyStatement extends Statement {
+interface ReadOnlyStatement extends java.sql.Statement {
 
     @Override
     default int executeUpdate(String sql) throws SQLException {

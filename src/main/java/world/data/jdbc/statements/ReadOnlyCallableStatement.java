@@ -23,7 +23,6 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
-import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Date;
 import java.sql.NClob;
@@ -37,7 +36,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
-interface ReadOnlyCallableStatement extends CallableStatement, ReadOnlyPreparedStatement {
+interface ReadOnlyCallableStatement extends java.sql.CallableStatement, ReadOnlyPreparedStatement {
     @Override
     default Array getArray(String parameterName) throws SQLException {
         throw new SQLFeatureNotSupportedException("Output parameters not supported");

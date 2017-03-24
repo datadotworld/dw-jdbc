@@ -27,15 +27,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
-public class DataWorldSqlParameterMetadataTest {
+public class SqlParameterMetadataTest {
 
-    private DataWorldSqlParameterMetadata sampleMetadata() throws SQLException {
-        return new DataWorldSqlParameterMetadata("select * from HallOfFame where yearid > ? order by yearid, playerID ");
+    private SqlParameterMetadata sampleMetadata() throws SQLException {
+        return new SqlParameterMetadata("select * from HallOfFame where yearid > ? order by yearid, playerID ");
     }
 
     @Test
     public void testNullString() throws Exception {
-        assertSQLException(() -> new DataWorldSqlParameterMetadata(null));
+        assertSQLException(() -> new SqlParameterMetadata(null));
     }
 
     @Test

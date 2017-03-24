@@ -18,11 +18,10 @@
 */
 package world.data.jdbc.statements;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 
-interface ReadOnlyPreparedStatement extends PreparedStatement, ReadOnlyStatement {
+interface ReadOnlyPreparedStatement extends java.sql.PreparedStatement, ReadOnlyStatement {
 
     @Override
     default int executeUpdate() throws SQLException {

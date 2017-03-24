@@ -25,21 +25,21 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.connections.DataWorldConnection;
+import world.data.jdbc.connections.Connection;
+import world.data.jdbc.statements.Statement;
 import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SparqlHelper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
 
-public class SelectResultsTest {
+public class SelectResultSetTest {
     private static NanoHTTPDHandler lastBackendRequest;
     private static final String resultResourceName = "/select.json";
     private static final String resultMimeType = "application/json";
@@ -121,7 +121,7 @@ public class SelectResultsTest {
 
     @Test
     public void getMetaDataLow() throws Exception {
-        DataWorldConnection connection = sparql.connect();
+        Connection connection = sparql.connect();
         connection.setJdbcCompatibilityLevel(JdbcCompatibility.LOW);
         Statement statement = sparql.createStatement(connection);
         ResultSet resultSet = sparql.executeQuery(statement, "select ?s where {?s ?p ?o.}");
@@ -130,7 +130,7 @@ public class SelectResultsTest {
 
     @Test
     public void getMetaDataHigh() throws Exception {
-        DataWorldConnection connection = sparql.connect();
+        Connection connection = sparql.connect();
         connection.setJdbcCompatibilityLevel(JdbcCompatibility.HIGH);
         Statement statement = sparql.createStatement(connection);
         ResultSet resultSet = sparql.executeQuery(statement, "select ?s where {?s ?p ?o.}");

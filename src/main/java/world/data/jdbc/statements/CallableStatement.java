@@ -21,7 +21,7 @@ package world.data.jdbc.statements;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.util.NodeFactoryExtra;
-import world.data.jdbc.connections.DataWorldConnection;
+import world.data.jdbc.connections.Connection;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -42,11 +42,11 @@ import java.util.Calendar;
 
 import static world.data.jdbc.util.Conditions.checkSupported;
 
-public class DataWorldCallableStatement extends DataWorldPreparedStatement implements ReadOnlyCallableStatement {
+public class CallableStatement extends PreparedStatement implements ReadOnlyCallableStatement {
     private final boolean namedParamsSupported;
 
-    public DataWorldCallableStatement(String query, DataWorldConnection connection,
-                                      QueryBuilder queryBuilder, boolean namedParamsSupported) throws SQLException {
+    public CallableStatement(String query, Connection connection,
+                             QueryBuilder queryBuilder, boolean namedParamsSupported) throws SQLException {
         super(query, connection, queryBuilder);
         this.namedParamsSupported = namedParamsSupported;
     }

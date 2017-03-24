@@ -26,7 +26,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.apache.jena.sparql.util.NodeFactoryExtra;
-import world.data.jdbc.connections.DataWorldConnection;
+import world.data.jdbc.connections.Connection;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -61,7 +61,7 @@ import static world.data.jdbc.util.Conditions.checkSupported;
 /**
  * data.world JDBC implementation of a prepared statement
  */
-public class DataWorldPreparedStatement extends DataWorldStatement implements ReadOnlyPreparedStatement {
+public class PreparedStatement extends Statement implements ReadOnlyPreparedStatement {
     private final String query;
     private final ParameterMetaData paramMetadata;
     private final Map<String, Node> params = new LinkedHashMap<>();
@@ -72,7 +72,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
      * @param connection Connection
      * @throws SQLException Thrown if there is a problem preparing the statement
      */
-    public DataWorldPreparedStatement(String query, DataWorldConnection connection, QueryBuilder queryBuilder) throws SQLException {
+    public PreparedStatement(String query, Connection connection, QueryBuilder queryBuilder) throws SQLException {
         super(connection, queryBuilder);
         this.query = requireNonNull(query, "query");
         this.paramMetadata = queryBuilder.buildParameterMetadata(query);
