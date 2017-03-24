@@ -18,9 +18,8 @@
 */
 package world.data.jdbc;
 
-import world.data.jdbc.connections.DataWorldConnection;
+import world.data.jdbc.connections.Connection;
 
-import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
@@ -29,7 +28,7 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.Locale;
 import java.util.Properties;
 
-public class DataWorldJdbcDriver implements Driver {
+public class JdbcDriver implements Driver {
 
     /**
      * Constant for the primary Jena JDBC Driver prefix, implementations supply
@@ -63,7 +62,7 @@ public class DataWorldJdbcDriver implements Driver {
     }
 
     public static synchronized void register() throws SQLException {
-        DriverManager.registerDriver(new DataWorldJdbcDriver());
+        DriverManager.registerDriver(new JdbcDriver());
     }
 
     @Override
@@ -99,7 +98,7 @@ public class DataWorldJdbcDriver implements Driver {
 
         String queryEndpoint = String.format("%s/%s/%s/%s", queryBaseUrl, lang, agentId, datasetId);
 
-        return new DataWorldConnection(queryEndpoint, lang, password);
+        return new Connection(queryEndpoint, lang, password);
     }
 
     @Override

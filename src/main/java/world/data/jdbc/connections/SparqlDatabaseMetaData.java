@@ -22,7 +22,6 @@ import org.apache.jena.jdbc.metadata.MetadataSchema;
 import org.apache.jena.jdbc.metadata.results.MetaResultSet;
 import org.apache.jena.vocabulary.XSD;
 
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
@@ -91,14 +90,14 @@ public class SparqlDatabaseMetaData implements DatabaseMetaData {
 
     private static final String[] SPARQL_DATETIME_FUNCTIONS = new String[]{"YEAR", "MONTH", "DAY", "HOURS", "MINUTES",
             "SECONDS", "TIMEZONE", "TZ", "NOW"};
-    private DataWorldConnection connection;
+    private Connection connection;
 
     /**
      * Creates new connection metadata
      *
      * @param connection Connection
      */
-    public SparqlDatabaseMetaData(DataWorldConnection connection) throws SQLException {
+    public SparqlDatabaseMetaData(Connection connection) throws SQLException {
         check(connection != null, "Connection cannot be null");
         this.connection = connection;
     }
@@ -443,7 +442,7 @@ public class SparqlDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public int getResultSetHoldability() {
-        return DataWorldConnection.DEFAULT_HOLDABILITY;
+        return Connection.DEFAULT_HOLDABILITY;
     }
 
     @Override

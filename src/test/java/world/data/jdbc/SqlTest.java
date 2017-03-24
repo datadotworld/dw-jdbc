@@ -24,8 +24,9 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import world.data.jdbc.connections.DataWorldConnection;
-import world.data.jdbc.statements.DataWorldPreparedStatement;
+import world.data.jdbc.connections.Connection;
+import world.data.jdbc.statements.PreparedStatement;
+import world.data.jdbc.statements.Statement;
 import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SqlHelper;
@@ -34,13 +35,10 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.NClob;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import static fi.iki.elonen.NanoHTTPD.Method.GET;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -78,7 +76,7 @@ public class SqlTest {
         lastBackendRequest = mock(NanoHTTPDHandler.class);
     }
 
-    private DataWorldPreparedStatement samplePreparedStatement() throws SQLException {
+    private PreparedStatement samplePreparedStatement() throws SQLException {
         Connection connection = sql.connect();
         return sql.prepareStatement(connection, "select * from HallOfFame where yearid > ? order by yearid, playerID limit 10");
     }
@@ -117,7 +115,7 @@ public class SqlTest {
 
     @Test
     public void testPrepared() throws Exception {
-        DataWorldConnection connection = sql.connect();
+        Connection connection = sql.connect();
         PreparedStatement statement = sql.prepareStatement(connection, "select * from HallOfFame where yearid > ? order by yearid, playerID limit 10 ");
         statement.setInt(1, 3);
         ResultSet resultSet = sql.executeQuery(statement);

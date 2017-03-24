@@ -21,12 +21,12 @@ package world.data.jdbc.metadata;
 import org.apache.jena.jdbc.results.metadata.columns.BooleanColumn;
 import org.apache.jena.jdbc.results.metadata.columns.ColumnInfo;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.results.AskResults;
+import world.data.jdbc.results.AskResultSet;
 
 import java.sql.SQLException;
 
 /**
- * Meta data for {@link AskResults}
+ * Meta data for {@link AskResultSet}
  * <p>
  * Note that ASK results are something of a special case because they contain
  * only a single column and we know exactly what the type of the column is, with
@@ -34,7 +34,7 @@ import java.sql.SQLException;
  * {@link JdbcCompatibility} levels are used to determine how we report types.
  * </p>
  */
-public class AskResultsMetadata extends DataWorldResultsMetadata {
+public class AskResultSetMetadata extends AbstractResultSetMetadata {
 
     /**
      * Constant for the default ASK results column label
@@ -65,8 +65,8 @@ public class AskResultsMetadata extends DataWorldResultsMetadata {
      * @param results Results
      * @throws SQLException Thrown if the metadata cannot be created
      */
-    public AskResultsMetadata(AskResults results) throws SQLException {
-        super(results, AskResultsMetadata.getColumns());
+    public AskResultSetMetadata(AskResultSet results) throws SQLException {
+        super(results, AskResultSetMetadata.getColumns());
     }
 
 }

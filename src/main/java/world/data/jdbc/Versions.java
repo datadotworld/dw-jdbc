@@ -29,12 +29,12 @@ import java.util.Arrays;
 import java.util.Properties;
 
 class Versions {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataWorldJdbcDriver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcDriver.class);
 
     static String findVersionString() {
         // Parse the properties file that Maven builds create automatically
         String resourceName = "META-INF/maven/world.data/dw-jdbc/pom.properties";
-        URL resourceUrl = DataWorldJdbcDriver.class.getClassLoader().getResource(resourceName);
+        URL resourceUrl = JdbcDriver.class.getClassLoader().getResource(resourceName);
         if (resourceUrl == null) {
             // Usually this is because we're running in a dev environment that doesn't build via Maven
             LOGGER.info("Unable to find JDBC driver version via resource: {}", resourceName);

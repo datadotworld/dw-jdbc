@@ -27,18 +27,18 @@ import org.apache.jena.sparql.resultset.ResultSetPeekable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.results.SelectResults;
+import world.data.jdbc.results.SelectResultSet;
 
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 
 /**
- * Result Set Metadata for {@link SelectResults} instances
+ * Result Set Metadata for {@link SelectResultSet} instances
  */
-public class SelectResultsMetadata extends DataWorldResultsMetadata {
+public class SelectResultSetMetadata extends AbstractResultSetMetadata {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SelectResultsMetadata.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SelectResultSetMetadata.class);
 
     /**
      * Creates new SELECT results metadata
@@ -46,7 +46,7 @@ public class SelectResultsMetadata extends DataWorldResultsMetadata {
      * @param results JDBC result set
      * @param rset    Underlying SPARQL results
      */
-    public SelectResultsMetadata(SelectResults results, ResultSetPeekable rset) throws SQLException {
+    public SelectResultSetMetadata(SelectResultSet results, ResultSetPeekable rset) throws SQLException {
         super(results, makeColumns(results, rset));
     }
 
@@ -59,7 +59,7 @@ public class SelectResultsMetadata extends DataWorldResultsMetadata {
      * @return Column information
      * @throws SQLException Thrown if the column information cannot be created
      */
-    private static ColumnInfo[] makeColumns(SelectResults results, ResultSetPeekable rset) throws SQLException {
+    private static ColumnInfo[] makeColumns(SelectResultSet results, ResultSetPeekable rset) throws SQLException {
         List<String> vars = rset.getResultVars();
         ColumnInfo[] columns = new ColumnInfo[vars.size()];
 

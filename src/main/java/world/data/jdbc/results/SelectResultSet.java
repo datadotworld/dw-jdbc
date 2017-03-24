@@ -27,8 +27,8 @@ import org.apache.jena.query.ResultSetFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.resultset.ResultSetPeekable;
-import world.data.jdbc.metadata.SelectResultsMetadata;
-import world.data.jdbc.statements.DataWorldStatement;
+import world.data.jdbc.metadata.SelectResultSetMetadata;
+import world.data.jdbc.statements.Statement;
 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -40,11 +40,11 @@ import static world.data.jdbc.util.Conditions.check;
 /**
  * Represents SPARQL SELECT results
  */
-public class SelectResults extends AbstractStreamedResults<Binding> {
+public class SelectResultSet extends AbstractStreamingResultSet<Binding> {
 
     private ResultSetPeekable innerResults;
     private final List<String> columns;
-    private final SelectResultsMetadata metadata;
+    private final SelectResultSetMetadata metadata;
 
     /**
      * Creates new select results
@@ -54,12 +54,12 @@ public class SelectResults extends AbstractStreamedResults<Binding> {
      * @param results   SPARQL Results
      * @throws SQLException Thrown if the arguments are invalid
      */
-    public SelectResults(DataWorldStatement statement, QueryExecution qe, org.apache.jena.query.ResultSet results)
+    public SelectResultSet(Statement statement, QueryExecution qe, org.apache.jena.query.ResultSet results)
             throws SQLException {
         super(statement, qe);
         this.innerResults = ResultSetFactory.makePeekable(results);
         this.columns = new ArrayList<>(innerResults.getResultVars());
-        this.metadata = new SelectResultsMetadata(this, innerResults);
+        this.metadata = new SelectResultSetMetadata(this, innerResults);
     }
 
     @Override

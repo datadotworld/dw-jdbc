@@ -34,7 +34,7 @@ import static world.data.jdbc.util.Conditions.check;
 /**
  * Abstract implementation of JDBC result set metadata
  */
-public abstract class DataWorldResultsMetadata implements ResultSetMetaData {
+public abstract class AbstractResultSetMetadata implements ResultSetMetaData {
 
     private final ResultSet results;
     private final List<ColumnInfo> columns = new ArrayList<>();
@@ -46,7 +46,7 @@ public abstract class DataWorldResultsMetadata implements ResultSetMetaData {
      * @param columns Column information
      * @throws SQLException Thrown if metadata cannot be created
      */
-    public DataWorldResultsMetadata(ResultSet results, ColumnInfo[] columns) throws SQLException {
+    public AbstractResultSetMetadata(ResultSet results, ColumnInfo[] columns) throws SQLException {
         this.results = results;
         Collections.addAll(this.columns, columns);
     }

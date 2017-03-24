@@ -37,7 +37,6 @@ import java.sql.Clob;
 import java.sql.Date;
 import java.sql.JDBCType;
 import java.sql.NClob;
-import java.sql.PreparedStatement;
 import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLType;
@@ -58,7 +57,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
-public class DataWorldPreparedStatementTest {
+public class PreparedStatementTest {
     private static NanoHTTPDHandler lastBackendRequest;
     private static final String resultResourceName = "/select.json";
     private static final String resultMimeType = "application/json";
@@ -81,7 +80,7 @@ public class DataWorldPreparedStatementTest {
         lastBackendRequest = mock(NanoHTTPDHandler.class);
     }
 
-    private DataWorldPreparedStatement samplePreparedStatement() throws SQLException {
+    private PreparedStatement samplePreparedStatement() throws SQLException {
         return sql.prepareStatement(sql.connect(), "select * from Fielding where yearid = ?");
     }
 
@@ -122,7 +121,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setBigDecimal() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setBigDecimal(1, new BigDecimal(3));
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -131,7 +130,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setBoolean() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setBoolean(1, true);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -140,7 +139,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setByte() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setByte(1, (byte) 4);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -149,7 +148,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setDate() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setDate(1, new Date(1477433443000L));
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -158,7 +157,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setDouble() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setDouble(1, 3.0);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -167,7 +166,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setFloat() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setFloat(1, 3.0F);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -176,7 +175,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setInt() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setInt(1, 3);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -185,7 +184,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setLong() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setLong(1, 3L);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -194,7 +193,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setNString() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setNString(1, "foo");
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -203,7 +202,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setNull() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setNull(1, Types.VARCHAR);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), eq("query=select+*+from+Fielding+where+yearid+%3D+%3F"));
@@ -226,7 +225,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setShort() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setShort(1, (short) 4);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -235,7 +234,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setString() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setString(1, "foo");
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -244,7 +243,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void setTime() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         statement.setTime(1, new Time(1477433443000L));
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
@@ -277,7 +276,7 @@ public class DataWorldPreparedStatementTest {
 
     @Test
     public void testAllNotSupported() throws Exception {
-        DataWorldPreparedStatement statement = samplePreparedStatement();
+        PreparedStatement statement = samplePreparedStatement();
         assertSQLFeatureNotSupported(statement::executeUpdate);
         assertSQLFeatureNotSupported(() -> statement.setAsciiStream(1, mock(InputStream.class)));
         assertSQLFeatureNotSupported(() -> statement.setAsciiStream(1, mock(InputStream.class), 100));

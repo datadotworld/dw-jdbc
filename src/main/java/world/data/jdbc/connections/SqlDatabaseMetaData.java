@@ -22,7 +22,6 @@ import org.apache.jena.jdbc.metadata.MetadataSchema;
 import org.apache.jena.jdbc.metadata.results.MetaResultSet;
 import org.apache.jena.vocabulary.XSD;
 
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
@@ -87,14 +86,14 @@ public class SqlDatabaseMetaData implements DatabaseMetaData {
      */
     private static final String[] SQL_DATETIME_FUNCTIONS = new String[]{"YEAR", "MONTH", "DAY", "HOURS", "MINUTES",
             "SECONDS", "NOW"};
-    private DataWorldConnection connection;
+    private Connection connection;
 
     /**
      * Creates new connection metadata
      *
      * @param connection Connection
      */
-    public SqlDatabaseMetaData(DataWorldConnection connection) throws SQLException {
+    public SqlDatabaseMetaData(Connection connection) throws SQLException {
         check(connection != null, "Connection cannot be null");
         this.connection = connection;
     }
@@ -429,7 +428,7 @@ public class SqlDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public int getResultSetHoldability() {
-        return DataWorldConnection.DEFAULT_HOLDABILITY;
+        return Connection.DEFAULT_HOLDABILITY;
     }
 
     @Override

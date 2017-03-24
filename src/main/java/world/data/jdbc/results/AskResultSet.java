@@ -21,8 +21,8 @@ package world.data.jdbc.results;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import world.data.jdbc.metadata.AskResultsMetadata;
-import world.data.jdbc.statements.DataWorldStatement;
+import world.data.jdbc.metadata.AskResultSetMetadata;
+import world.data.jdbc.statements.Statement;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -35,10 +35,10 @@ import static world.data.jdbc.util.Conditions.checkSupported;
 /**
  * Represents an ASK result
  */
-public class AskResults extends AbstractResultsSet {
+public class AskResultSet extends AbstractResultSet {
 
     private final boolean result;
-    private final AskResultsMetadata metadata;
+    private final AskResultSetMetadata metadata;
     private final String columnLabel;
     private int currRow;
     private boolean closed;
@@ -50,11 +50,11 @@ public class AskResults extends AbstractResultsSet {
      * @param result    Boolean result
      * @throws SQLException Thrown if the arguments are invalid
      */
-    public AskResults(DataWorldStatement statement, boolean result) throws SQLException {
+    public AskResultSet(Statement statement, boolean result) throws SQLException {
         super(statement);
         this.result = result;
-        this.metadata = new AskResultsMetadata(this);
-        this.columnLabel = metadata.getColumnLabel(AskResultsMetadata.COLUMN_INDEX_ASK);
+        this.metadata = new AskResultSetMetadata(this);
+        this.columnLabel = metadata.getColumnLabel(AskResultSetMetadata.COLUMN_INDEX_ASK);
     }
 
     @Override
@@ -203,7 +203,7 @@ public class AskResults extends AbstractResultsSet {
 
     @Override
     protected String findColumnLabel(int columnIndex) throws SQLException {
-        check(columnIndex == AskResultsMetadata.COLUMN_INDEX_ASK, "Column Index is out of bounds");
+        check(columnIndex == AskResultSetMetadata.COLUMN_INDEX_ASK, "Column Index is out of bounds");
         return columnLabel;
     }
 

@@ -23,15 +23,15 @@ import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
-import world.data.jdbc.results.AskResults;
-import world.data.jdbc.results.SelectResults;
-import world.data.jdbc.results.TriplesResults;
+import world.data.jdbc.results.AskResultSet;
+import world.data.jdbc.results.SelectResultSet;
+import world.data.jdbc.results.TriplesResultSet;
 
 import java.sql.ParameterMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class SparqlStatementQueryBuilder implements QueryBuilder {
+public class SparqlQueryBuilder implements QueryBuilder {
 
     @Override
     public Query buildQuery(final String sparql) throws SQLException {
@@ -48,22 +48,22 @@ public class SparqlStatementQueryBuilder implements QueryBuilder {
     }
 
     @Override
-    public ResultSet buildResults(final DataWorldStatement statement, final Query q, final QueryExecution qe) throws SQLException {
+    public ResultSet buildResults(final Statement statement, final Query q, final QueryExecution qe) throws SQLException {
         // Return the appropriate result set type
         switch (q.getQueryType()) {
             case Query.QueryTypeSelect:
-                return new SelectResults(statement, qe, qe.execSelect());
+                return new SelectResultSet(statement, qe, qe.execSelect());
 
             case Query.QueryTypeAsk:
                 boolean askRes = qe.execAsk();
                 qe.close();
-                return new AskResults(statement, askRes);
+                return new AskResultSet(statement, askRes);
 
             case Query.QueryTypeDescribe:
-                return new TriplesResults(statement, qe, qe.execDescribeTriples());
+                return new TriplesResultSet(statement, qe, qe.execDescribeTriples());
 
             case Query.QueryTypeConstruct:
-                return new TriplesResults(statement, qe, qe.execConstructTriples());
+                return new TriplesResultSet(statement, qe, qe.execConstructTriples());
 
             default:
                 throw new SQLException("Unknown sparql query type");

@@ -40,24 +40,21 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import world.data.jdbc.DataWorldJdbcDriver;
 import world.data.jdbc.JdbcCompatibility;
-import world.data.jdbc.statements.DataWorldCallableStatement;
-import world.data.jdbc.statements.DataWorldPreparedStatement;
-import world.data.jdbc.statements.DataWorldStatement;
-import world.data.jdbc.statements.SparqlStatementQueryBuilder;
-import world.data.jdbc.statements.SqlStatementQueryBuilder;
+import world.data.jdbc.JdbcDriver;
+import world.data.jdbc.statements.CallableStatement;
+import world.data.jdbc.statements.PreparedStatement;
+import world.data.jdbc.statements.SparqlQueryBuilder;
+import world.data.jdbc.statements.SqlQueryBuilder;
+import world.data.jdbc.statements.Statement;
 
 import java.io.IOException;
 import java.net.URI;
 import java.sql.Array;
 import java.sql.Blob;
-import java.sql.CallableStatement;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.NClob;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -65,7 +62,6 @@ import java.sql.SQLRecoverableException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Savepoint;
-import java.sql.Statement;
 import java.sql.Struct;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -101,8 +97,8 @@ import static world.data.jdbc.util.Conditions.checkSupported;
  * SPARQL queries and updates as desired.
  * </p>
  */
-public class DataWorldConnection implements Connection {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataWorldConnection.class);
+public class Connection implements java.sql.Connection {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
 
     static {
         ARQ.init();
@@ -138,7 +134,7 @@ public class DataWorldConnection implements Connection {
      *
      * @throws SQLException Thrown if the arguments are invalid
      */
-    public DataWorldConnection(String queryEndpoint, String lang, String token) throws SQLException {
+    public Connection(String queryEndpoint, String lang, String token) throws SQLException {
         this.queryService = requireNonNull(queryEndpoint, "queryEndpoint");
         this.lang = requireNonNull(lang, "lang");
         this.compatibilityLevel = "sql".equals(lang) ? JdbcCompatibility.HIGH : JdbcCompatibility.DEFAULT;
@@ -180,7 +176,7 @@ public class DataWorldConnection implements Connection {
                         return duration == -1L ? keepAlive.toMillis() : duration;
                     }
                 })
-                .setUserAgent(String.format("DwJdbc-%s/%s", lang, DataWorldJdbcDriver.VERSION))
+                .setUserAgent(String.format("DwJdbc-%s/%s", lang, JdbcDriver.VERSION))
                 .build();
     }
 
@@ -322,21 +318,21 @@ public class DataWorldConnection implements Connection {
     public final Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
             throws SQLException {
         checkClosed();
-        DataWorldStatement stmt = createStatementInternal(resultSetType, resultSetConcurrency);
+        Statement stmt = createStatementInternal(resultSetType, resultSetConcurrency);
         synchronized (statements) {
             statements.add(stmt);
         }
         return stmt;
     }
 
-    private DataWorldStatement createStatementInternal(int resultSetType, int resultSetConcurrency)
+    private Statement createStatementInternal(int resultSetType, int resultSetConcurrency)
             throws SQLException {
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "data.world connections only support forward-scrolling result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
         if ("sparql".equals(lang)) {
-            return new DataWorldStatement(this, new SparqlStatementQueryBuilder());
+            return new Statement(this, new SparqlQueryBuilder());
         } else {
-            return new DataWorldStatement(this, new SqlStatementQueryBuilder());
+            return new Statement(this, new SqlQueryBuilder());
         }
     }
 
@@ -433,9 +429,9 @@ public class DataWorldConnection implements Connection {
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Remote endpoint backed connection do not support scroll sensitive result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
         if ("sparql".equals(lang)) {
-            return new DataWorldCallableStatement(sparql, this, new SparqlStatementQueryBuilder(), true);
+            return new CallableStatement(sparql, this, new SparqlQueryBuilder(), true);
         } else {
-            return new DataWorldCallableStatement(sparql, this, new SqlStatementQueryBuilder(), false);
+            return new CallableStatement(sparql, this, new SqlQueryBuilder(), false);
         }
     }
 
@@ -480,9 +476,9 @@ public class DataWorldConnection implements Connection {
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Remote endpoint backed connection do not support scroll sensitive result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
         if ("sparql".equals(lang)) {
-            return new DataWorldPreparedStatement(sparql, this, new SparqlStatementQueryBuilder());
+            return new PreparedStatement(sparql, this, new SparqlQueryBuilder());
         } else {
-            return new DataWorldPreparedStatement(sparql, this, new SqlStatementQueryBuilder());
+            return new PreparedStatement(sparql, this, new SqlQueryBuilder());
         }
     }
 

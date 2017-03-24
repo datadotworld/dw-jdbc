@@ -18,35 +18,32 @@
 */
 package world.data.jdbc.testing;
 
-import world.data.jdbc.connections.DataWorldConnection;
-import world.data.jdbc.statements.DataWorldCallableStatement;
-import world.data.jdbc.statements.DataWorldPreparedStatement;
-import world.data.jdbc.statements.DataWorldStatement;
+import world.data.jdbc.connections.Connection;
+import world.data.jdbc.statements.CallableStatement;
+import world.data.jdbc.statements.PreparedStatement;
+import world.data.jdbc.statements.Statement;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 public class SqlHelper extends CloserResource {
 
-    public DataWorldConnection connect() throws SQLException {
+    public Connection connect() throws SQLException {
         String url = "jdbc:data:world:sql:dave:lahman-sabremetrics-dataset";
-        return register((DataWorldConnection) DriverManager.getConnection(url, TestConfigSource.testProperties()));
+        return register((Connection) DriverManager.getConnection(url, TestConfigSource.testProperties()));
     }
 
-    public DataWorldStatement createStatement(Connection connection) throws SQLException {
-        return register((DataWorldStatement) connection.createStatement());
+    public Statement createStatement(Connection connection) throws SQLException {
+        return register(connection.createStatement());
     }
 
-    public DataWorldPreparedStatement prepareStatement(Connection connection, String query) throws SQLException {
-        return register((DataWorldPreparedStatement) connection.prepareStatement(query));
+    public PreparedStatement prepareStatement(Connection connection, String query) throws SQLException {
+        return register(connection.prepareStatement(query));
     }
 
-    public DataWorldCallableStatement prepareCall(Connection connection, String query) throws SQLException {
-        return register((DataWorldCallableStatement) connection.prepareCall(query));
+    public CallableStatement prepareCall(Connection connection, String query) throws SQLException {
+        return register(connection.prepareCall(query));
     }
 
     public ResultSet executeQuery(Statement statement, String query) throws SQLException {

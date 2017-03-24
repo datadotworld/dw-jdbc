@@ -22,7 +22,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import world.data.jdbc.testing.SqlHelper;
 
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;

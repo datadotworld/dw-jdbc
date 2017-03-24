@@ -19,7 +19,7 @@
 package world.data.jdbc.results;
 
 import org.apache.jena.query.QueryExecution;
-import world.data.jdbc.statements.DataWorldStatement;
+import world.data.jdbc.statements.Statement;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,7 +34,7 @@ import static world.data.jdbc.util.Conditions.checkSupported;
  *
  * @param <T> Type of the underlying result rows
  */
-abstract class AbstractStreamedResults<T> extends AbstractQueryExecutionResults {
+abstract class AbstractStreamingResultSet<T> extends AbstractQueryExecutionResults {
 
     private T currItem;
     private int currRow;
@@ -47,7 +47,7 @@ abstract class AbstractStreamedResults<T> extends AbstractQueryExecutionResults 
      * @param qe        Query Execution
      * @throws SQLException Thrown if the arguments are invalid
      */
-    AbstractStreamedResults(DataWorldStatement statement, QueryExecution qe) throws SQLException {
+    AbstractStreamingResultSet(Statement statement, QueryExecution qe) throws SQLException {
         super(statement, qe);
     }
 

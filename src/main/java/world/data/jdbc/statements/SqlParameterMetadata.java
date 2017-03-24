@@ -27,14 +27,14 @@ import java.sql.Types;
 
 import static world.data.jdbc.util.Conditions.check;
 
-public class DataWorldSqlParameterMetadata implements ParameterMetaData {
+public class SqlParameterMetadata implements ParameterMetaData {
 
     private final int paramCount;
 
     /**
      * Creates new parameter metadata
      */
-    public DataWorldSqlParameterMetadata(String query) throws SQLException {
+    public SqlParameterMetadata(String query) throws SQLException {
         check(query != null, "Parameterized query String cannot be null");
         this.paramCount = countParameters(query);
     }
