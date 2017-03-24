@@ -63,7 +63,7 @@ public class SelectResultsMetadata extends DataWorldResultsMetadata {
         List<String> vars = rset.getResultVars();
         ColumnInfo[] columns = new ColumnInfo[vars.size()];
 
-        int level = JdbcCompatibility.normalizeLevel(results.getJdbcCompatibilityLevel());
+        JdbcCompatibility level = results.getJdbcCompatibilityLevel();
         boolean columnsAsStrings = JdbcCompatibility.shouldTypeColumnsAsString(level);
         boolean columnsDetected = JdbcCompatibility.shouldDetectColumnTypes(level);
 

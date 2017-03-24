@@ -16,10 +16,11 @@
 *
 * This product includes software developed at data.world, Inc.(http://www.data.world/).
 */
-package world.data.jdbc;
+package world.data.jdbc.connections;
 
 import org.junit.Rule;
 import org.junit.Test;
+import world.data.jdbc.connections.SqlDatabaseMetaData;
 import world.data.jdbc.testing.SqlHelper;
 
 import java.sql.Connection;
@@ -32,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
-public class DataWorldSqlMetadataTest {
+public class SqlDatabaseMetaDataTest {
 
     @Rule
     public final SqlHelper sql = new SqlHelper();
@@ -210,7 +211,7 @@ public class DataWorldSqlMetadataTest {
 
     @Test
     public void testNullConnection() throws SQLException {
-        assertSQLException(() -> new DataWorldSqlMetadata(null));
+        assertSQLException(() -> new SqlDatabaseMetaData(null));
     }
 
     @Test

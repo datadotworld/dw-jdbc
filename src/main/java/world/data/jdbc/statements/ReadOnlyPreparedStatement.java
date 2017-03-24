@@ -18,29 +18,14 @@
 */
 package world.data.jdbc.statements;
 
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
-import world.data.jdbc.query.SqlQuery;
-import world.data.jdbc.results.SelectResults;
-
-import java.sql.ParameterMetaData;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 
-public class SqlStatementQueryBuilder implements QueryBuilder {
-
-    @Override
-    public Query buildQuery(final String sql) throws SQLException {
-        return new SqlQuery(sql);
-    }
+interface ReadOnlyPreparedStatement extends PreparedStatement, ReadOnlyStatement {
 
     @Override
-    public ParameterMetaData buildParameterMetadata(final String query) throws SQLException {
-        return new DataWorldSqlParameterMetadata(query);
+    default int executeUpdate() throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
-
-    @Override
-    public SelectResults buildResults(final DataWorldStatement statement, final Query q, final QueryExecution qe) throws SQLException {
-        return new SelectResults(statement, qe, qe.execSelect());
-    }
-
 }

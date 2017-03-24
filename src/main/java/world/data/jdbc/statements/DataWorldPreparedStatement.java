@@ -39,7 +39,6 @@ import java.sql.Clob;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.ParameterMetaData;
-import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -60,7 +59,7 @@ import static world.data.jdbc.util.Conditions.check;
 /**
  * data.world JDBC implementation of a prepared statement
  */
-public class DataWorldPreparedStatement extends DataWorldStatement implements PreparedStatement {
+public class DataWorldPreparedStatement extends DataWorldStatement implements ReadOnlyPreparedStatement {
     private final String query;
     private final ParameterMetaData paramMetadata;
     final Map<Integer, Node> params = new HashMap<>();
@@ -114,7 +113,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
     }
 
     private void setParameter(int parameterIndex, Node n) throws SQLException {
-        // Remember that JDBC used a 1 based index
+        // Remember that JDBC uses a 1 based index
         check(parameterIndex >= 1 && parameterIndex <= paramMetadata.getParameterCount(), "Parameter Index is out of bounds");
         params.put(parameterIndex, n);
     }

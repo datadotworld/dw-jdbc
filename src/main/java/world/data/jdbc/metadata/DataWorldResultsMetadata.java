@@ -20,7 +20,6 @@ package world.data.jdbc.metadata;
 
 
 import org.apache.jena.jdbc.results.metadata.columns.ColumnInfo;
-import world.data.jdbc.util.Conditions;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -35,7 +34,7 @@ import static world.data.jdbc.util.Conditions.check;
 /**
  * Abstract implementation of JDBC result set metadata
  */
-public class DataWorldResultsMetadata implements ResultSetMetaData {
+public abstract class DataWorldResultsMetadata implements ResultSetMetaData {
 
     private final ResultSet results;
     private final List<ColumnInfo> columns = new ArrayList<>();

@@ -33,16 +33,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpContext;
-import org.apache.jena.jdbc.JdbcCompatibility;
 import org.apache.jena.jdbc.metadata.JenaMetadata;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.data.jdbc.DataWorldJdbcDriver;
-import world.data.jdbc.DataWorldSparqlMetadata;
-import world.data.jdbc.DataWorldSqlMetadata;
+import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.statements.DataWorldCallableStatement;
 import world.data.jdbc.statements.DataWorldPreparedStatement;
 import world.data.jdbc.statements.DataWorldStatement;
@@ -105,6 +104,10 @@ import static world.data.jdbc.util.Conditions.checkSupported;
 public class DataWorldConnection implements Connection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataWorldConnection.class);
 
+    static {
+        ARQ.init();
+    }
+
     /**
      * Constant for default cursor holdability for data.world JDBC connections
      */
@@ -126,7 +129,7 @@ public class DataWorldConnection implements Connection {
 
     private Properties clientInfo = new Properties();
     private SQLWarning warnings;
-    private int compatibilityLevel;
+    private JdbcCompatibility compatibilityLevel;
     private final List<Statement> statements = new ArrayList<>();
     private boolean closed;
 
@@ -138,8 +141,8 @@ public class DataWorldConnection implements Connection {
     public DataWorldConnection(String queryEndpoint, String lang, String token) throws SQLException {
         this.queryService = requireNonNull(queryEndpoint, "queryEndpoint");
         this.lang = requireNonNull(lang, "lang");
-        this.compatibilityLevel = "sql".equals(lang) ? JdbcCompatibility.HIGH : JdbcCompatibility.normalizeLevel(JdbcCompatibility.DEFAULT);
-        this.metadata = "sparql".equals(lang) ? new DataWorldSparqlMetadata(this) : new DataWorldSqlMetadata(this);
+        this.compatibilityLevel = "sql".equals(lang) ? JdbcCompatibility.HIGH : JdbcCompatibility.DEFAULT;
+        this.metadata = "sparql".equals(lang) ? new SparqlDatabaseMetaData(this) : new SqlDatabaseMetaData(this);
 
         Duration socketTimeout = Duration.ofSeconds(60);
         Duration keepAlive = Duration.ofSeconds(1);
@@ -202,7 +205,7 @@ public class DataWorldConnection implements Connection {
      *
      * @return Compatibility level
      */
-    public int getJdbcCompatibilityLevel() {
+    public JdbcCompatibility getJdbcCompatibilityLevel() {
         return compatibilityLevel;
     }
 
@@ -214,10 +217,10 @@ public class DataWorldConnection implements Connection {
      * this case will be implementation specific.
      * </p>
      *
-     * @param level Compatibility level
+     * @param compatibilityLevel Compatibility level
      */
-    public void setJdbcCompatibilityLevel(int level) {
-        this.compatibilityLevel = JdbcCompatibility.normalizeLevel(level);
+    public void setJdbcCompatibilityLevel(JdbcCompatibility compatibilityLevel) {
+        this.compatibilityLevel = requireNonNull(compatibilityLevel, "compatibilityLevel");
     }
 
     @Override
@@ -552,22 +555,27 @@ public class DataWorldConnection implements Connection {
     }
 
     //--- Java6/7 compatibility.
+    @Override
     public void setSchema(String schema) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public String getSchema() throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public void abort(java.util.concurrent.Executor executor) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public int getNetworkTimeout() throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public void setNetworkTimeout(java.util.concurrent.Executor executor, int milliseconds) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }

@@ -78,7 +78,7 @@ public class DataWorldStatementTest {
     @Test
     public void setJdbcCompatibilityLevel() throws Exception {
         DataWorldConnection connection = sparql.connect();
-        connection.setJdbcCompatibilityLevel(JdbcCompatibility.HIGH + 3);
+        connection.setJdbcCompatibilityLevel(JdbcCompatibility.HIGH);
         DataWorldStatement statement = sparql.createStatement(connection);
         assertThat(statement.getJdbcCompatibilityLevel()).isEqualTo(JdbcCompatibility.HIGH);
     }
@@ -86,7 +86,7 @@ public class DataWorldStatementTest {
     @Test
     public void getFetchDirection() throws Exception {
         DataWorldStatement statement = sparql.createStatement(sparql.connect());
-        statement.setJdbcCompatibilityLevel(JdbcCompatibility.HIGH + 3);
+        statement.setJdbcCompatibilityLevel(JdbcCompatibility.HIGH);
         assertThat(statement.getFetchDirection()).isEqualTo(ResultSet.FETCH_FORWARD);
         assertThat(statement.getFetchSize()).isEqualTo(0);
         assertThat(statement.getMaxFieldSize()).isEqualTo(0);

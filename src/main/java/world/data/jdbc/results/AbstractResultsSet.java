@@ -19,8 +19,8 @@
 package world.data.jdbc.results;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.jdbc.JdbcCompatibility;
 import org.apache.jena.jdbc.utils.JdbcNodeUtils;
+import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.statements.DataWorldStatement;
 
 import java.io.InputStream;
@@ -57,7 +57,7 @@ import static world.data.jdbc.util.Conditions.check;
 abstract class AbstractResultsSet implements ResultSet {
 
     private final DataWorldStatement statement;
-    private final int compatibilityLevel;
+    private final JdbcCompatibility compatibilityLevel;
     private SQLWarning warnings;
     private boolean wasNull;
 
@@ -69,7 +69,7 @@ abstract class AbstractResultsSet implements ResultSet {
      */
     AbstractResultsSet(DataWorldStatement statement) throws SQLException {
         this.statement = requireNonNull(statement, "statement");
-        this.compatibilityLevel = JdbcCompatibility.normalizeLevel(statement.getJdbcCompatibilityLevel());
+        this.compatibilityLevel = statement.getJdbcCompatibilityLevel();
     }
 
     /**
@@ -79,7 +79,7 @@ abstract class AbstractResultsSet implements ResultSet {
      *
      * @return JDBC compatibility level, see {@link JdbcCompatibility}
      */
-    public int getJdbcCompatibilityLevel() {
+    public JdbcCompatibility getJdbcCompatibilityLevel() {
         return compatibilityLevel;
     }
 
@@ -607,11 +607,13 @@ abstract class AbstractResultsSet implements ResultSet {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getObject() is supported");
     }
 
+    @Override
     @SuppressWarnings("javadoc")
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getObject() is supported");
     }
 
+    @Override
     @SuppressWarnings("javadoc")
     public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getObject() is supported");

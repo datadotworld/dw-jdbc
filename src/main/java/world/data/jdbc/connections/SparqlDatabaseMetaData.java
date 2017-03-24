@@ -16,12 +16,11 @@
 *
 * This product includes software developed at data.world, Inc.(http://www.data.world/).
 */
-package world.data.jdbc;
+package world.data.jdbc.connections;
 
 import org.apache.jena.jdbc.metadata.MetadataSchema;
 import org.apache.jena.jdbc.metadata.results.MetaResultSet;
 import org.apache.jena.vocabulary.XSD;
-import world.data.jdbc.connections.DataWorldConnection;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -34,9 +33,9 @@ import java.sql.Types;
 import static world.data.jdbc.util.Conditions.check;
 
 /**
- * Database metadata for Sql connections
+ * Database metadata for Sparql connections
  */
-public class DataWorldSqlMetadata implements DatabaseMetaData {
+public class SparqlDatabaseMetaData implements DatabaseMetaData {
 
     /**
      * Constant for the term used for catalogues
@@ -65,29 +64,33 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     private static final int UNKNOWN_LIMIT = 0;
 
     /**
-     * Constants for SQL Keywords
+     * Constants for SPARQL Keywords
      */
-    private static final String[] SQL_KEYWORDS = new String[]{"SELECT", "DISTINCT", "FROM", "JOIN", "LEFT", "RIGHT"
-            , "FULL", "OUTER", "INNER", "ON", "USING", "NATURAL", "WHERE", "GROUP", "BY", "ORDER", "ASC", "DESC"
-            , "HAVING", "LIMIT", "OFFSET", "UNION", "INTERSECT", "MINUS", "AS", "AND", "OR", "NOT", "IN", "NULL", "LIKE"
-            , "CAST"};
+    private static final String[] SPARQL_KEYWORDS = new String[]{"BASE", "PREFIX", "SELECT", "DISTINCT", "REDUCED", "AS",
+            "CONSTRUCT", "DESCRIBE", "ASK", "FROM", "NAMED", "WHERE", "GROUP", "BY", "HAVING", "ORDER", "ASC", "DESC", "LIMIT",
+            "OFFSET", "VALUES", "LOAD", "SILENT", "INTO", "GRAPH", "CLEAR", "DROP", "CREATE", "ADD", "MOVE", "COPY",
+            "INSERT DATA", "DELETE DATA", "DELETE WHERE", "WITH", "INSERT", "USING", "DEFAULT", "ALL", "OPTIONAL", "SERVICE",
+            "BIND", "UNION", "UNDEF", "MINUS", "EXISTS", "NOT EXISTS", "FILTER", "a", "IN", "NOT IN", "STR", "LANG",
+            "LANGMATCHES", "DATATYPE", "BOUND", "IRI", "URI", "BNODE", "RAND", "ABS", "CEIL", "FLOOR", "ROUND", "CONCAT",
+            "STRLEN", "UCASE", "LCASE", "ENCODE_FOR_URI", "CONTAINS", "STRSTARTS", "STRENDS", "STRBEFORE", "STRAFTER", "YEAR",
+            "MONTH", "DAY", "HOURS", "MINUTES", "SECONDS", "TIMEZONE", "TZ", "NOW", "UUID", "STRUUID", "MD5", "SHA1", "SHA256",
+            "SHA384", "SHA512", "COALESCE", "IF", "STRLANG", "STRDT", "SAMETERM", "ISIRI", "ISURI", "ISBLANK", "REGEX", "SUBSTR",
+            "REPLACE", "COUNT", "SUM", "MIN", "MAX", "AVG", "SAMPLE", "GROUP_CONCAT", "SEPARATOR", "true", "false"};
 
     /**
-     * Constants for SQL numeric functions
+     * Constants for SPARQL numeric functions
      */
-    private static final String[] SQL_NUMERIC_FUNCTIONS = new String[]{"ABS", "CEIL", "FLOOR", "ROUND"};
+    private static final String[] SPARQL_NUMERIC_FUNCTIONS = new String[]{"ABS", "CEIL", "FLOOR", "RAND", "ROUND"};
 
     /**
-     * Constants for SQL string functions
+     * Constants for SPARQL string functions
      */
-    private static final String[] SQL_STR_FUNCTIONS = new String[]{"LENGTH", "UPPER", "LOWER",
-            "CONCAT", "LENGTH", "SUBSTRING", "REPLACE", "REGEX"};
+    private static final String[] SPARQL_STR_FUNCTIONS = new String[]{"STR", "LANG", "LANGMATCHES", "CONCAT", "STRLEN",
+            "UCASE", "LCASE", "ENCODE_FOR_URI", "CONTAINS", "STRSTARTS", "STRENDS", "STRBEFORE", "STRAFTER", "REGEX", "SUBSTR",
+            "REPLACE"};
 
-    /**
-     * Constants for SQL string functions
-     */
-    private static final String[] SQL_DATETIME_FUNCTIONS = new String[]{"YEAR", "MONTH", "DAY", "HOURS", "MINUTES",
-            "SECONDS", "NOW"};
+    private static final String[] SPARQL_DATETIME_FUNCTIONS = new String[]{"YEAR", "MONTH", "DAY", "HOURS", "MINUTES",
+            "SECONDS", "TIMEZONE", "TZ", "NOW"};
     private DataWorldConnection connection;
 
     /**
@@ -95,18 +98,18 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
      *
      * @param connection Connection
      */
-    public DataWorldSqlMetadata(DataWorldConnection connection) throws SQLException {
+    public SparqlDatabaseMetaData(DataWorldConnection connection) throws SQLException {
         check(connection != null, "Connection cannot be null");
         this.connection = connection;
     }
 
     @Override
-    public boolean isWrapperFor(Class<?> arg0) throws SQLFeatureNotSupportedException {
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
-    public <T> T unwrap(Class<T> arg0) throws SQLFeatureNotSupportedException {
+    public <T> T unwrap(Class<T> iface) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
@@ -127,16 +130,19 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public boolean dataDefinitionCausesTransactionCommit() {
+        // SPARQL Update causes a commit by default for non-transactional
+        // connections
         return true;
     }
 
     @Override
     public boolean dataDefinitionIgnoredInTransactions() {
+        // SPARQL Update is not ignored for non-transactional connections
         return false;
     }
 
     @Override
-    public boolean deletesAreDetected(int arg0) {
+    public boolean deletesAreDetected(int type) throws SQLException {
         return false;
     }
 
@@ -147,17 +153,18 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getAttributes(String arg0, String arg1, String arg2, String arg3) throws SQLException {
+    public ResultSet getAttributes(String catalog, String schemaPattern, String typeNamePattern, String attributeNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getAttributeColumns());
     }
 
     @Override
-    public ResultSet getBestRowIdentifier(String arg0, String arg1, String arg2, int arg3, boolean arg4) throws SQLException {
+    public ResultSet getBestRowIdentifier(String catalog, String schema, String table, int scope, boolean nullable) throws SQLException {
         return new MetaResultSet(MetadataSchema.getBestRowIdentifierColumns());
     }
 
     @Override
     public String getCatalogSeparator() {
+        // Use an empty string to indicate not applicable
         return "";
     }
 
@@ -177,12 +184,12 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getColumnPrivileges(String arg0, String arg1, String arg2, String arg3) throws SQLException {
+    public ResultSet getColumnPrivileges(String catalog, String schema, String table, String columnNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getColumnPrivilegeColumns());
     }
 
     @Override
-    public ResultSet getColumns(String arg0, String arg1, String arg2, String arg3) throws SQLException {
+    public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getColumnColumns());
     }
 
@@ -192,13 +199,13 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getCrossReference(String arg0, String arg1, String arg2, String arg3, String arg4, String arg5)
-            throws SQLException {
+    public ResultSet getCrossReference(String parentCatalog, String parentSchema, String parentTable, String foreignCatalog, String foreignSchema, String foreignTable) throws SQLException {
         return new MetaResultSet(MetadataSchema.getCrossReferenceColumns());
     }
 
     @Override
     public boolean supportsTransactionIsolationLevel(int isolationLevel) {
+        // No transactions supported for remote endpoints
         return isolationLevel == Connection.TRANSACTION_NONE;
     }
 
@@ -248,7 +255,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getExportedKeys(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getExportedKeys(String catalog, String schema, String table) throws SQLException {
         return new MetaResultSet(MetadataSchema.getExportedKeyColumns());
     }
 
@@ -260,12 +267,12 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getFunctionColumns(String arg0, String arg1, String arg2, String arg3) throws SQLException {
+    public ResultSet getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern, String columnNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getFunctionColumnColumns());
     }
 
     @Override
-    public ResultSet getFunctions(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getFunctions(String catalog, String schemaPattern, String functionNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getFunctionColumns());
     }
 
@@ -276,12 +283,12 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getImportedKeys(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getImportedKeys(String catalog, String schema, String table) throws SQLException {
         return new MetaResultSet(MetadataSchema.getImportedKeyColumns());
     }
 
     @Override
-    public ResultSet getIndexInfo(String arg0, String arg1, String arg2, boolean arg3, boolean arg4) throws SQLException {
+    public ResultSet getIndexInfo(String catalog, String schema, String table, boolean unique, boolean approximate) throws SQLException {
         return new MetaResultSet(MetadataSchema.getIndexInfoColumns());
     }
 
@@ -310,22 +317,27 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public int getMaxCharLiteralLength() {
+        // No limit on RDF term sizes
         return NO_LIMIT;
     }
 
     @Override
     public int getMaxColumnNameLength() {
+        // No limit on column name lengths
         return NO_LIMIT;
     }
 
     @Override
     public int getMaxColumnsInGroupBy() {
+        // SPARQL allows arbitrarily many columns in a GROUP BY
         return NO_LIMIT;
     }
 
     @Override
     public int getMaxColumnsInIndex() {
-        return NO_LIMIT;
+        // RDF stores typically index on up to 4 columns since that is all we
+        // have
+        return 4;
     }
 
     @Override
@@ -400,16 +412,16 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getNumericFunctions() {
-        return String.join(",", SQL_NUMERIC_FUNCTIONS);
+        return String.join(",", SPARQL_NUMERIC_FUNCTIONS);
     }
 
     @Override
-    public ResultSet getPrimaryKeys(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getPrimaryKeys(String catalog, String schema, String table) throws SQLException {
         return new MetaResultSet(MetadataSchema.getPrimaryKeyColumns());
     }
 
     @Override
-    public ResultSet getProcedureColumns(String arg0, String arg1, String arg2, String arg3) throws SQLException {
+    public ResultSet getProcedureColumns(String catalog, String schemaPattern, String procedureNamePattern, String columnNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getProcedureColumnColumns());
     }
 
@@ -420,8 +432,13 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getProcedures(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getProcedures(String catalog, String schemaPattern, String procedureNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getProcedureColumns());
+    }
+
+    @Override
+    public ResultSet getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
+        return new MetaResultSet(MetadataSchema.getPsuedoColumnColumns());
     }
 
     @Override
@@ -437,9 +454,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getSQLKeywords() {
-        // TODO Use http://developer.mimer.com/validator/sql-reserved-words.tml
-        // as a reference to remove those that also count as SQL Keywords
-        return String.join(",", SQL_KEYWORDS);
+        return String.join(",", SPARQL_KEYWORDS);
     }
 
     @Override
@@ -472,21 +487,22 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public String getSearchStringEscape() {
-        return "\\";
+        // Does not apply to SPARQL
+        return "";
     }
 
     @Override
     public String getStringFunctions() {
-        return String.join(",", SQL_STR_FUNCTIONS);
+        return String.join(",", SPARQL_STR_FUNCTIONS);
     }
 
     @Override
-    public ResultSet getSuperTables(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getSuperTables(String catalog, String schemaPattern, String tableNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getSuperTableColumns());
     }
 
     @Override
-    public ResultSet getSuperTypes(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getSuperTypes(String catalog, String schemaPattern, String typeNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getSuperTypeColumns());
     }
 
@@ -497,7 +513,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getTablePrivileges(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern) throws SQLException {
         return new MetaResultSet(MetadataSchema.getTablePrivilegeColumns());
     }
 
@@ -507,13 +523,13 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getTables(String arg0, String arg1, String arg2, String[] arg3) throws SQLException {
+    public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
         return new MetaResultSet(MetadataSchema.getTableColumns());
     }
 
     @Override
     public String getTimeDateFunctions() {
-        return String.join(",", SQL_DATETIME_FUNCTIONS);
+        return String.join(",", SPARQL_DATETIME_FUNCTIONS);
     }
 
     @Override
@@ -606,7 +622,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getUDTs(String arg0, String arg1, String arg2, int[] arg3) throws SQLException {
+    public ResultSet getUDTs(String catalog, String schemaPattern, String typeNamePattern, int[] types) throws SQLException {
         return new MetaResultSet(MetadataSchema.getUdtColumns());
     }
 
@@ -623,12 +639,12 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getVersionColumns(String arg0, String arg1, String arg2) throws SQLException {
+    public ResultSet getVersionColumns(String catalog, String schema, String table) throws SQLException {
         return new MetaResultSet(MetadataSchema.getVersionColumns());
     }
 
     @Override
-    public boolean insertsAreDetected(int arg0) {
+    public boolean insertsAreDetected(int type) throws SQLException {
         // We can't detect inserts that happen while streaming results
         return false;
     }
@@ -682,42 +698,42 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public boolean othersDeletesAreVisible(int arg0) {
+    public boolean othersDeletesAreVisible(int type) throws SQLException {
         // Since results are streamed it may be possible to see deletes from
         // others depending on the underlying implementation
         return true;
     }
 
     @Override
-    public boolean othersInsertsAreVisible(int arg0) {
+    public boolean othersInsertsAreVisible(int type) throws SQLException {
         // Since results are streamed it may be possible to see inserts from
         // others depending on the underlying implementation
         return true;
     }
 
     @Override
-    public boolean othersUpdatesAreVisible(int arg0) {
+    public boolean othersUpdatesAreVisible(int type) {
         // Since results are streamed it may be possible to see updates from
         // others depending on the underlying implementation
         return true;
     }
 
     @Override
-    public boolean ownDeletesAreVisible(int arg0) {
+    public boolean ownDeletesAreVisible(int type) {
         // Since results are streamed it may be possible to see deletes from
         // ourselves depending on the underlying implementation
         return true;
     }
 
     @Override
-    public boolean ownInsertsAreVisible(int arg0) {
+    public boolean ownInsertsAreVisible(int type) {
         // Since results are streamed it may be possible to see inserts from
         // ourselves depending on the underlying implementation
         return true;
     }
 
     @Override
-    public boolean ownUpdatesAreVisible(int arg0) {
+    public boolean ownUpdatesAreVisible(int type) {
         // Since results are streamed it may be possible to see deletes from
         // others depending on the underlying implementation
         return true;
@@ -831,7 +847,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     }
 
     @Override
-    public boolean supportsConvert(int arg0, int arg1) {
+    public boolean supportsConvert(int fromType, int toType) {
         return false;
     }
 
@@ -917,7 +933,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public boolean supportsMixedCaseIdentifiers() {
-        return true;
+        return false;
     }
 
     @Override
@@ -947,7 +963,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public boolean supportsNonNullableColumns() {
-        return false;
+        return true;
     }
 
     @Override
@@ -1070,16 +1086,21 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
 
     @Override
     public boolean supportsSubqueriesInExists() {
-        return false;
+        // SPARQL does allow sub-queries in EXISTS though strictly speaking our
+        // EXISTS has no relation to the SQL equivalent
+        return true;
     }
 
     @Override
     public boolean supportsSubqueriesInIns() {
+        // Can't use subqueries in this way in SPARQL
         return false;
     }
 
     @Override
     public boolean supportsSubqueriesInQuantifieds() {
+        // I have no idea what this mean so assume we can't use sub-queries this
+        // way in SPARQL
         return false;
     }
 
@@ -1104,11 +1125,11 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
     @Override
     public boolean supportsUnionAll() {
         // No SPARQL equivalent of UNION ALL
-        return true;
+        return false;
     }
 
     @Override
-    public boolean updatesAreDetected(int arg0) {
+    public boolean updatesAreDetected(int type) {
         // Updates are never detectable
         return false;
     }
@@ -1123,14 +1144,7 @@ public class DataWorldSqlMetadata implements DatabaseMetaData {
         return false;
     }
 
-    @SuppressWarnings("javadoc")
-    public ResultSet getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern)
-            throws SQLException {
-        return new MetaResultSet(MetadataSchema.getPsuedoColumnColumns());
-    }
-
-    // Java 6/7 compatibility
-    @SuppressWarnings("javadoc")
+    @Override
     public boolean generatedKeyAlwaysReturned() {
         // We don't support returning keys
         return false;
