@@ -41,8 +41,6 @@ import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.data.jdbc.DataWorldJdbcDriver;
-import world.data.jdbc.DataWorldSparqlMetadata;
-import world.data.jdbc.DataWorldSqlMetadata;
 import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.statements.DataWorldCallableStatement;
 import world.data.jdbc.statements.DataWorldPreparedStatement;
@@ -144,7 +142,7 @@ public class DataWorldConnection implements Connection {
         this.queryService = requireNonNull(queryEndpoint, "queryEndpoint");
         this.lang = requireNonNull(lang, "lang");
         this.compatibilityLevel = "sql".equals(lang) ? JdbcCompatibility.HIGH : JdbcCompatibility.DEFAULT;
-        this.metadata = "sparql".equals(lang) ? new DataWorldSparqlMetadata(this) : new DataWorldSqlMetadata(this);
+        this.metadata = "sparql".equals(lang) ? new SparqlDatabaseMetaData(this) : new SqlDatabaseMetaData(this);
 
         Duration socketTimeout = Duration.ofSeconds(60);
         Duration keepAlive = Duration.ofSeconds(1);

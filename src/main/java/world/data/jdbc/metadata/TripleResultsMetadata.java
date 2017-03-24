@@ -30,7 +30,6 @@ import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.results.TriplesResults;
 
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Types;
 
 /**
