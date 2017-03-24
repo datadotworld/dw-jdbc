@@ -68,7 +68,7 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setBigDecimal(String parameterName, BigDecimal value) throws SQLException {
-        setParameter(parameterName, LiteralFactory.bigDecimalToNode(value));
+        setParameter(parameterName, value != null ? LiteralFactory.bigDecimalToNode(value) : null);
     }
 
     @Override
@@ -148,7 +148,7 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setDate(String parameterName, Date value) throws SQLException {
-        setParameter(parameterName, LiteralFactory.dateTimeToNode(value));
+        setParameter(parameterName, value != null ? LiteralFactory.dateTimeToNode(value) : null);
     }
 
     @Override
@@ -203,7 +203,7 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setNString(String parameterName, String value) throws SQLException {
-        setParameter(parameterName, NodeFactory.createLiteral(value));
+        setParameter(parameterName, value != null ? NodeFactory.createLiteral(value) : null);
     }
 
     @Override
@@ -233,12 +233,14 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setObject(String parameterName, Object value, SQLType targetSqlType) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        checkSupported("java.sql".equals(targetSqlType.getVendor()));  // see java.sql.JDBCType
+        setObject(parameterName, value, targetSqlType.getVendorTypeNumber());
     }
 
     @Override
     public void setObject(String parameterName, Object value, SQLType targetSqlType, int scaleOrLength) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        checkSupported("java.sql".equals(targetSqlType.getVendor()));  // see java.sql.JDBCType
+        setObject(parameterName, value, targetSqlType.getVendorTypeNumber(), scaleOrLength);
     }
 
     @Override
@@ -258,12 +260,12 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setString(String parameterName, String value) throws SQLException {
-        setParameter(parameterName, NodeFactory.createLiteral(value));
+        setParameter(parameterName, value != null ? NodeFactory.createLiteral(value) : null);
     }
 
     @Override
     public void setTime(String parameterName, Time value) throws SQLException {
-        setParameter(parameterName, LiteralFactory.timeToNode(value));
+        setParameter(parameterName, value != null ? LiteralFactory.timeToNode(value) : null);
     }
 
     @Override
@@ -273,7 +275,7 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setTimestamp(String parameterName, Timestamp value) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        setParameter(parameterName, value != null ? LiteralFactory.timestampToNode(value) : null);
     }
 
     @Override
@@ -283,7 +285,7 @@ public class DataWorldCallableStatement extends DataWorldPreparedStatement imple
 
     @Override
     public void setURL(String parameterName, URL value) throws SQLException {
-        setParameter(parameterName, NodeFactory.createURI(value.toString()));
+        setParameter(parameterName, value != null ? NodeFactory.createURI(value.toString()) : null);
     }
 
     @Override

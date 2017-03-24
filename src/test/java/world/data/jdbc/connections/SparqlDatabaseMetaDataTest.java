@@ -20,7 +20,6 @@ package world.data.jdbc.connections;
 
 import org.junit.Rule;
 import org.junit.Test;
-import world.data.jdbc.connections.SqlDatabaseMetaData;
 import world.data.jdbc.testing.SparqlHelper;
 
 import java.sql.Connection;

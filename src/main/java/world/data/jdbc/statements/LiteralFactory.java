@@ -27,6 +27,7 @@ import org.apache.jena.sparql.util.NodeFactoryExtra;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -65,6 +66,12 @@ class LiteralFactory {
     }
 
     static Node dateTimeToNode(Date value) {
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        c.setTimeInMillis(value.getTime());
+        return NodeFactoryExtra.dateTimeToNode(c);
+    }
+
+    static Node timestampToNode(Timestamp value) {
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         c.setTimeInMillis(value.getTime());
         return NodeFactoryExtra.dateTimeToNode(c);

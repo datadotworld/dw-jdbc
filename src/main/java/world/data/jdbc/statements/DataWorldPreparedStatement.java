@@ -45,6 +45,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLType;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -55,6 +56,7 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 import static world.data.jdbc.util.Conditions.check;
+import static world.data.jdbc.util.Conditions.checkSupported;
 
 /**
  * data.world JDBC implementation of a prepared statement
@@ -132,7 +134,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
 
     @Override
     public void setBigDecimal(int parameterIndex, BigDecimal value) throws SQLException {
-        setParameter(parameterIndex, LiteralFactory.bigDecimalToNode(value));
+        setParameter(parameterIndex, value != null ? LiteralFactory.bigDecimalToNode(value) : null);
     }
 
     @Override
@@ -212,7 +214,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
 
     @Override
     public void setDate(int parameterIndex, Date value) throws SQLException {
-        setParameter(parameterIndex, LiteralFactory.dateTimeToNode(value));
+        setParameter(parameterIndex, value != null ? LiteralFactory.dateTimeToNode(value) : null);
     }
 
     @Override
@@ -267,7 +269,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
 
     @Override
     public void setNString(int parameterIndex, String value) throws SQLException {
-        setParameter(parameterIndex, NodeFactory.createLiteral(value));
+        setParameter(parameterIndex, value != null ? NodeFactory.createLiteral(value) : null);
     }
 
     @Override
@@ -528,6 +530,18 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
     }
 
     @Override
+    public void setObject(int parameterIndex, Object value, SQLType targetSqlType) throws SQLException {
+        checkSupported("java.sql".equals(targetSqlType.getVendor()));  // see java.sql.JDBCType
+        setObject(parameterIndex, value, targetSqlType.getVendorTypeNumber());
+    }
+
+    @Override
+    public void setObject(int parameterIndex, Object value, SQLType targetSqlType, int scaleOrLength) throws SQLException {
+        checkSupported("java.sql".equals(targetSqlType.getVendor()));  // see java.sql.JDBCType
+        setObject(parameterIndex, value, targetSqlType.getVendorTypeNumber(), scaleOrLength);
+    }
+
+    @Override
     public void setRef(int parameterIndex, Ref value) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
@@ -549,12 +563,12 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
 
     @Override
     public void setString(int parameterIndex, String value) throws SQLException {
-        setParameter(parameterIndex, NodeFactory.createLiteral(value));
+        setParameter(parameterIndex, value != null ? NodeFactory.createLiteral(value) : null);
     }
 
     @Override
     public void setTime(int parameterIndex, Time value) throws SQLException {
-        setParameter(parameterIndex, LiteralFactory.timeToNode(value));
+        setParameter(parameterIndex, value != null ? LiteralFactory.timeToNode(value) : null);
     }
 
     @Override
@@ -564,7 +578,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
 
     @Override
     public void setTimestamp(int parameterIndex, Timestamp value) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        setParameter(parameterIndex, value != null ? LiteralFactory.timestampToNode(value) : null);
     }
 
     @Override
@@ -574,7 +588,7 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Re
 
     @Override
     public void setURL(int parameterIndex, URL value) throws SQLException {
-        setParameter(parameterIndex, NodeFactory.createURI(value.toString()));
+        setParameter(parameterIndex, value != null ? NodeFactory.createURI(value.toString()) : null);
     }
 
     @Deprecated

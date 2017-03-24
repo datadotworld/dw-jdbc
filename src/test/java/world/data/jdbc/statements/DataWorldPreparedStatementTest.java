@@ -27,14 +27,28 @@ import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SqlHelper;
 
+import java.io.InputStream;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Date;
+import java.sql.JDBCType;
+import java.sql.NClob;
+import java.sql.PreparedStatement;
+import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLType;
+import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Calendar;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.ArgumentMatchers.any;
@@ -237,10 +251,64 @@ public class DataWorldPreparedStatementTest {
                 queryParam("$data_world_param0", "\"22:10:43Z\"^^<http://www.w3.org/2001/XMLSchema#time>")));
     }
 
+
+    @Test
+    public void testNull() throws Exception {
+        PreparedStatement statement = sql.prepareStatement(sql.connect(), "select * from Fielding where yearid in (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        int index = 0;
+        statement.setString(++index, "not-null");
+        statement.setBigDecimal(++index, null);
+        statement.setDate(++index, null);
+        statement.setNString(++index, null);
+        statement.setNull(++index, Types.VARCHAR);
+        statement.setNull(++index, Types.VARCHAR, "IGNORED");
+        statement.setObject(++index, null);
+        statement.setObject(++index, null, Types.INTEGER);
+        statement.setObject(++index, null, JDBCType.INTEGER);
+        statement.setString(++index, null);
+        statement.setTime(++index, null);
+        statement.setTimestamp(++index, null);
+        statement.setURL(++index, null);
+        statement.execute();
+        verify(lastBackendRequest).handle(any(), any(), eq(String.join("&",
+                queryParam("query", "select * from Fielding where yearid in (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+                queryParam("$data_world_param0", "\"not-null\""))));
+    }
+
     @Test
     public void testAllNotSupported() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
-        assertSQLFeatureNotSupported(() -> statement.setTimestamp(1, new Timestamp(1477433443000L)));
+        assertSQLFeatureNotSupported(statement::executeUpdate);
+        assertSQLFeatureNotSupported(() -> statement.setAsciiStream(1, mock(InputStream.class)));
+        assertSQLFeatureNotSupported(() -> statement.setAsciiStream(1, mock(InputStream.class), 100));
+        assertSQLFeatureNotSupported(() -> statement.setAsciiStream(1, mock(InputStream.class), 10_000L));
+        assertSQLFeatureNotSupported(() -> statement.setBinaryStream(1, mock(InputStream.class)));
+        assertSQLFeatureNotSupported(() -> statement.setBinaryStream(1, mock(InputStream.class), 100));
+        assertSQLFeatureNotSupported(() -> statement.setBinaryStream(1, mock(InputStream.class), 10_000L));
+        assertSQLFeatureNotSupported(() -> statement.setBlob(1, mock(Blob.class)));
+        assertSQLFeatureNotSupported(() -> statement.setBlob(1, mock(InputStream.class)));
+        assertSQLFeatureNotSupported(() -> statement.setBlob(1, mock(InputStream.class), 100));
+        assertSQLFeatureNotSupported(() -> statement.setBytes(1, new byte[100]));
+        assertSQLFeatureNotSupported(() -> statement.setCharacterStream(1, mock(Reader.class)));
+        assertSQLFeatureNotSupported(() -> statement.setCharacterStream(1, mock(Reader.class), 100));
+        assertSQLFeatureNotSupported(() -> statement.setCharacterStream(1, mock(Reader.class), 10_000L));
+        assertSQLFeatureNotSupported(() -> statement.setClob(1, mock(Clob.class)));
+        assertSQLFeatureNotSupported(() -> statement.setClob(1, mock(Reader.class)));
+        assertSQLFeatureNotSupported(() -> statement.setClob(1, mock(Reader.class), 100));
+        assertSQLFeatureNotSupported(() -> statement.setDate(1, Date.valueOf(LocalDate.now()), Calendar.getInstance()));
+        assertSQLFeatureNotSupported(() -> statement.setNCharacterStream(1, mock(Reader.class)));
+        assertSQLFeatureNotSupported(() -> statement.setNCharacterStream(1, mock(Reader.class), 100));
+        assertSQLFeatureNotSupported(() -> statement.setNClob(1, mock(NClob.class)));
+        assertSQLFeatureNotSupported(() -> statement.setNClob(1, mock(Reader.class)));
+        assertSQLFeatureNotSupported(() -> statement.setNClob(1, mock(Reader.class), 100));
+        assertSQLFeatureNotSupported(() -> statement.setObject(1, null, Types.DECIMAL, 11));
+        assertSQLFeatureNotSupported(() -> statement.setObject(1, 123, mock(SQLType.class)));
+        assertSQLFeatureNotSupported(() -> statement.setObject(1, 123, mock(SQLType.class), 11));
+        assertSQLFeatureNotSupported(() -> statement.setObject(1, 123, JDBCType.DECIMAL, 11));
+        assertSQLFeatureNotSupported(() -> statement.setRowId(1, mock(RowId.class)));
+        assertSQLFeatureNotSupported(() -> statement.setSQLXML(1, mock(SQLXML.class)));
+        assertSQLFeatureNotSupported(() -> statement.setTime(1, Time.valueOf(LocalTime.now()), Calendar.getInstance()));
+        assertSQLFeatureNotSupported(() -> statement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()), Calendar.getInstance()));
     }
 
     private static String queryParam(String name, String value) {

@@ -19,6 +19,7 @@
 package world.data.jdbc.testing;
 
 import world.data.jdbc.connections.DataWorldConnection;
+import world.data.jdbc.statements.DataWorldCallableStatement;
 import world.data.jdbc.statements.DataWorldPreparedStatement;
 import world.data.jdbc.statements.DataWorldStatement;
 
@@ -42,6 +43,10 @@ public class SqlHelper extends CloserResource {
 
     public DataWorldPreparedStatement prepareStatement(Connection connection, String query) throws SQLException {
         return register((DataWorldPreparedStatement) connection.prepareStatement(query));
+    }
+
+    public DataWorldCallableStatement prepareCall(Connection connection, String query) throws SQLException {
+        return register((DataWorldCallableStatement) connection.prepareCall(query));
     }
 
     public ResultSet executeQuery(Statement statement, String query) throws SQLException {

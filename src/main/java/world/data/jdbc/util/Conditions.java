@@ -29,6 +29,12 @@ public class Conditions {
         }
     }
 
+    public static void checkSupported(boolean flag) throws SQLException {
+        if (!flag) {
+            throw new SQLFeatureNotSupportedException();
+        }
+    }
+
     public static void checkSupported(boolean flag, String message) throws SQLException {
         if (!flag) {
             throw new SQLFeatureNotSupportedException(message);
