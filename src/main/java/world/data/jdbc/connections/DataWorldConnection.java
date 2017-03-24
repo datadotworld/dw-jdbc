@@ -18,11 +18,29 @@
 */
 package world.data.jdbc.connections;
 
-import org.apache.jena.atlas.web.auth.HttpAuthenticator;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIUtils;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.apache.jena.jdbc.JdbcCompatibility;
 import org.apache.jena.jdbc.metadata.JenaMetadata;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import world.data.jdbc.DataWorldJdbcDriver;
 import world.data.jdbc.DataWorldSparqlMetadata;
 import world.data.jdbc.DataWorldSqlMetadata;
 import world.data.jdbc.statements.DataWorldCallableStatement;
@@ -31,6 +49,8 @@ import world.data.jdbc.statements.DataWorldStatement;
 import world.data.jdbc.statements.SparqlStatementQueryBuilder;
 import world.data.jdbc.statements.SqlStatementQueryBuilder;
 
+import java.io.IOException;
+import java.net.URI;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -48,7 +68,9 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -81,7 +103,6 @@ import static world.data.jdbc.util.Conditions.checkSupported;
  * </p>
  */
 public class DataWorldConnection implements Connection {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DataWorldConnection.class);
 
     /**
@@ -97,9 +118,10 @@ public class DataWorldConnection implements Connection {
      * connections
      */
     private final static int DEFAULT_ISOLATION_LEVEL = TRANSACTION_NONE;
-    private final String lang;
     private final String queryService;
-    private final HttpAuthenticator authenticator;
+    private final String lang;
+    private final CloseableHttpClient httpClient;
+    private final List<HttpHost> preemptiveAuthHosts;
     private final DatabaseMetaData metadata;
 
     private Properties clientInfo = new Properties();
@@ -113,12 +135,65 @@ public class DataWorldConnection implements Connection {
      *
      * @throws SQLException Thrown if the arguments are invalid
      */
-    public DataWorldConnection(String queryEndpoint, HttpAuthenticator authenticator, String lang) throws SQLException {
+    public DataWorldConnection(String queryEndpoint, String lang, String token) throws SQLException {
         this.queryService = requireNonNull(queryEndpoint, "queryEndpoint");
-        this.authenticator = authenticator;
         this.lang = requireNonNull(lang, "lang");
         this.compatibilityLevel = "sql".equals(lang) ? JdbcCompatibility.HIGH : JdbcCompatibility.normalizeLevel(JdbcCompatibility.DEFAULT);
         this.metadata = "sparql".equals(lang) ? new DataWorldSparqlMetadata(this) : new DataWorldSqlMetadata(this);
+
+        Duration socketTimeout = Duration.ofSeconds(60);
+        Duration keepAlive = Duration.ofSeconds(1);
+
+        HttpHost queryHost = URIUtils.extractHost(URI.create(queryService));
+        if (queryHost == null) {
+            throw new IllegalArgumentException("Invalid query endpoint: " + queryService);
+        }
+
+        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        if (token != null) {
+            AuthScope authScope = new AuthScope(queryHost, AuthScope.ANY_REALM, "Bearer");
+            credentialsProvider.setCredentials(authScope, new BearerCredentials(token));
+            preemptiveAuthHosts = Collections.singletonList(queryHost);
+        } else {
+            preemptiveAuthHosts = Collections.emptyList();
+        }
+
+        this.httpClient = HttpClientBuilder.create()
+                .setMaxConnPerRoute(5)
+                .setMaxConnTotal(5)
+                .setDefaultCredentialsProvider(credentialsProvider)
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
+                        .setRedirectsEnabled(false)
+                        .setSocketTimeout((int) socketTimeout.toMillis())
+                        .build())
+                .setDefaultSocketConfig(SocketConfig.custom()
+                        .setSoTimeout((int) socketTimeout.toMillis())
+                        .build())
+                .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy() {
+                    @Override
+                    public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
+                        long duration = super.getKeepAliveDuration(response, context);
+                        return duration == -1L ? keepAlive.toMillis() : duration;
+                    }
+                })
+                .setUserAgent(String.format("DwJdbc-%s/%s", lang, DataWorldJdbcDriver.VERSION))
+                .build();
+    }
+
+    public QueryEngineHTTP createQueryExecution(Query q) throws SQLException {
+        // Create basic execution
+        QueryEngineHTTP exec = (QueryEngineHTTP) QueryExecutionFactory.sparqlService(queryService, q, httpClient);
+        exec.setHttpContext(createHttpContext());
+        return exec;
+    }
+
+    public HttpClientContext createHttpContext() {
+        HttpClientContext context = HttpClientContext.create();
+        BasicAuthCache authCache = new BasicAuthCache();
+        preemptiveAuthHosts.forEach(host -> authCache.put(host, new BearerScheme()));
+        context.setAuthCache(authCache);
+        return context;
     }
 
     /**
@@ -162,6 +237,9 @@ public class DataWorldConnection implements Connection {
 
     @Override
     public final void close() throws SQLException {
+        if (closed) {
+            return;
+        }
         try {
             LOGGER.info("Closing connection...");
             // Close any open statements
@@ -185,17 +263,14 @@ public class DataWorldConnection implements Connection {
         }
     }
 
-    /**
-     * Gets the SPARQL query endpoint that is in use
-     *
-     * @return Endpoint URI or null for write only connections
-     */
-    public String getQueryEndpoint() {
-        return queryService;
-    }
-
     private void closeInternal() {
-        closed = true;
+        try {
+            this.httpClient.close();
+        } catch (IOException e) {
+            LOGGER.warn("Unexpected trying to close HTTP client.", e);
+        } finally {
+            closed = true;
+        }
     }
 
     @Override
@@ -256,9 +331,9 @@ public class DataWorldConnection implements Connection {
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "data.world connections only support forward-scrolling result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
         if ("sparql".equals(lang)) {
-            return new DataWorldStatement(this, authenticator, new SparqlStatementQueryBuilder());
+            return new DataWorldStatement(this, new SparqlStatementQueryBuilder());
         } else {
-            return new DataWorldStatement(this, authenticator, new SqlStatementQueryBuilder());
+            return new DataWorldStatement(this, new SqlStatementQueryBuilder());
         }
     }
 
@@ -355,9 +430,9 @@ public class DataWorldConnection implements Connection {
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Remote endpoint backed connection do not support scroll sensitive result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
         if ("sparql".equals(lang)) {
-            return new DataWorldCallableStatement(sparql, this, authenticator, new SparqlStatementQueryBuilder());
+            return new DataWorldCallableStatement(sparql, this, new SparqlStatementQueryBuilder());
         } else {
-            return new DataWorldCallableStatement(sparql, this, authenticator, new SqlStatementQueryBuilder());
+            return new DataWorldCallableStatement(sparql, this, new SqlStatementQueryBuilder());
         }
     }
 
@@ -402,9 +477,9 @@ public class DataWorldConnection implements Connection {
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Remote endpoint backed connection do not support scroll sensitive result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
         if ("sparql".equals(lang)) {
-            return new DataWorldPreparedStatement(sparql, this, authenticator, new SparqlStatementQueryBuilder());
+            return new DataWorldPreparedStatement(sparql, this, new SparqlStatementQueryBuilder());
         } else {
-            return new DataWorldPreparedStatement(sparql, this, authenticator, new SqlStatementQueryBuilder());
+            return new DataWorldPreparedStatement(sparql, this, new SqlStatementQueryBuilder());
         }
     }
 

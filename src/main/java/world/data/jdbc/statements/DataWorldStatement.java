@@ -18,11 +18,9 @@
 */
 package world.data.jdbc.statements;
 
-import org.apache.jena.atlas.web.auth.HttpAuthenticator;
 import org.apache.jena.jdbc.JdbcCompatibility;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +52,6 @@ public class DataWorldStatement implements Statement {
     private int compatibilityLevel = USE_CONNECTION_COMPATIBILITY;
     private SQLWarning warnings = null;
 
-    private final HttpAuthenticator authenticator;
     private final QueryBuilder queryBuilder;
     private final DataWorldConnection connection;
 
@@ -64,9 +61,8 @@ public class DataWorldStatement implements Statement {
     private ResultSet currResults;
     private boolean closed;
 
-    public DataWorldStatement(final DataWorldConnection connection, final HttpAuthenticator authenticator, final QueryBuilder queryBuilder) {
+    public DataWorldStatement(final DataWorldConnection connection, final QueryBuilder queryBuilder) {
         this.connection = requireNonNull(connection, "connection");
-        this.authenticator = authenticator;
         this.queryBuilder = requireNonNull(queryBuilder, "queryBuilder");
     }
 
@@ -196,17 +192,8 @@ public class DataWorldStatement implements Statement {
         throw new SQLFeatureNotSupportedException();
     }
 
-
     protected QueryEngineHTTP createQueryExecution(Query q) throws SQLException {
-        // Create basic execution
-        QueryEngineHTTP exec = (QueryEngineHTTP) QueryExecutionFactory.sparqlService(connection.getQueryEndpoint(), q);
-
-        // Apply authentication settings
-        if (authenticator != null) {
-            exec.setAuthenticator(authenticator);
-        }
-        // Return execution
-        return exec;
+        return connection.createQueryExecution(q);
     }
 
     @Override

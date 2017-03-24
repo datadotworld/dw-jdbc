@@ -118,7 +118,7 @@ public class DataWorldPreparedStatementTest {
     public void setDate() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setDate(1, new Date(1477433443000L));
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"2016-10-25T22:10:43+00:00\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
+        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"2016-10-25T22:10:43Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
     }
 
     @Test
@@ -196,7 +196,7 @@ public class DataWorldPreparedStatementTest {
     public void setTime() throws Exception {
         DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setTime(1, new Time(1477433443000L));
-        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"22:10:43+00:00\"^^<http://www.w3.org/2001/XMLSchema#time>");
+        assertThat(statement.formatParams()).isEqualTo("$data_world_param0=\"22:10:43Z\"^^<http://www.w3.org/2001/XMLSchema#time>");
     }
 
     @Test

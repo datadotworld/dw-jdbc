@@ -18,7 +18,6 @@
 */
 package world.data.jdbc.statements;
 
-import org.apache.jena.atlas.web.auth.HttpAuthenticator;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.iri.IRI;
@@ -55,13 +54,13 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
 import static world.data.jdbc.util.Conditions.check;
 
 /**
  * data.world JDBC implementation of a prepared statement
  */
 public class DataWorldPreparedStatement extends DataWorldStatement implements PreparedStatement {
-
     private final String query;
     private final ParameterMetaData paramMetadata;
     final Map<Integer, Node> params = new HashMap<>();
@@ -72,11 +71,10 @@ public class DataWorldPreparedStatement extends DataWorldStatement implements Pr
      * @param connection Connection
      * @throws SQLException Thrown if there is a problem preparing the statement
      */
-    public DataWorldPreparedStatement(String query, DataWorldConnection connection,
-                                      HttpAuthenticator authenticator, QueryBuilder queryBuilder) throws SQLException {
-        super(connection, authenticator, queryBuilder);
+    public DataWorldPreparedStatement(String query, DataWorldConnection connection, QueryBuilder queryBuilder) throws SQLException {
+        super(connection, queryBuilder);
+        this.query = requireNonNull(query, "query");
         this.paramMetadata = queryBuilder.buildParameterMetadata(query);
-        this.query = query;
     }
 
     @Override
