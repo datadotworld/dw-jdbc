@@ -176,7 +176,8 @@ public class DataWorldStatement implements ReadOnlyStatement {
     }
 
     @Override
-    public void addBatch(String sql) {
+    public void addBatch(String sql) throws SQLException {
+        checkClosed();
         commands.add(sql);
     }
 
@@ -186,6 +187,7 @@ public class DataWorldStatement implements ReadOnlyStatement {
     }
 
     protected QueryEngineHTTP createQueryExecution(Query q) throws SQLException {
+        checkClosed();
         return connection.createQueryExecution(q);
     }
 
@@ -445,7 +447,7 @@ public class DataWorldStatement implements ReadOnlyStatement {
         return closed;
     }
 
-    private void checkClosed() throws SQLException {
+    void checkClosed() throws SQLException {
         check(!closed, "Statement is closed");
     }
 }

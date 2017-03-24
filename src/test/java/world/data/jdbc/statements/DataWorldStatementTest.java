@@ -91,6 +91,7 @@ public class DataWorldStatementTest {
         assertThat(statement.getFetchSize()).isEqualTo(0);
         assertThat(statement.getMaxFieldSize()).isEqualTo(0);
         assertThat(statement.getMaxRows()).isEqualTo(0);
+        assertThat(statement.getLargeMaxRows()).isEqualTo(0);
         assertThat(statement.getResultSetHoldability()).isEqualTo(ResultSet.CLOSE_CURSORS_AT_COMMIT);
         assertThat(statement.getResultSetConcurrency()).isEqualTo(ResultSet.CONCUR_READ_ONLY);
         assertThat(statement.getResultSetType()).isEqualTo(ResultSet.TYPE_FORWARD_ONLY);
@@ -257,6 +258,7 @@ public class DataWorldStatementTest {
     public void getUpdateCount() throws Exception {
         Statement statement = sparql.createStatement(sparql.connect());
         assertThat(statement.getUpdateCount()).isEqualTo(-1);
+        assertThat(statement.getLargeUpdateCount()).isEqualTo(-1);
     }
 
     @Test
