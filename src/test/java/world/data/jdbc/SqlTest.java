@@ -142,7 +142,7 @@ public class SqlTest {
         }
         verify(lastBackendRequest).handle(GET, "/sql/dave/lahman-sabremetrics-dataset",
                 "query=select+*+from+HallOfFame+where+yearid+%3E+%3F+order+by+yearid%2C+playerID+limit+10+" +
-                        "&parameters=%24data_world_param0%3D%223%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23integer%3E");
+                        "&%24data_world_param0=%223%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23integer%3E");
     }
 
     @Test
@@ -187,6 +187,7 @@ public class SqlTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testAllNotSupported() throws Exception {
         PreparedStatement statement = samplePreparedStatement();
         assertSQLFeatureNotSupported(() -> statement.setArray(1, null));

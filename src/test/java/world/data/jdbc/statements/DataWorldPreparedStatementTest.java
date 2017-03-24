@@ -148,7 +148,7 @@ public class DataWorldPreparedStatementTest {
         statement.setDouble(1, 3.0);
         statement.execute();
         verify(lastBackendRequest).handle(any(), any(), endsWith(
-                        queryParam("$data_world_param0", "\"3.0\"^^<http://www.w3.org/2001/XMLSchema#double>")));
+                queryParam("$data_world_param0", "\"3.0\"^^<http://www.w3.org/2001/XMLSchema#double>")));
     }
 
     @Test
