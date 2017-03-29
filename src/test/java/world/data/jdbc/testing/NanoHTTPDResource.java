@@ -1,6 +1,6 @@
 /*
 * dw-jdbc
-* Copyright 2016 data.world, Inc.
+* Copyright 2017 data.world, Inc.
 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the
@@ -21,7 +21,6 @@ package world.data.jdbc.testing;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
-import org.apache.http.HttpHeaders;
 import org.junit.rules.ExternalResource;
 
 import java.io.PrintWriter;
@@ -61,7 +60,7 @@ public abstract class NanoHTTPDResource extends ExternalResource {
 
     protected static Response newResponse(Response.Status status, String mimeType, String body) {
         Response response = NanoHTTPD.newFixedLengthResponse(status, mimeType, body);
-        response.addHeader(HttpHeaders.CONNECTION, "close");  // avoid errors due to ignoring the POST body
+        response.addHeader("Connection", "close");  // avoid errors if the test impl ignores the POST body
         return response;
     }
 

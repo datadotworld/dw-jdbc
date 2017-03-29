@@ -1,4 +1,0 @@
-@prefix :        <http://www.snee.com/ns/demo#> .
-
-:jane :hasGrandfather  :pat .
-:mike :hasGrandfather  :pat .

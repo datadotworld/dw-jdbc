@@ -6,7 +6,7 @@
     <parent>
         <groupId>world.data</groupId>
         <artifactId>datadotworld-parent</artifactId>
-        <version>0.2.2</version>
+        <version>0.2.3</version>
     </parent>
 
     <artifactId>dw-jdbc</artifactId>
@@ -31,68 +31,35 @@
 
     <properties>
         <encoding>UTF-8</encoding>
-        <jena.version>3.2.0</jena.version>
         <jacoco.minimum-coverage>0.75</jacoco.minimum-coverage>
     </properties>
 
     <dependencies>
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.8.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.14</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.5</version>
+            <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>4.4.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-arq</artifactId>
-            <version>${jena.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-base</artifactId>
-            <version>${jena.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-core</artifactId>
-            <version>${jena.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-iri</artifactId>
-            <version>${jena.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-jdbc-core</artifactId>
-            <version>${jena.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.20</version>
-        </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -134,12 +101,18 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                    </transformers>
                     <shadedArtifactAttached>true</shadedArtifactAttached>
                     <shadedClassifierName>shaded</shadedClassifierName>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <relocations>
+                        <relocation>
+                            <pattern>com.fasterxml.jackson</pattern>
+                            <shadedPattern>world.data.jdbc.internal.jackson</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                    </transformers>
                 </configuration>
             </plugin>
             <plugin>
@@ -197,7 +170,7 @@
                         <exclude>pom.xml</exclude>
                         <exclude>settings.xml</exclude>
                         <exclude>**/META-INF/services/*</exclude>
-                        <exclude>**/test/resources/*</exclude>
+                        <exclude>**/test/resources/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -222,7 +195,20 @@
                             <rules>
                                 <bannedDependencies>
                                     <excludes>
-                                        <exclude>commons-logging</exclude>
+                                        <!-- The jdbc driver should use java.util.Logging, not a 3rd-party logging library -->
+                                        <exclude>commons-logging:commons-logging</exclude>
+                                        <exclude>log4j:log4j</exclude>
+                                        <exclude>org.slf4j:slf4j-api</exclude>
+
+                                        <!-- These are common dependencies that might be picked up via transitive dependencies -->
+                                        <!-- Think hard before allowing any of these dependencies, are they *really* necessary? -->
+                                        <!-- The more dependencies we have, the more likely users are to encounter conflicts! -->
+                                        <exclude>com.fasterxml.jackson.core:jackson-databind</exclude>
+                                        <exclude>com.google.guava:guava</exclude>
+                                        <exclude>commons-io:commons-io:*:*:compile</exclude>
+                                        <exclude>org.apache.commons</exclude>
+                                        <exclude>org.apache.httpcomponents</exclude>
+                                        <exclude>org.apache.jena</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>
@@ -235,15 +221,20 @@
                         </goals>
                         <configuration>
                             <rules>
-                                <compound implementation="com.github.ferstl.maven.pomenforcers.CompoundPedanticEnforcer">
+                                <compound
+                                        implementation="com.github.ferstl.maven.pomenforcers.CompoundPedanticEnforcer">
                                     <enforcers>
                                         POM_SECTION_ORDER,MODULE_ORDER,DEPENDENCY_MANAGEMENT_ORDER,DEPENDENCY_ORDER,DEPENDENCY_SCOPE,PLUGIN_MANAGEMENT_ORDER
                                     </enforcers>
-                                    <dependenciesGroupIdPriorities>${project.groupId},world.data</dependenciesGroupIdPriorities>
+                                    <dependenciesGroupIdPriorities>${project.groupId},world.data
+                                    </dependenciesGroupIdPriorities>
                                     <dependenciesScopePriorities>compile,runtime,provided</dependenciesScopePriorities>
-                                    <dependencyManagementGroupIdPriorities>${project.groupId},world.data</dependencyManagementGroupIdPriorities>
-                                    <dependencyManagementScopePriorities>import,compile,runtime,provided</dependencyManagementScopePriorities>
-                                    <pluginManagementGroupIdPriorities>${project.groupId},world.data</pluginManagementGroupIdPriorities>
+                                    <dependencyManagementGroupIdPriorities>${project.groupId},world.data
+                                    </dependencyManagementGroupIdPriorities>
+                                    <dependencyManagementScopePriorities>import,compile,runtime,provided
+                                    </dependencyManagementScopePriorities>
+                                    <pluginManagementGroupIdPriorities>${project.groupId},world.data
+                                    </pluginManagementGroupIdPriorities>
                                 </compound>
                             </rules>
                             <fail>true</fail>

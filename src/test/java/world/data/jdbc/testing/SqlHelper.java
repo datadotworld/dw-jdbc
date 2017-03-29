@@ -1,6 +1,6 @@
 /*
 * dw-jdbc
-* Copyright 2016 data.world, Inc.
+* Copyright 2017 data.world, Inc.
 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the
@@ -18,10 +18,10 @@
 */
 package world.data.jdbc.testing;
 
-import world.data.jdbc.connections.Connection;
-import world.data.jdbc.statements.CallableStatement;
-import world.data.jdbc.statements.PreparedStatement;
-import world.data.jdbc.statements.Statement;
+import world.data.jdbc.DataWorldCallableStatement;
+import world.data.jdbc.DataWorldConnection;
+import world.data.jdbc.DataWorldPreparedStatement;
+import world.data.jdbc.DataWorldStatement;
 
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -29,28 +29,32 @@ import java.sql.SQLException;
 
 public class SqlHelper extends CloserResource {
 
-    public Connection connect() throws SQLException {
-        String url = "jdbc:data:world:sql:dave:lahman-sabremetrics-dataset";
-        return register((Connection) DriverManager.getConnection(url, TestConfigSource.testProperties()));
+    public String urlPath() {
+        return "/sql/dave/lahman-sabremetrics-dataset";
     }
 
-    public Statement createStatement(Connection connection) throws SQLException {
+    public DataWorldConnection connect() throws SQLException {
+        String url = "jdbc:data:world:sql:dave:lahman-sabremetrics-dataset";
+        return register((DataWorldConnection) DriverManager.getConnection(url, TestConfigSource.testProperties()));
+    }
+
+    public DataWorldStatement createStatement(DataWorldConnection connection) throws SQLException {
         return register(connection.createStatement());
     }
 
-    public PreparedStatement prepareStatement(Connection connection, String query) throws SQLException {
+    public DataWorldPreparedStatement prepareStatement(DataWorldConnection connection, String query) throws SQLException {
         return register(connection.prepareStatement(query));
     }
 
-    public CallableStatement prepareCall(Connection connection, String query) throws SQLException {
+    public DataWorldCallableStatement prepareCall(DataWorldConnection connection, String query) throws SQLException {
         return register(connection.prepareCall(query));
     }
 
-    public ResultSet executeQuery(Statement statement, String query) throws SQLException {
+    public ResultSet executeQuery(DataWorldStatement statement, String query) throws SQLException {
         return register(statement.executeQuery(query));
     }
 
-    public ResultSet executeQuery(PreparedStatement statement) throws SQLException {
+    public ResultSet executeQuery(DataWorldPreparedStatement statement) throws SQLException {
         return register(statement.executeQuery());
     }
 }

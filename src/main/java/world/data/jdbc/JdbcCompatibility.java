@@ -1,6 +1,6 @@
 /*
 * dw-jdbc
-* Copyright 2016 data.world, Inc.
+* Copyright 2017 data.world, Inc.
 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the
@@ -18,26 +18,9 @@
 */
 package world.data.jdbc;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.jdbc.results.metadata.columns.BooleanColumn;
-import org.apache.jena.jdbc.results.metadata.columns.ByteColumn;
-import org.apache.jena.jdbc.results.metadata.columns.ColumnInfo;
-import org.apache.jena.jdbc.results.metadata.columns.DateColumn;
-import org.apache.jena.jdbc.results.metadata.columns.DateTimeColumn;
-import org.apache.jena.jdbc.results.metadata.columns.DecimalColumn;
-import org.apache.jena.jdbc.results.metadata.columns.DoubleColumn;
-import org.apache.jena.jdbc.results.metadata.columns.FloatColumn;
-import org.apache.jena.jdbc.results.metadata.columns.IntegerColumn;
-import org.apache.jena.jdbc.results.metadata.columns.LongIntegerColumn;
-import org.apache.jena.jdbc.results.metadata.columns.StringColumn;
-import org.apache.jena.jdbc.results.metadata.columns.TimeColumn;
-import org.apache.jena.vocabulary.XSD;
+import world.data.jdbc.model.Node;
 
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.sql.Types;
-
-import static world.data.jdbc.util.Conditions.check;
 
 /**
  * <p>
@@ -59,13 +42,13 @@ public enum JdbcCompatibility {
      * Constant for low JDBC compatibility level
      * <p>
      * This is the level you should use when you know you are accessing a SPARQL
-     * source and are able to cope with the Jena/ARQ representation of RDF terms
+     * source and are able to cope with the native driver representation of RDF terms
      * natively.
      * </p>
      * <h3>Behavior Specifies</h3>
      * <ul>
      * <li>Column Typing - All result set columns are reported as being as typed
-     * as {@link Types#JAVA_OBJECT} and Java type is the ARQ {@link Node} type.</li>
+     * as {@link Types#JAVA_OBJECT} and Java type is the {@link Node} type.</li>
      * </ul>
      */
     LOW,
@@ -98,145 +81,4 @@ public enum JdbcCompatibility {
      * </ul>
      */
     HIGH;
-
-    /**
-     * Constant for default JDBC compatibility which is set to {@link #MEDIUM}
-     */
-    public static final JdbcCompatibility DEFAULT = MEDIUM;
-
-    /**
-     * Returns whether a result set is expected to determine the column types
-     * from the returned data
-     *
-     * @param level Desired compatibility level
-     * @return True if column types should be detected, false otherwise
-     */
-    public static boolean shouldDetectColumnTypes(JdbcCompatibility level) {
-        return level == HIGH;
-    }
-
-    /**
-     * Returns whether a result set is expected to type returned columns as
-     * strings
-     *
-     * @param level Desired compatibility level
-     * @return True if columns should be typed as string, false otherwise
-     */
-    public static boolean shouldTypeColumnsAsString(JdbcCompatibility level) {
-        return level == MEDIUM;
-    }
-
-    /**
-     * Detects the column type information based on an example value
-     *
-     * @param var         Variable Name i.e. the column label
-     * @param value       Example value
-     * @param allowsNulls Whether the result set we are detecting the type for allows
-     *                    null values in this column
-     * @return Column Information
-     * @throws SQLException Thrown if the column type cannot be detected, this should
-     *                      only occur if you state that the column does not allow nulls
-     *                      and then provide a null example value
-     */
-    public static ColumnInfo detectColumnType(String var, Node value, boolean allowsNulls) throws SQLException {
-        if (allowsNulls && value == null) {
-            // If we are allowing nulls and the value is null just type the
-            // column as string
-            return new StringColumn(var, ResultSetMetaData.columnNullable);
-        }
-        check(allowsNulls || value != null, "Unable to determine column type, column is non-nullable but example value is null");
-
-        // We know we have a non-null value so now we need to determine the
-        // column type appropriately
-        int nullable = allowsNulls ? ResultSetMetaData.columnNullable : ResultSetMetaData.columnNoNulls;
-        if (value.isBlank()) {
-            // Type blank nodes as strings
-            return new StringColumn(var, nullable);
-        } else if (value.isURI()) {
-            // Type URIs as strings
-            // TODO: Does JDBC have a URL type?
-            return new StringColumn(var, nullable);
-        } else if (value.isLiteral()) {
-            // Literals will be typed based on the declared data type where
-            // applicable
-            String dtUri = value.getLiteralDatatypeURI();
-            if (dtUri != null) {
-                // Is a typed literal
-                return selectColumnType(var, dtUri, nullable);
-            } else {
-                // Untyped literals are typed as strings
-                return new StringColumn(var, nullable);
-            }
-        } else {
-            // Anything else we treat as a string
-            return new StringColumn(var, nullable);
-        }
-    }
-
-    /**
-     * Select the column type based on the data type URI
-     *
-     * @param var      Variable Name i.e. the column label
-     * @param dtUri    Data type URI
-     * @param nullable Whether the column is nullable
-     * @return Column type
-     */
-    private static ColumnInfo selectColumnType(String var, String dtUri, int nullable) throws SQLException {
-        if (dtUri.equals(XSD.date.toString())) {
-            // Date column
-            return new DateColumn(var, nullable);
-        } else if (dtUri.equals(XSD.dateTime.toString())) {
-            // Date time column
-            return new DateTimeColumn(var, nullable);
-        } else if (dtUri.equals(XSD.decimal.toString())) {
-            // Decimal column
-            return new DecimalColumn(var, nullable);
-        } else if (dtUri.equals(XSD.duration.toString())) {
-            // JDBC has no notion of durations so return as a string
-            return new StringColumn(var, nullable);
-        } else if (dtUri.equals(XSD.integer.toString()) || dtUri.equals(XSD.xint.toString())
-                || dtUri.equals(XSD.xlong.toString())) {
-            // Integer column
-            return new LongIntegerColumn(var, nullable, true);
-        } else if (dtUri.equals(XSD.unsignedInt.toString()) || dtUri.equals(XSD.unsignedLong.toString())) {
-            // Unsigned Integer column
-            return new LongIntegerColumn(var, nullable, false);
-        } else if (dtUri.equals(XSD.positiveInteger.toString()) || dtUri.equals(XSD.nonNegativeInteger.toString())) {
-            // Unsigned Integer column
-            return new LongIntegerColumn(var, nullable, false);
-        } else if (dtUri.equals(XSD.nonPositiveInteger.toString()) || dtUri.equals(XSD.negativeInteger.toString())) {
-            // Signed Integer column
-            return new LongIntegerColumn(var, nullable, true);
-        } else if (dtUri.equals(XSD.xshort.toString())) {
-            // Short Integer column
-            return new IntegerColumn(var, nullable, true);
-        } else if (dtUri.equals(XSD.unsignedShort.toString())) {
-            // Unsigned Short Integer column
-            return new IntegerColumn(var, nullable, false);
-        } else if (dtUri.equals(XSD.xbyte.toString())) {
-            // Signed Byte
-            return new ByteColumn(var, nullable, true);
-        } else if (dtUri.equals(XSD.unsignedByte.toString())) {
-            // Unsigned Byte
-            return new ByteColumn(var, nullable, false);
-        } else if (dtUri.equals(XSD.time.toString())) {
-            // Time column
-            return new TimeColumn(var, nullable);
-        } else if (dtUri.equals(XSD.xboolean.toString())) {
-            // Boolean column
-            return new BooleanColumn(var, nullable);
-        } else if (dtUri.equals(XSD.xdouble.toString())) {
-            // Double column
-            return new DoubleColumn(var, nullable);
-        } else if (dtUri.equals(XSD.xfloat.toString())) {
-            // Float column
-            return new FloatColumn(var, nullable);
-        } else if (dtUri.equals(XSD.xstring.toString())) {
-            // String column
-            return new StringColumn(var, nullable);
-        } else {
-            // Anything else we'll treat as a String
-            return new StringColumn(var, nullable);
-        }
-    }
 }

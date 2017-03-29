@@ -1,6 +1,6 @@
 /*
 * dw-jdbc
-* Copyright 2016 data.world, Inc.
+* Copyright 2017 data.world, Inc.
 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the
@@ -19,23 +19,22 @@
 package world.data.jdbc;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Method;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import world.data.jdbc.connections.Connection;
-import world.data.jdbc.statements.PreparedStatement;
-import world.data.jdbc.statements.Statement;
 import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SparqlHelper;
+import world.data.jdbc.testing.Utils;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.net.URL;
 
-import static fi.iki.elonen.NanoHTTPD.Method.GET;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
@@ -45,18 +44,22 @@ public class SparqlTest {
     private static NanoHTTPDHandler lastBackendRequest;
     private static String resultResourceName;
     private static String resultMimeType;
+    private static boolean badRequest;
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
         @Override
         protected NanoHTTPD.Response serve(NanoHTTPD.IHTTPSession session) throws Exception {
+            if (badRequest) {
+                return newResponse(Status.BAD_REQUEST, "application/json", "{}");
+            }
             String authorization = session.getHeaders().get("authorization");
             if (!"Bearer access-token".equals(authorization)) {
-                return newResponse(NanoHTTPD.Response.Status.UNAUTHORIZED, "text/plain", "Missing or incorrect password");
+                return newResponse(Status.UNAUTHORIZED, "text/plain", "Missing or incorrect password");
             }
             NanoHTTPDHandler.invoke(session, lastBackendRequest);
-            String body = IOUtils.toString(getClass().getResourceAsStream(resultResourceName), UTF_8);
-            return newResponse(NanoHTTPD.Response.Status.OK, resultMimeType, body);
+            URL source = requireNonNull(getClass().getResource(resultResourceName), resultResourceName);
+            return newResponse(Status.OK, resultMimeType, IOUtils.toString(source, UTF_8));
         }
     };
 
@@ -66,192 +69,70 @@ public class SparqlTest {
     @Before
     public void setup() {
         lastBackendRequest = mock(NanoHTTPDHandler.class);
+        badRequest = false;
     }
 
     @Test
     public void test() throws Exception {
         resultResourceName = "/select.json";
-        resultMimeType = "application/json";
+        resultMimeType = Utils.TYPE_SPARQL_RESULTS;
 
-        Statement statement = sparql.createStatement(sparql.connect());
-        ResultSet resultSet = sparql.executeQuery(statement, "select ?s ?p ?o where{?s ?p ?o.} limit 10");
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        for (int i = 1; i <= columnsNumber; i++) {
-            if (i > 1) {
-                System.out.print(",  ");
-            }
-            System.out.print(rsmd.getColumnName(i));
-        }
-        System.out.println("");
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) {
-                    System.out.print(",  ");
-                }
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue);
-            }
-            System.out.println("");
-        }
-        verify(lastBackendRequest).handle(GET, "/sparql/dave/lahman-sabremetrics-dataset",
-                "query=SELECT++%3Fs+%3Fp+%3Fo%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
+        DataWorldStatement statement = sparql.createStatement(sparql.connect());
+        Utils.dumpToStdout(sparql.executeQuery(statement, "select ?s ?p ?o where{?s ?p ?o.} limit 10"));
+        verify(lastBackendRequest).handle(Method.POST, sparql.urlPath(), null, Utils.TYPE_FORM_URLENCODED,
+                Utils.queryParam("query", "select ?s ?p ?o where{?s ?p ?o.} limit 10"));
     }
 
     @Test
     public void testAsk() throws Exception {
-        resultMimeType = "application/json";
         resultResourceName = "/ask.json";
+        resultMimeType = Utils.TYPE_SPARQL_RESULTS;
 
-        Statement statement = sparql.createStatement(sparql.connect());
-        ResultSet resultSet = sparql.executeQuery(statement, "ask{?s ?p ?o.}");
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        for (int i = 1; i <= columnsNumber; i++) {
-            if (i > 1) {
-                System.out.print(",  ");
-            }
-            System.out.print(rsmd.getColumnName(i));
-        }
-        System.out.println("");
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) {
-                    System.out.print(",  ");
-                }
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue);
-            }
-            System.out.println("");
-        }
-        verify(lastBackendRequest).handle(GET, "/sparql/dave/lahman-sabremetrics-dataset",
-                "query=ASK%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0A");
+        DataWorldStatement statement = sparql.createStatement(sparql.connect());
+        Utils.dumpToStdout(sparql.executeQuery(statement, "ask{?s ?p ?o.}"));
+        verify(lastBackendRequest).handle(Method.POST, sparql.urlPath(), null, Utils.TYPE_FORM_URLENCODED,
+                Utils.queryParam("query", "ask{?s ?p ?o.}"));
     }
 
     @Test
     public void testDescribe() throws Exception {
-        resultResourceName = "/describe.xml";
-        resultMimeType = "application/rdf+xml";
+        resultResourceName = "/describe.rj";
+        resultMimeType = Utils.TYPE_RDF_JSON;
 
-        Statement statement = sparql.createStatement(sparql.connect());
-        ResultSet resultSet = sparql.executeQuery(statement, "DESCRIBE ?s where{?s ?p ?o.} limit 10");
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        for (int i = 1; i <= columnsNumber; i++) {
-            if (i > 1) {
-                System.out.print(",  ");
-            }
-            System.out.print(rsmd.getColumnName(i));
-        }
-        System.out.println("");
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) {
-                    System.out.print(",  ");
-                }
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue);
-            }
-            System.out.println("");
-        }
-        verify(lastBackendRequest).handle(GET, "/sparql/dave/lahman-sabremetrics-dataset",
-                "query=DESCRIBE+%3Fs%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
+        DataWorldStatement statement = sparql.createStatement(sparql.connect());
+        Utils.dumpToStdout(sparql.executeQuery(statement, "DESCRIBE ?s where{?s ?p ?o.} limit 10"));
+        verify(lastBackendRequest).handle(Method.POST, sparql.urlPath(), null, Utils.TYPE_FORM_URLENCODED,
+                Utils.queryParam("query", "DESCRIBE ?s where{?s ?p ?o.} limit 10"));
     }
 
     @Test
     public void testConstruct() throws Exception {
-        resultResourceName = "/construct.xml";
-        resultMimeType = "application/rdf+xml";
+        resultResourceName = "/construct.rj";
+        resultMimeType = Utils.TYPE_RDF_JSON;
 
-        Statement statement = sparql.createStatement(sparql.connect());
-        ResultSet resultSet = sparql.executeQuery(statement, "Construct{?o ?p ?s} where{?s ?p ?o.} limit 10");
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        for (int i = 1; i <= columnsNumber; i++) {
-            if (i > 1) {
-                System.out.print(",  ");
-            }
-            System.out.print(rsmd.getColumnName(i));
-        }
-        System.out.println("");
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) {
-                    System.out.print(",  ");
-                }
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue);
-            }
-            System.out.println("");
-        }
-        verify(lastBackendRequest).handle(GET, "/sparql/dave/lahman-sabremetrics-dataset",
-                "query=CONSTRUCT+%0A++%7B+%0A++++%3Fo+%3Fp+%3Fs+.%0A++%7D%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
-    }
-
-    @Test
-    public void testConstructTurtle() throws Exception {
-        resultResourceName = "/construct.ttl";
-        resultMimeType = "text/turtle";
-
-        Statement statement = sparql.createStatement(sparql.connect());
-        ResultSet resultSet = sparql.executeQuery(statement, "Construct{?o ?p ?s} where{?s ?p ?o.} limit 10");
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        for (int i = 1; i <= columnsNumber; i++) {
-            if (i > 1) {
-                System.out.print(",  ");
-            }
-            System.out.print(rsmd.getColumnName(i));
-        }
-        System.out.println("");
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) {
-                    System.out.print(",  ");
-                }
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue);
-            }
-            System.out.println("");
-        }
-        verify(lastBackendRequest).handle(GET, "/sparql/dave/lahman-sabremetrics-dataset",
-                "query=CONSTRUCT+%0A++%7B+%0A++++%3Fo+%3Fp+%3Fs+.%0A++%7D%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
+        DataWorldStatement statement = sparql.createStatement(sparql.connect());
+        Utils.dumpToStdout(sparql.executeQuery(statement, "Construct{?o ?p ?s} where{?s ?p ?o.} limit 10"));
+        verify(lastBackendRequest).handle(Method.POST, sparql.urlPath(), null, Utils.TYPE_FORM_URLENCODED,
+                Utils.queryParam("query", "Construct{?o ?p ?s} where{?s ?p ?o.} limit 10"));
     }
 
     @Test
     public void testPrepared() throws Exception {
         resultResourceName = "/select.json";
-        resultMimeType = "application/json";
+        resultMimeType = Utils.TYPE_SPARQL_RESULTS;
 
-        Connection connection = sparql.connect();
-        PreparedStatement statement = sparql.prepareStatement(connection, "select ?s ?p ?o where{?s ?p ?o.} limit 10");
-        ResultSet resultSet = sparql.executeQuery(statement);
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        for (int i = 1; i <= columnsNumber; i++) {
-            if (i > 1) {
-                System.out.print(",  ");
-            }
-            System.out.print(rsmd.getColumnName(i));
-        }
-        System.out.println("");
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) {
-                    System.out.print(",  ");
-                }
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue);
-            }
-            System.out.println("");
-        }
-        verify(lastBackendRequest).handle(GET, "/sparql/dave/lahman-sabremetrics-dataset",
-                "query=SELECT++%3Fs+%3Fp+%3Fo%0AWHERE%0A++%7B+%3Fs++%3Fp++%3Fo+%7D%0ALIMIT+++10%0A");
+        DataWorldConnection connection = sparql.connect();
+        DataWorldPreparedStatement statement = sparql.prepareStatement(connection, "select ?s ?p ?o where{?s ?p ?o.} limit 10");
+        Utils.dumpToStdout(sparql.executeQuery(statement));
+        verify(lastBackendRequest).handle(Method.POST, sparql.urlPath(), null, Utils.TYPE_FORM_URLENCODED,
+                Utils.queryParam("query", "select ?s ?p ?o where{?s ?p ?o.} limit 10"));
     }
 
     @Test
     public void testBadQuery() throws Exception {
-        Statement statement = sparql.createStatement(sparql.connect());
-        assertSQLException(() -> statement.executeQuery("select ?s ?p ?o where{?s ?p ?o.} limit ?"));
+        badRequest = true;
+
+        DataWorldStatement statement = sparql.createStatement(sparql.connect());
+        assertSQLException(() -> statement.executeQuery("select ?s ?p ?o where {?s ?p ?o.} limit ?"));
     }
 }
