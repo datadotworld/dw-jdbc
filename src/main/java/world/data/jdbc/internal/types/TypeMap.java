@@ -72,11 +72,7 @@ public class TypeMap {
         standard(TypeMapping.numeric(Xsd.LONG, JDBCType.BIGINT, Long.class, 19, 0, 0, true, true));
         standard(TypeMapping.numeric(Xsd.FLOAT, JDBCType.REAL, Float.class, 9, 6, 9, true, false));
         standard(TypeMapping.numeric(Xsd.DOUBLE, JDBCType.DOUBLE, Double.class, 17, 15, 17, true, false), JDBCType.FLOAT);
-        standard(TypeMapping.numeric(Xsd.DECIMAL, JDBCType.DECIMAL, BigDecimal.class, 38, 38, 38, true, true));
-
-        // data.world extension: JDBC doesn't contain a standard mapping to BigInteger, the closest "standard" type mapping
-        // is to BigDecimal which would be quite surprising and unintuitive, so deviate from spec and use BigInteger
-        standard(TypeMapping.numeric(Xsd.INTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, true, true));
+        standard(TypeMapping.numeric(Xsd.DECIMAL, JDBCType.DECIMAL, BigDecimal.class, 38, 38, 38, true, true), JDBCType.NUMERIC);
 
         // data.world extension: map to the most natural native Java object
         standard(TypeMapping.simple(DATATYPE_JAVA_OBJECT, JDBCType.JAVA_OBJECT, Object.class, max));
@@ -92,6 +88,7 @@ public class TypeMap {
         custom(TypeMapping.simple(Xsd.GMONTHDAY, JDBCType.NVARCHAR, MonthDay.class, 7));
         custom(TypeMapping.numeric(Xsd.GYEAR, JDBCType.INTEGER, Year.class, 9, 0, 0, true, true));
         custom(TypeMapping.simple(Xsd.GYEARMONTH, JDBCType.NVARCHAR, YearMonth.class, 12));
+        custom(TypeMapping.numeric(Xsd.INTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, true, true));
         custom(TypeMapping.numeric(Xsd.NEGATIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, true, true));
         custom(TypeMapping.numeric(Xsd.NONNEGATIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, false, true));
         custom(TypeMapping.numeric(Xsd.NONPOSITIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, true, true));

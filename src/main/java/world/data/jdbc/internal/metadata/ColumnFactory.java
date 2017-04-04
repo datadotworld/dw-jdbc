@@ -29,13 +29,13 @@ import static world.data.jdbc.internal.util.Optionals.or;
 public class ColumnFactory {
 
     public static ColumnInfo.Builder builder(String label, Iri datatype) {
-        TypeMapping standard = TypeMap.INSTANCE.getStandard(datatype);
         TypeMapping custom = TypeMap.INSTANCE.getStandardOrCustom(datatype);
+        TypeMapping standard = TypeMap.INSTANCE.getStandard(datatype);
         return ColumnInfo.builder()
                 .label(label)
                 .typeName(datatype.getIri())
-                .type(standard.getTypeNumber())
-                .className(standard.getJavaType().getName())
+                .type(custom.getTypeNumber())
+                .className(standard.getJavaType().getName())  // this should be the type returned by ResultSet.getObject()
                 .scale(or(custom.getMaxScale(), 0))
                 .precision(or(custom.getPrecision(), 0))
                 .signed(or(custom.getSigned(), false));

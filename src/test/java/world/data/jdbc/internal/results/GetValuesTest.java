@@ -171,9 +171,9 @@ public class GetValuesTest {
         ResultSet resultSet = sampleResultSet();
         resultSet.next();
         assertThat(resultSet.getObject(1)).isEqualTo("alexape01");
-        assertThat(resultSet.getObject(2)).isEqualTo(BigInteger.valueOf(1936));
+        assertThat(resultSet.getObject(2)).isEqualTo(BigDecimal.valueOf(1936));
         assertThat(resultSet.getObject(2, Integer.class)).isEqualTo(1936);
-        assertThat(resultSet.getObject("yearid")).isEqualTo(BigInteger.valueOf(1936));
+        assertThat(resultSet.getObject("yearid")).isEqualTo(BigDecimal.valueOf(1936));
         assertThat(resultSet.wasNull()).isFalse();
         assertThat(resultSet.getObject("null_col")).isEqualTo(null);
         assertThat(resultSet.wasNull()).isTrue();
@@ -186,8 +186,8 @@ public class GetValuesTest {
         ResultSet resultSet = sql.executeQuery(statement, "select * from HallOfFame limit 10");
         resultSet.next();
         assertThat(resultSet.getObject(1)).isEqualTo("alexape01");
-        assertThat(resultSet.getObject(2)).isEqualTo(BigInteger.valueOf(1936));
-        assertThat(resultSet.getObject("yearid")).isEqualTo(BigInteger.valueOf(1936));
+        assertThat(resultSet.getObject(2)).isEqualTo(BigDecimal.valueOf(1936));
+        assertThat(resultSet.getObject("yearid")).isEqualTo(BigDecimal.valueOf(1936));
         assertThat(resultSet.wasNull()).isFalse();
         assertThat(resultSet.getObject("null_col")).isEqualTo(null);
         assertThat(resultSet.wasNull()).isTrue();

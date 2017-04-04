@@ -279,8 +279,8 @@ public final class NodeConversions {
                 case Types.BIGINT:
                 case Types.NUMERIC:
                     // All integer types are mapped to xsd:integer, the most common rdf integer datatype.
-                    // Note that this driver deviates from the JDBC spec and considers Types.NUMERIC as BigInteger
-                    // since there isn't a standard java.sql.Types value for BigInteger.
+                    // Note that this driver deviates from the JDBC spec in this method and considers Types.NUMERIC
+                    // as BigInteger since there isn't a standard java.sql.Types mapping for BigInteger.
                     if (obj instanceof Long || obj instanceof Integer || obj instanceof Short || obj instanceof Byte) {
                         return LiteralFactory.createInteger(((Number) obj).longValue());
                     } else if (obj instanceof BigInteger) {
