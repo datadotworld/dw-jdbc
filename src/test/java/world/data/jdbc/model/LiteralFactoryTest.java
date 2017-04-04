@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -76,6 +77,12 @@ public class LiteralFactoryTest {
     }
 
     @Test
+    public void testCreateLong() throws Exception {
+        assertThat(LiteralFactory.createLong(5)).hasToString(typed("5", Xsd.LONG));
+        assertThat(LiteralFactory.createLong(Long.MIN_VALUE)).hasToString(typed("-9223372036854775808", Xsd.LONG));
+    }
+
+    @Test
     public void testCreateBigInteger() throws Exception {
         assertThat(LiteralFactory.createInteger(10)).hasToString(typed("10", Xsd.INTEGER));
         assertThat(LiteralFactory.createInteger(BigInteger.valueOf(2).pow(81).subtract(BigInteger.ONE)))
@@ -123,6 +130,20 @@ public class LiteralFactoryTest {
         OffsetDateTime offsetDateTime = OffsetDateTime.of(localDateTime, ZoneOffset.MIN);
         assertThat(LiteralFactory.createMonth(localDateTime)).hasToString(typed("--12", Xsd.GMONTH));
         assertThat(LiteralFactory.createMonth(offsetDateTime)).hasToString(typed("--1", Xsd.GMONTH));
+    }
+
+    @Test
+    public void testCreateDay() throws Exception {
+        assertThat(LiteralFactory.createDay(1)).hasToString(typed("---1", Xsd.GDAY));
+        assertThat(LiteralFactory.createDay(29)).hasToString(typed("---29", Xsd.GDAY));
+        assertThatThrownBy(() -> LiteralFactory.createDay(0)).isInstanceOf(DateTimeException.class);
+        assertThatThrownBy(() -> LiteralFactory.createDay(32)).isInstanceOf(DateTimeException.class);
+        assertThatThrownBy(() -> LiteralFactory.createDay(-1)).isInstanceOf(DateTimeException.class);
+
+        LocalDateTime localDateTime = LocalDateTime.of(2016, 12, 31, 22, 25, 41, 123_450_000);
+        OffsetDateTime offsetDateTime = OffsetDateTime.of(localDateTime, ZoneOffset.MIN);
+        assertThat(LiteralFactory.createDay(localDateTime)).hasToString(typed("---31", Xsd.GDAY));
+        assertThat(LiteralFactory.createDay(offsetDateTime)).hasToString(typed("---1", Xsd.GDAY));
     }
 
     @Test
@@ -213,6 +234,9 @@ public class LiteralFactoryTest {
         OffsetDateTime offsetDateTime = OffsetDateTime.of(localDateTime2, ZoneOffset.MIN);
         assertThat(LiteralFactory.createDateTime(localDateTime2)).hasToString(typed("2016-12-31T22:25:41.12345", Xsd.DATETIME));
         assertThat(LiteralFactory.createDateTime(offsetDateTime)).hasToString(typed("2017-01-01T16:25:41.12345Z", Xsd.DATETIME));
+
+        java.util.Date date = Date.from(offsetDateTime.toInstant());
+        assertThat(LiteralFactory.createDateTime(date)).hasToString(typed("2017-01-01T16:25:41.123Z", Xsd.DATETIME));
     }
 
     @Test

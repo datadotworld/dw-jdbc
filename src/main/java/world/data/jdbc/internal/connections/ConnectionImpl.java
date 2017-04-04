@@ -52,6 +52,7 @@ import java.util.concurrent.Executor;
 import static java.util.Objects.requireNonNull;
 import static world.data.jdbc.internal.util.Conditions.check;
 import static world.data.jdbc.internal.util.Conditions.checkSupported;
+import static world.data.jdbc.internal.util.Optionals.or;
 
 /**
  * Abstract base implementation of a JDBC connection.
@@ -92,9 +93,9 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
      *
      * @throws SQLException Thrown if the arguments are invalid
      */
-    public ConnectionImpl(QueryEngine queryEngine) throws SQLException {
+    public ConnectionImpl(QueryEngine queryEngine, JdbcCompatibility compatibilityLevel) throws SQLException {
         this.queryEngine = requireNonNull(queryEngine, "queryEngine");
-        this.compatibilityLevel = queryEngine.getDefaultCompatibilityLevel();
+        this.compatibilityLevel = or(compatibilityLevel, queryEngine.getDefaultCompatibilityLevel());
         this.metadata = queryEngine.getDatabaseMetaData(this);
     }
 

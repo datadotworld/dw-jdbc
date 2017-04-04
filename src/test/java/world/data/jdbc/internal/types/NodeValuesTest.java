@@ -22,6 +22,7 @@ import org.junit.Test;
 import world.data.jdbc.model.Iri;
 import world.data.jdbc.model.Literal;
 import world.data.jdbc.model.LiteralFactory;
+import world.data.jdbc.vocab.Rdfs;
 import world.data.jdbc.vocab.Xsd;
 
 import java.math.BigDecimal;
@@ -36,14 +37,17 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Period;
+import java.time.Year;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static world.data.jdbc.testing.MoreAssertions.assertSQLException;
 
 public class NodeValuesTest {
 
@@ -221,6 +225,31 @@ public class NodeValuesTest {
     }
 
     @Test
+    public void testYear() throws Exception {
+        Year year = Year.of(2017);
+        assertThat(NodeValues.parseYear(null)).isNull();
+        assertThat(NodeValues.parseYear(LiteralFactory.createYear(year))).isEqualTo(year);
+    }
+
+    @Test
+    public void testMonth() throws Exception {
+        Month month = Month.MARCH;
+        assertThat(NodeValues.parseMonth(null)).isNull();
+        assertThat(NodeValues.parseMonth(LiteralFactory.createMonth(month))).isEqualTo(month);
+        assertSQLException(() -> NodeValues.parseMonth(new Literal("---1", Xsd.GMONTH)));  // month of '-1' not allowed
+    }
+
+    @Test
+    public void testDay() throws Exception {
+        assertThat(NodeValues.parseDay(null)).isNull();
+        assertThat(NodeValues.parseDay(LiteralFactory.createDay(28))).isEqualTo(28);
+        assertThat(NodeValues.parseDay(new Literal("---1", Xsd.GDAY))).isEqualTo(1);
+        assertThat(NodeValues.parseDay(new Literal("---01", Xsd.GDAY))).isEqualTo(1);
+        assertSQLException(() -> NodeValues.parseDay(new Literal("----1", Xsd.GDAY)));
+        assertSQLException(() -> NodeValues.parseDay(new Literal("---32", Xsd.GDAY)));
+    }
+
+    @Test
     @SuppressWarnings("deprecation")
     public void testSqlDate() throws Exception {
         LocalDate localDate = LocalDate.of(2017, 3, 27);
@@ -250,6 +279,9 @@ public class NodeValuesTest {
     public void testURI() throws Exception {
         assertThat(NodeValues.parseUri(null)).isNull();
         assertThat(NodeValues.parseUri(new Iri("http://example.com#foo"))).isEqualTo(URI.create("http://example.com#foo"));
+        assertThat(NodeValues.parseUri(new Literal("http://example.com#foo", Xsd.STRING))).isEqualTo(URI.create("http://example.com#foo"));
+        assertThat(NodeValues.parseUri(new Literal("http://example.com#foo", Xsd.ANYURI))).isEqualTo(URI.create("http://example.com#foo"));
+        assertThat(NodeValues.parseUri(new Literal("http://example.com#foo", Rdfs.RESOURCE))).isEqualTo(URI.create("http://example.com#foo"));
     }
 
     @Test

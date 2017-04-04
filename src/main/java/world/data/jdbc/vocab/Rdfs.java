@@ -3,6 +3,7 @@
  * Copyright 2017 data.world, Inc.
 
  * Licensed under the Apache License, Version 2.0 (the "License");
+
  * you may not use this file except in compliance with the
  * License.
  *
@@ -16,23 +17,23 @@
  *
  * This product includes software developed at data.world, Inc.(http://www.data.world/).
  */
-package world.data.jdbc.internal.types;
+package world.data.jdbc.vocab;
 
-import org.junit.Test;
+import lombok.experimental.UtilityClass;
+import world.data.jdbc.model.Iri;
 
-import java.sql.JDBCType;
-import java.util.Collection;
+/**
+ * Common RDF datatypes derived from the
+ * <a href="https://www.w3.org/TR/rdf-schema/">RDF Schema specification</a>.
+ */
+@UtilityClass
+public final class Rdfs {
+    public static final String NS = "http://www.w3.org/2000/01/rdf-schema#";
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-public class TypeMapTest {
-    @Test
-    public void testAllJdbcMapped() {
-        // This test should fail when new JDBC types are added.  It forces us to either (a) add mappings for
-        // the new types to RDF datatypes or (b) explicitly ignore the new type via 'unmap()'
-        Collection<Integer> mappedTypes = TypeMap.INSTANCE.getMappedJdbcTypes();
-        for (JDBCType jdbcType : JDBCType.values()) {
-            assertThat(mappedTypes).as(jdbcType.name()).contains(jdbcType.getVendorTypeNumber());
-        }
+    private static Iri rdfs(String suffix) {
+        return new Iri((NS + suffix).intern());
     }
+
+    /** See <a href="https://www.w3.org/TR/rdf-schema/#ch_resource">rdfs:Resource</a>. */
+    public static final Iri RESOURCE = rdfs("Resource");
 }

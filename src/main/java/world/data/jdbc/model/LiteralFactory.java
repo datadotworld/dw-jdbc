@@ -21,6 +21,7 @@ package world.data.jdbc.model;
 import lombok.experimental.UtilityClass;
 import world.data.jdbc.vocab.Xsd;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
@@ -53,54 +54,72 @@ public final class LiteralFactory {
     public static final Literal TRUE = new Literal("true", Xsd.BOOLEAN);
     public static final Literal FALSE = new Literal("false", Xsd.BOOLEAN);
 
+    /** Returns a non-localized {@code xsd:string}. */
     public static Literal createString(String string) {
         return new Literal(string, Xsd.STRING);
     }
 
-    public static Literal createString(String string, String lang) {
+    /** Returns an {@code xsd:string}, optionally localized. */
+    public static Literal createString(String string, @Nullable String lang) {
         return new Literal(string, Xsd.STRING, lang);
     }
 
+    /** Returns an {@code xsd:boolean}. */
     public static Literal createBoolean(boolean value) {
         return value ? TRUE : FALSE;
     }
 
+    /** Returns an {@code xsd:byte}. */
     public static Literal createByte(byte value) {
         return new Literal(Byte.toString(value), Xsd.BYTE);
     }
 
+    /** Returns an {@code xsd:short}. */
     public static Literal createShort(short value) {
         return new Literal(Short.toString(value), Xsd.SHORT);
     }
 
+    /** Returns an {@code xsd:int}.  Note that usually {@link #createInteger(long)} is preferred. */
     public static Literal createInt(int value) {
         return new Literal(Integer.toString(value), Xsd.INT);
     }
 
+    /** Returns an {@code xsd:long}.  Note that usually {@link #createInteger(long)} is preferred. */
     public static Literal createLong(long value) {
         return new Literal(Long.toString(value), Xsd.LONG);
     }
 
+    /** Returns an {@code xsd:integer} (arbitrary-precision integer, the most common integer rdf type). */
     public static Literal createInteger(long value) {
         return new Literal(Long.toString(value), Xsd.INTEGER);
     }
 
+    /** Returns an {@code xsd:integer} (arbitrary-precision integer, the most common integer rdf type). */
     public static Literal createInteger(BigInteger value) {
         return new Literal(value.toString(), Xsd.INTEGER);
     }
 
+    /** Returns an {@code xsd:float}. */
     public static Literal createFloat(float value) {
         return new Literal(!Float.isInfinite(value) ? Float.toString(value) : value > 0 ? "INF" : "-INF", Xsd.FLOAT);
     }
 
+    /** Returns an {@code xsd:double}. */
     public static Literal createDouble(double value) {
         return new Literal(!Double.isInfinite(value) ? Double.toString(value) : value > 0 ? "INF" : "-INF", Xsd.DOUBLE);
     }
 
+    /** Returns an {@code xsd:decimal} (arbitrary-precision decimal, the most common non-integer numeric rdf type). */
+    public static Literal createDecimal(double value) {
+        return createDecimal(BigDecimal.valueOf(value));
+    }
+
+    /** Returns an {@code xsd:decimal} (arbitrary-precision decimal, the most common non-integer numeric rdf type). */
     public static Literal createDecimal(BigDecimal value) {
         return new Literal(value.toPlainString(), Xsd.DECIMAL);
     }
 
+    /** Returns an {@code xsd:yearMonthDuration}. */
     public static Literal createYearMonthDuration(Period value) {
         if (value.getDays() != 0) {
             throw new IllegalArgumentException("Year month duration may not contain days: " + value);
@@ -108,6 +127,7 @@ public final class LiteralFactory {
         return new Literal(value.toString(), Xsd.YEARMONTHDURATION);
     }
 
+    /** Returns an {@code xsd:dayTimeDuration}. */
     public static Literal createDayTimeDuration(Duration value) {
         return new Literal(value.toString(), Xsd.DAYTIMEDURATION);
     }
@@ -150,6 +170,17 @@ public final class LiteralFactory {
     /** Returns an {@code xsd:gMonth}. */
     public static Literal createMonth(Month value) {
         return new Literal("--" + value.getValue(), Xsd.GMONTH);
+    }
+
+    /** Returns an {@code xsd:gDay}. */
+    public static Literal createDay(TemporalAccessor value) {
+        return createDay(toUtcDateTime(value).orElse(value).get(ChronoField.DAY_OF_MONTH));
+    }
+
+    /** Returns an {@code xsd:gDay}. */
+    public static Literal createDay(int dayOfMonth) {
+        ChronoField.DAY_OF_MONTH.checkValidIntValue(dayOfMonth);
+        return new Literal("---" + dayOfMonth, Xsd.GDAY);
     }
 
     /** Returns an {@code xsd:date}. */
@@ -237,20 +268,10 @@ public final class LiteralFactory {
         return Optional.empty();
     }
 
-    /** Returns a {@code xsd:dateTime} with a UTC time zone suffix. */
-    public static Literal createDateTime(java.util.Date value) {
-        return createDateTime(value.toInstant());
-    }
-
-    /** Returns a {@code xsd:dateTime} with a UTC time zone suffix. */
-    public static Literal createDateTime(Calendar value) {
-        return createDateTime(value.toInstant());
-    }
-
     /**
      * Returns a {@code xsd:date} without a time zone suffix.
      *
-     * @deprecated The {@link java.time.Instant} type is preferred.
+     * @deprecated The {@link #createDate(LocalDate)} method is preferred.
      */
     @Deprecated
     public static Literal createDate(java.util.Date value) {
@@ -260,7 +281,7 @@ public final class LiteralFactory {
     /**
      * Returns a {@code xsd:date} without a time zone suffix.
      *
-     * @deprecated The {@link java.time.LocalDate} type is preferred.
+     * @deprecated The {@link #createDate(LocalDate)} method is preferred.
      */
     @Deprecated
     public static Literal createDate(java.sql.Date value) {
@@ -268,9 +289,24 @@ public final class LiteralFactory {
     }
 
     /**
+     * Returns a {@code xsd:date} without a time zone suffix.
+     *
+     * @deprecated The {@link #createDate(LocalDate)} method is preferred.
+     */
+    @Deprecated
+    public static Literal createDate(java.sql.Date value, Calendar calendar) {
+        return createDate(toInstantUsingCalendar(value, calendar));
+    }
+
+    /** Returns a {@code xsd:dateTime} with a UTC time zone suffix. */
+    public static Literal createDateTime(java.util.Date value) {
+        return createDateTime(value.toInstant());
+    }
+
+    /**
      * Returns a {@code xsd:dateTime} without a time zone suffix.
      *
-     * @deprecated The {@link java.time.LocalDateTime} and {@link java.time.OffsetDateTime} types are preferred.
+     * @deprecated The {@link #createDateTime(LocalDateTime)} method is preferred.
      */
     @Deprecated
     public static Literal createDateTime(java.sql.Timestamp value) {
@@ -278,13 +314,38 @@ public final class LiteralFactory {
     }
 
     /**
+     * Returns a {@code xsd:dateTime} with a UTC time zone suffix.
+     *
+     * @deprecated The {@link #createDateTime(OffsetDateTime)} method is preferred.
+     */
+    @Deprecated
+    public static Literal createDateTime(java.sql.Timestamp value, Calendar calendar) {
+        return createDateTime(toInstantUsingCalendar(value, calendar));
+    }
+
+    /**
      * Returns a {@code xsd:time} without a time zone suffix.
      *
-     * @deprecated The {@link java.time.LocalTime} and {@link java.time.OffsetTime} types are preferred.
+     * @deprecated The {@link #createTime(LocalTime)} method is preferred.
      */
     @Deprecated
     public static Literal createTime(java.sql.Time value) {
-        return createTime((TemporalAccessor) value.toLocalTime().withNano((int) (value.getTime() % 1000) * 1_000_000));
+        return createTime(value.toLocalTime().withNano((int) (value.getTime() % 1000) * 1_000_000));
+    }
+
+    /**
+     * Returns a {@code xsd:time} with a UTC time zone suffix.
+     *
+     * @deprecated The {@link #createTime(OffsetTime)} method is preferred.
+     */
+    @Deprecated
+    public static Literal createTime(java.sql.Time value, Calendar calendar) {
+        return createTime(toInstantUsingCalendar(value, calendar));
+    }
+
+    private Instant toInstantUsingCalendar(java.util.Date value, Calendar calendar) {
+        calendar.setTime(value);
+        return calendar.toInstant();
     }
 
     /** Trims trailing zeros in the fractional component of a time string. */

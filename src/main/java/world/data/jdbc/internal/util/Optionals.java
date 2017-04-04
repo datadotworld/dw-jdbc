@@ -20,6 +20,8 @@ package world.data.jdbc.internal.util;
 
 import lombok.experimental.UtilityClass;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.function.Function;
 
 @UtilityClass
@@ -31,5 +33,17 @@ public class Optionals {
 
     public static <T, U> U mapIfPresent(T a, Function<T, U> ifPresentFn) {
         return a != null ? ifPresentFn.apply(a) : null;
+    }
+
+    public static <T> boolean nullOrEquals(@Nullable T a, T b) {
+        return a == null || a.equals(b);
+    }
+
+    public static boolean nullOrMatches(@Nullable String pattern, String string) {
+        return pattern == null || Like.matches(string, pattern);
+    }
+
+    public static <T> boolean nullOrContains(@Nullable T[] b, T a) {
+        return b == null || Arrays.asList(b).contains(a);
     }
 }

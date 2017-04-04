@@ -202,7 +202,7 @@ public class SparqlDatabaseMetaDataTest {
         assertThat(metaData.supportsTransactionIsolationLevel(Connection.TRANSACTION_NONE)).isTrue();
         assertThat(metaData.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)).isFalse();
         assertThat(metaData.getResultSetHoldability()).isEqualTo(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-        assertThat(getResultSetSize(metaData.getTypeInfo())).isEqualTo(21);
+        assertThat(getResultSetSize(metaData.getTypeInfo())).isEqualTo(34);
         assertThat(getResultSetSize(metaData.getSchemas())).isEqualTo(1);
     }
 

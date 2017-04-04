@@ -29,6 +29,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
+import java.util.List;
 
 import static java.sql.ResultSetMetaData.columnNoNulls;
 import static java.sql.ResultSetMetaData.columnNullable;
@@ -1176,15 +1177,16 @@ class MetaDataSchema {
         };
     }
 
-    static ResultSet newResultSet(ColumnInfo[] columns) throws SQLException {
-        return newResultSet(columns, new Node[0][]);
+    static ResultSet newResultSet(ColumnInfo[] columns, Object[]... rows) throws SQLException {
+        return newResultSet(columns, Arrays.asList(rows));
     }
 
-    static ResultSet newResultSet(ColumnInfo[] columns, Object[][] rows) throws SQLException {
-        Node[][] nodes = new Node[rows.length][columns.length];
-        for (int i = 0; i < rows.length; i++) {
+    static ResultSet newResultSet(ColumnInfo[] columns, List<Object[]> rows) throws SQLException {
+        Node[][] nodes = new Node[rows.size()][columns.length];
+        for (int i = 0; i < nodes.length; i++) {
+            Object[] row = rows.get(i);
             for (int j = 0; j < columns.length; j++) {
-                nodes[i][j] = toNode(rows[i][j], columns[j].getType());
+                nodes[i][j] = toNode(row[j], columns[j].getType());
             }
         }
         return new ResultSetImpl(null, new ResultSetMetaDataImpl(columns), Arrays.asList(nodes));

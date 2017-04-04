@@ -19,9 +19,16 @@
 package world.data.jdbc.internal.metadata;
 
 import world.data.jdbc.DataWorldConnection;
-import world.data.jdbc.DataWorldDriver;
+import world.data.jdbc.Driver;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static world.data.jdbc.internal.util.Optionals.nullOrContains;
+import static world.data.jdbc.internal.util.Optionals.nullOrEquals;
+import static world.data.jdbc.internal.util.Optionals.nullOrMatches;
 
 /**
  * Database metadata for Sparql connections
@@ -38,9 +45,19 @@ public final class SparqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
+    public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
+        return MetaDataSchema.newResultSet(MetaDataSchema.COLUMN_COLUMNS);
+    }
+
+    @Override
     public String getIdentifierQuoteString() {
         // Not supported in SPARQL so return space per the JDBC javadoc
         return " ";
+    }
+
+    @Override
+    String getLiteralQuoteString() {
+        return "\"";
     }
 
     @Override
@@ -81,13 +98,53 @@ public final class SparqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
+    public ResultSet getTableTypes() throws SQLException {
+        Object[][] rows = {{"TABLE"}};
+        return MetaDataSchema.newResultSet(MetaDataSchema.TABLE_TYPE_COLUMNS, rows);
+    }
+
+    @Override
+    public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
+        List<Object[]> rows = new ArrayList<>();
+        if (nullOrEquals(catalog, this.catalog) && nullOrMatches(schemaPattern, this.schema) &&
+                nullOrMatches(tableNamePattern, "RDF") && nullOrContains(types, "TABLE")) {
+            rows.add(new Object[]{
+                    // TABLE_CAT String => table catalog (may be null)
+                    this.catalog,
+                    // TABLE_SCHEM String => table schema (may be null)
+                    schema,
+                    // TABLE_NAME String => table name
+                    "RDF",
+                    // TABLE_TYPE String => table type. Typical types are "TABLE", "VIEW", "SYSTEM TABLE",
+                    // "GLOBAL TEMPORARY", "LOCAL TEMPORARY", "ALIAS", "SYNONYM".
+                    "TABLE",
+                    // REMARKS String => explanatory comment on the table
+                    "",
+                    // TYPE_CAT String => the types catalog (may be null)
+                    null,
+                    // TYPE_SCHEM String => the types schema (may be null)
+                    null,
+                    // TYPE_NAME String => type name (may be null)
+                    null,
+                    // SELF_REFERENCING_COL_NAME String => name of the designated "identifier" column of a typed
+                    // table (may be null)
+                    null,
+                    // REF_GENERATION String => specifies how values in SELF_REFERENCING_COL_NAME are created.
+                    // Values are "SYSTEM", "USER", "DERIVED". (may be null)
+                    null,
+            });
+        }
+        return MetaDataSchema.newResultSet(MetaDataSchema.TABLE_COLUMNS, rows);
+    }
+
+    @Override
     public String getTimeDateFunctions() {
         return String.join(",", "DAY", "HOURS", "MINUTES", "MONTH", "NOW", "SECONDS", "TIMEZONE", "TZ", "YEAR");
     }
 
     @Override
     public String getURL() throws SQLException {
-        return DataWorldDriver.SPARQL_PREFIX + catalog + ":" + schema;
+        return Driver.SPARQL_PREFIX + catalog + ":" + schema;
     }
 
     @Override

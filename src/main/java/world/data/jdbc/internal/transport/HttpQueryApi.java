@@ -18,8 +18,6 @@
  */
 package world.data.jdbc.internal.transport;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
 import world.data.jdbc.internal.util.CloseableRef;
 import world.data.jdbc.model.Node;
 
@@ -48,10 +46,6 @@ import static world.data.jdbc.internal.util.Optionals.or;
  * The class that actually executes HTTP requests against a remote data.world query server.
  */
 public final class HttpQueryApi implements QueryApi {
-
-    private static final JsonFactory JSON_FACTORY = new JsonFactory()
-            .disable(JsonFactory.Feature.CANONICALIZE_FIELD_NAMES)  // streaming, no point...
-            .enable(JsonParser.Feature.ALLOW_COMMENTS);  // convenient for tests that mock json responses...
 
     // Order the response parsers from most to least desirable for content-type negotiation
     private static final List<StreamParser<Response>> STANDARD_PARSERS = Arrays.asList(
@@ -133,12 +127,12 @@ public final class HttpQueryApi implements QueryApi {
             // Check for errors, eg. 401 Unauthorized etc.
             if (status >= 400) {
                 new CloseableRef(connection.getErrorStream()).close();
-                throw new SQLException(String.format("HTTP request failed with response %d: %s", status, message));
+                throw new SQLException(String.format("HTTP request to '%s' failed with response %d: %s", queryEndpoint, status, message));
             }
 
             // This endpoint isn't expected to return redirects or other 2xx, 3xx responses
             if (status != 200) {
-                throw new SQLException(String.format("Unexpected HTTP response %d: %s", status, message));
+                throw new SQLException(String.format("HTTP request to '%s' failed with unexpected response %d: %s", queryEndpoint, status, message));
             }
 
             // Once we've checked that status is 2xx or 3xx it's safe to get the InputStream
@@ -160,7 +154,7 @@ public final class HttpQueryApi implements QueryApi {
                         }
                     }
                 }
-                throw new SQLException(String.format("Unexpected HTTP response content type: %s", contentType));
+                throw new SQLException(String.format("HTTP request to '%s' failed with unexpected content type: %s", queryEndpoint, contentType));
 
             } catch (SQLException e) {
                 throw e;

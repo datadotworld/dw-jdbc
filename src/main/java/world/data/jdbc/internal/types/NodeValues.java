@@ -23,6 +23,7 @@ import world.data.jdbc.model.Blank;
 import world.data.jdbc.model.Iri;
 import world.data.jdbc.model.Literal;
 import world.data.jdbc.model.Node;
+import world.data.jdbc.vocab.Rdfs;
 import world.data.jdbc.vocab.Xsd;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -46,14 +47,21 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.SignStyle;
+import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
 
+import static java.time.temporal.ChronoField.DAY_OF_MONTH;
+import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
 import static world.data.jdbc.internal.util.Optionals.or;
 
 /**
- * Parser utility methods for converting {@link Node} objects to plain old Java objects.
+ * Utility methods for converting {@link Node} objects to plain old Java objects, usually by parsing the 'lexicalForm'
+ * property of a {@link Literal}.  Many of these methods will convert between types as necessary to support required
+ * JDBC functionality.
  */
 @UtilityClass
 @SuppressWarnings({"DeprecatedIsStillUsed", "WeakerAccess"})
@@ -72,25 +80,49 @@ public final class NodeValues {
         }
     }
 
-    private static final Iri[] BOOLEAN_AND_NUMBER_TYPES = {
-            Xsd.BOOLEAN,
-            Xsd.DECIMAL,
+    /** Any plain integer numeric type: no fraction, exponential, infinity, NaN. */
+    private static final Iri[] INTEGER_TYPES = {
             Xsd.INTEGER,
-            Xsd.DOUBLE,
-            Xsd.FLOAT,
             Xsd.BYTE,
             Xsd.INT,
-            Xsd.LONG,
             Xsd.SHORT,
+            Xsd.LONG,
             Xsd.UNSIGNEDBYTE,
             Xsd.UNSIGNEDINT,
-            Xsd.UNSIGNEDLONG,
             Xsd.UNSIGNEDSHORT,
+            Xsd.UNSIGNEDLONG,
             Xsd.POSITIVEINTEGER,
             Xsd.NEGATIVEINTEGER,
             Xsd.NONPOSITIVEINTEGER,
-            Xsd.NONNEGATIVEINTEGER
+            Xsd.NONNEGATIVEINTEGER,
     };
+
+    /** Types that can be coerced to 'boolean'. */
+    private static final Iri[] BOOLEAN_AND_NUMBER_TYPES = append(INTEGER_TYPES,
+            Xsd.BOOLEAN,
+            Xsd.DECIMAL,
+            Xsd.DOUBLE,
+            Xsd.FLOAT
+    );
+
+    /** Types that can be coerced to numbers. */
+    private static final Iri[] BOOLEAN_AND_NUMERIC_TYPES = append(BOOLEAN_AND_NUMBER_TYPES,
+            Xsd.GYEAR,
+            Xsd.GMONTH,
+            Xsd.GDAY
+    );
+
+    // Omit time zone since java.time.Year doesn't support it
+    private static final DateTimeFormatter ISO_MONTH = new DateTimeFormatterBuilder()
+            .appendLiteral("--")
+            .appendValue(MONTH_OF_YEAR, 1, 2, SignStyle.NOT_NEGATIVE)
+            .toFormatter();
+
+    // Omit time zone since java.time.Month doesn't support it
+    private static final DateTimeFormatter ISO_DAY = new DateTimeFormatterBuilder()
+            .appendLiteral("---")
+            .appendValue(DAY_OF_MONTH, 1, 2, SignStyle.NOT_NEGATIVE)
+            .toFormatter();
 
     private static final long LONG_PRECISION = Long.toString(Long.MAX_VALUE).length();
 
@@ -138,23 +170,31 @@ public final class NodeValues {
             if (Xsd.BOOLEAN.equals(datatype)) {
                 return Boolean.parseBoolean(lexicalForm);
             } else if (Xsd.STRING.equals(datatype)) {
-                // SQL-style "true", "yes", "1", "-1" being very liberal about ignoring chars after the first
-                int ch = lexicalForm.isEmpty() ? 0 : Character.toLowerCase(lexicalForm.charAt(0));
-                return ch == 't' || ch == 'y' || ch == '1' || "-1".equals(lexicalForm);
+                return parseStringAsBoolean(lexicalForm);
             } else {
-                String lex = lexicalForm;
-                int dot = lex.indexOf('.');
-                if (dot != -1) {
-                    lex = lex.substring(0, dot); // ignore fractional component (if any)
-                }
-                try {
-                    return Long.parseLong(lex) != 0;
-                } catch (NumberFormatException e) {
-                    double d = parseDouble(lex);
-                    return d != 0d && !Double.isNaN(d);
-                }
+                return parseNumberAsBoolean(lexicalForm);
             }
         }, BOOLEAN_AND_NUMBER_TYPES);
+    }
+
+    private static Boolean parseStringAsBoolean(String lexicalForm) {
+        // SQL-style "true", "yes", "1", "-1" being very liberal about ignoring chars after the first
+        int ch = lexicalForm.isEmpty() ? 0 : Character.toLowerCase(lexicalForm.charAt(0));
+        return ch == 't' || ch == 'y' || ch == '1' || "-1".equals(lexicalForm);
+    }
+
+    private static Boolean parseNumberAsBoolean(String lexicalForm) {
+        String lex = lexicalForm;
+        int dot = lex.indexOf('.');
+        if (dot != -1) {
+            lex = lex.substring(0, dot); // ignore fractional component (if any)
+        }
+        try {
+            return Long.parseLong(lex) != 0;
+        } catch (NumberFormatException e) {
+            double d = parseDouble(lex);
+            return d != 0d && !Double.isNaN(d);
+        }
     }
 
     public static boolean parseBoolean(Node node, boolean defaultValue) throws SQLException {
@@ -167,9 +207,15 @@ public final class NodeValues {
             // JDBC spec allows freely converting back and forth between booleans and numbers
             if (Xsd.BOOLEAN.equals(datatype)) {
                 lexicalForm = Boolean.parseBoolean(lexicalForm) ? "1" : "0";
+            } else if (Xsd.GYEAR.equals(datatype)) {
+                lexicalForm = Integer.toString(Year.parse(lexicalForm).getValue());
+            } else if (Xsd.GMONTH.equals(datatype)) {
+                lexicalForm = Integer.toString(parseMonth(lexicalForm).getValue());
+            } else if (Xsd.GDAY.equals(datatype)) {
+                lexicalForm = Integer.toString(parseDay(lexicalForm));
             }
             return parser.parse(lexicalForm);
-        }, BOOLEAN_AND_NUMBER_TYPES);
+        }, BOOLEAN_AND_NUMERIC_TYPES);
     }
 
     public static Byte parseByte(Node node) throws SQLException {
@@ -179,6 +225,20 @@ public final class NodeValues {
 
     public static byte parseByte(Node node, byte defaultValue) throws SQLException {
         return or(parseByte(node), defaultValue);
+    }
+
+    public static Integer parseDay(Node node) throws SQLException {
+        return parseLiteral(node, Integer.class, (String lexicalForm, Iri datatype, String language) -> {
+            if (Xsd.GDAY.equals(datatype)) {
+                return parseDay(lexicalForm);
+            } else {
+                return ChronoField.DAY_OF_MONTH.checkValidIntValue(Integer.parseInt(lexicalForm));
+            }
+        }, append(INTEGER_TYPES, Xsd.GDAY));
+    }
+
+    private static int parseDay(String string) {
+        return ISO_DAY.parse(string).get(ChronoField.DAY_OF_MONTH);
     }
 
     public static Double parseDouble(Node node) throws SQLException {
@@ -254,7 +314,17 @@ public final class NodeValues {
     }
 
     public static Month parseMonth(Node node) throws SQLException {
-        return parseLiteral(node, Month.class, (s) -> Month.of(Integer.parseInt(s)), Xsd.GMONTH);
+        return parseLiteral(node, Month.class, (String lexicalForm, Iri datatype, String language) -> {
+            if (Xsd.GMONTH.equals(datatype)) {
+                return parseMonth(lexicalForm);
+            } else {
+                return Month.of(Integer.parseInt(lexicalForm));
+            }
+        }, append(INTEGER_TYPES, Xsd.GMONTH));
+    }
+
+    private static Month parseMonth(String s) {
+        return ISO_MONTH.parse(s, Month::from);
     }
 
     public static MonthDay parseMonthDay(Node node) throws SQLException {
@@ -318,17 +388,23 @@ public final class NodeValues {
     }
 
     public static URI parseUri(Node node) throws SQLException {
-        return parseLiteralOrIri(node, URI.class, URI::new, Xsd.ANYURI);
+        return parseLiteralOrIri(node, URI.class, URI::new, Rdfs.RESOURCE, Xsd.ANYURI);
     }
 
     /** @deprecated The {@link #parseUri(Node)} method is preferred. */
     @Deprecated
     public static URL parseUrl(Node node) throws SQLException {
-        return parseLiteralOrIri(node, URL.class, s -> new URI(s).toURL(), Xsd.ANYURI);
+        return parseLiteralOrIri(node, URL.class, s -> new URI(s).toURL(), Rdfs.RESOURCE, Xsd.ANYURI);
     }
 
     public static Year parseYear(Node node) throws SQLException {
-        return parseLiteral(node, Year.class, Year::parse, Xsd.GYEAR);
+        return parseLiteral(node, Year.class, (String lexicalForm, Iri datatype, String language) -> {
+            if (Xsd.GYEAR.equals(datatype)) {
+                return Year.parse(lexicalForm);
+            } else {
+                return Year.of(Integer.parseInt(lexicalForm));
+            }
+        }, append(INTEGER_TYPES, Xsd.GYEAR));
     }
 
     public static YearMonth parseYearMonth(Node node) throws SQLException {
@@ -411,6 +487,8 @@ public final class NodeValues {
         if (node instanceof Literal) {
             String string = ((Literal) node).getDatatype().getIri();
             switch (getNamespace(string)) {
+                case Rdfs.NS:
+                    return "rdfs:" + getFragment(string);
                 case Xsd.NS:
                     return "xsd:" + getFragment(string);
             }
@@ -430,6 +508,13 @@ public final class NodeValues {
 
     private static String getFragment(String uri) {
         return uri.substring(uri.indexOf('#') + 1);
+    }
+
+    @SafeVarargs
+    private static <T> T[] append(T[] a, T... b) {
+        T[] t = Arrays.copyOf(a, a.length + b.length);
+        System.arraycopy(b, 0, t, a.length, b.length);
+        return t;
     }
 
     /** Parses a literal lexical form to the native Java type {@code <V>}. */

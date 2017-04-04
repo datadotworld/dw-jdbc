@@ -46,12 +46,8 @@ import java.sql.SQLException;
 import java.sql.SQLType;
 import java.sql.SQLXML;
 import java.sql.Time;
-import java.sql.Timestamp;
 import java.sql.Types;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Calendar;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -149,7 +145,7 @@ public class PreparedStatementTest {
         statement.setByte(1, (byte) 4);
         statement.execute();
         verify(lastBackendRequest).handle(eq(Method.POST), eq(sql.urlPath()), isNull(), eq(Utils.TYPE_FORM_URLENCODED),
-                endsWith(Utils.queryParam("$data_world_param0", "\"4\"^^<http://www.w3.org/2001/XMLSchema#byte>")));
+                endsWith(Utils.queryParam("$data_world_param0", "\"4\"^^<http://www.w3.org/2001/XMLSchema#integer>")));
     }
 
     @Test
@@ -167,7 +163,7 @@ public class PreparedStatementTest {
         statement.setDouble(1, 3.0);
         statement.execute();
         verify(lastBackendRequest).handle(eq(Method.POST), eq(sql.urlPath()), isNull(), eq(Utils.TYPE_FORM_URLENCODED),
-                endsWith(Utils.queryParam("$data_world_param0", "\"3.0\"^^<http://www.w3.org/2001/XMLSchema#double>")));
+                endsWith(Utils.queryParam("$data_world_param0", "\"3.0\"^^<http://www.w3.org/2001/XMLSchema#decimal>")));
     }
 
     @Test
@@ -176,7 +172,7 @@ public class PreparedStatementTest {
         statement.setFloat(1, 3.0F);
         statement.execute();
         verify(lastBackendRequest).handle(eq(Method.POST), eq(sql.urlPath()), isNull(), eq(Utils.TYPE_FORM_URLENCODED),
-                endsWith(Utils.queryParam("$data_world_param0", "\"3.0\"^^<http://www.w3.org/2001/XMLSchema#float>")));
+                endsWith(Utils.queryParam("$data_world_param0", "\"3.0\"^^<http://www.w3.org/2001/XMLSchema#decimal>")));
     }
 
     @Test
@@ -236,7 +232,7 @@ public class PreparedStatementTest {
         statement.setShort(1, (short) 4);
         statement.execute();
         verify(lastBackendRequest).handle(eq(Method.POST), eq(sql.urlPath()), isNull(), eq(Utils.TYPE_FORM_URLENCODED),
-                endsWith(Utils.queryParam("$data_world_param0", "\"4\"^^<http://www.w3.org/2001/XMLSchema#short>")));
+                endsWith(Utils.queryParam("$data_world_param0", "\"4\"^^<http://www.w3.org/2001/XMLSchema#integer>")));
     }
 
     @Test
@@ -313,7 +309,6 @@ public class PreparedStatementTest {
         assertSQLFeatureNotSupported(() -> statement.setClob(1, mock(Clob.class)));
         assertSQLFeatureNotSupported(() -> statement.setClob(1, mock(Reader.class)));
         assertSQLFeatureNotSupported(() -> statement.setClob(1, mock(Reader.class), 100));
-        assertSQLFeatureNotSupported(() -> statement.setDate(1, Date.valueOf(LocalDate.now()), Calendar.getInstance()));
         assertSQLFeatureNotSupported(() -> statement.setNCharacterStream(1, mock(Reader.class)));
         assertSQLFeatureNotSupported(() -> statement.setNCharacterStream(1, mock(Reader.class), 100));
         assertSQLFeatureNotSupported(() -> statement.setNClob(1, mock(NClob.class)));
@@ -325,7 +320,5 @@ public class PreparedStatementTest {
         assertSQLFeatureNotSupported(() -> statement.setObject(1, 123, JDBCType.DECIMAL, 11));
         assertSQLFeatureNotSupported(() -> statement.setRowId(1, mock(RowId.class)));
         assertSQLFeatureNotSupported(() -> statement.setSQLXML(1, mock(SQLXML.class)));
-        assertSQLFeatureNotSupported(() -> statement.setTime(1, Time.valueOf(LocalTime.now()), Calendar.getInstance()));
-        assertSQLFeatureNotSupported(() -> statement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()), Calendar.getInstance()));
     }
 }

@@ -20,7 +20,7 @@ package world.data.jdbc.internal.util;
 
 
 import lombok.extern.java.Log;
-import world.data.jdbc.DataWorldDriver;
+import world.data.jdbc.Driver;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public final class Versions {
     public static String findVersionString() {
         // Parse the properties file that Maven builds create automatically
         String resourceName = "META-INF/maven/world.data/dw-jdbc/pom.properties";
-        URL resourceUrl = DataWorldDriver.class.getClassLoader().getResource(resourceName);
+        URL resourceUrl = Driver.class.getClassLoader().getResource(resourceName);
         if (resourceUrl == null) {
             // Usually this is because we're running in a dev environment that doesn't build via Maven
             log.info("Unable to find JDBC driver version via resource: " + resourceName);

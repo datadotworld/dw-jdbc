@@ -20,7 +20,6 @@ package world.data.jdbc.internal.statements;
 
 import world.data.jdbc.DataWorldCallableStatement;
 import world.data.jdbc.DataWorldConnection;
-import world.data.jdbc.DataWorldPreparedStatement;
 import world.data.jdbc.internal.query.QueryEngine;
 import world.data.jdbc.internal.types.NodeConversions;
 import world.data.jdbc.model.Iri;
@@ -115,7 +114,8 @@ public final class CallableStatementImpl extends PreparedStatementImpl implement
 
     @Override
     public void setByte(String parameterName, byte value) throws SQLException {
-        setParameter(parameterName, LiteralFactory.createByte(value));
+        // Map to closest common SPARQL literal datatype, one of xsd:integer, xsd:decimal
+        setParameter(parameterName, LiteralFactory.createInteger(value));
     }
 
     @Override
@@ -154,32 +154,38 @@ public final class CallableStatementImpl extends PreparedStatementImpl implement
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void setDate(String parameterName, Date value) throws SQLException {
         setParameter(parameterName, mapIfPresent(value, LiteralFactory::createDate));
     }
 
     @Override
-    public void setDate(String parameterName, Date value, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+    @SuppressWarnings("deprecation")
+    public void setDate(String parameterName, Date value, Calendar calendar) throws SQLException {
+        setParameter(parameterName, mapIfPresent2(value, calendar, LiteralFactory::createDate, LiteralFactory::createDate));
     }
 
     @Override
     public void setDouble(String parameterName, double value) throws SQLException {
-        setParameter(parameterName, LiteralFactory.createDouble(value));
+        // Map to closest common SPARQL literal datatype, one of xsd:integer, xsd:decimal
+        setParameter(parameterName, LiteralFactory.createDecimal(value));
     }
 
     @Override
     public void setFloat(String parameterName, float value) throws SQLException {
-        setParameter(parameterName, LiteralFactory.createFloat(value));
+        // Map to closest common SPARQL literal datatype, one of xsd:integer, xsd:decimal
+        setParameter(parameterName, LiteralFactory.createDecimal(value));
     }
 
     @Override
     public void setInt(String parameterName, int value) throws SQLException {
+        // Map to closest common SPARQL literal datatype, one of xsd:integer, xsd:decimal
         setParameter(parameterName, LiteralFactory.createInteger(value));
     }
 
     @Override
     public void setLong(String parameterName, long value) throws SQLException {
+        // Map to closest common SPARQL literal datatype, one of xsd:integer, xsd:decimal
         setParameter(parameterName, LiteralFactory.createInteger(value));
     }
 
@@ -262,7 +268,8 @@ public final class CallableStatementImpl extends PreparedStatementImpl implement
 
     @Override
     public void setShort(String parameterName, short value) throws SQLException {
-        setParameter(parameterName, LiteralFactory.createShort(value));
+        // Map to closest common SPARQL literal datatype, one of xsd:integer, xsd:decimal
+        setParameter(parameterName, LiteralFactory.createInteger(value));
     }
 
     @Override
@@ -271,23 +278,27 @@ public final class CallableStatementImpl extends PreparedStatementImpl implement
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void setTime(String parameterName, Time value) throws SQLException {
         setParameter(parameterName, mapIfPresent(value, LiteralFactory::createTime));
     }
 
     @Override
-    public void setTime(String parameterName, Time value, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+    @SuppressWarnings("deprecation")
+    public void setTime(String parameterName, Time value, Calendar calendar) throws SQLException {
+        setParameter(parameterName, mapIfPresent2(value, calendar, LiteralFactory::createTime, LiteralFactory::createTime));
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void setTimestamp(String parameterName, Timestamp value) throws SQLException {
         setParameter(parameterName, mapIfPresent(value, LiteralFactory::createDateTime));
     }
 
     @Override
-    public void setTimestamp(String parameterName, Timestamp value, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+    @SuppressWarnings("deprecation")
+    public void setTimestamp(String parameterName, Timestamp value, Calendar calendar) throws SQLException {
+        setParameter(parameterName, mapIfPresent2(value, calendar, LiteralFactory::createDateTime, LiteralFactory::createDateTime));
     }
 
     @Override

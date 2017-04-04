@@ -52,6 +52,9 @@ try (final Connection connection =    // get a connection to the database, which
                 System.out.print(columnValue);
             }
             System.out.println("");
+
+            // Note: when calling ResultSet.getObject() prefer the version that takes an explicit Class argument:
+            // Integer n = resultSet.getObject(param, Integer.class);
         }
     }
 }
@@ -65,7 +68,7 @@ If using Maven, you can use dw-jdbc by just including the following in your pom.
 <dependency>
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
-    <version>0.1.1</version>
+    <version>0.4</version>
 </dependency>
 ```
 
@@ -77,7 +80,7 @@ provide dw-jdbc bundled with all its dependencies under the following:
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
     <classifier>shaded</classifier>
-    <version>0.2</version>
+    <version>0.4</version>
 </dependency>
 ```
 

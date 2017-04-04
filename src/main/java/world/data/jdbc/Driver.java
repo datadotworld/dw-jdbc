@@ -27,22 +27,25 @@ import world.data.jdbc.internal.transport.HttpQueryApi;
 import world.data.jdbc.internal.transport.QueryApi;
 import world.data.jdbc.internal.util.Versions;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Driver;
+import java.net.URLDecoder;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static world.data.jdbc.internal.util.Conditions.check;
 
 /**
  * A JDBC driver for SQL and SPARQL queries against datasets hosted on <a href="https://data.world">data.world</a>.
  */
 @Log
-public final class DataWorldDriver implements Driver {
+@SuppressWarnings("WeakerAccess")
+public final class Driver implements java.sql.Driver {
 
     /**
      * Constant for the primary JDBC Driver prefix, implementations supply
@@ -53,15 +56,15 @@ public final class DataWorldDriver implements Driver {
     public static final String SPARQL_PREFIX = "jdbc:data:world:sparql:";
 
     /**
-     * Constant for the connection URL parameter which sets the desired {@link JdbcCompatibility} level.
-     */
-    public static final String PARAM_JDBC_COMPATIBILITY = "jdbc-compatibility";
-
-    /**
      * Constant for the standard JDBC connection URL parameter used to set
      * password for drivers that support authentication
      */
     public static final String PARAM_PASSWORD = "password";
+
+    /**
+     * Constant for the connection URL parameter which sets the desired {@link JdbcCompatibility} level.
+     */
+    public static final String PARAM_JDBC_COMPATIBILITY = "jdbcCompatibility";
 
     public static final String VERSION = Versions.findVersionString();
 
@@ -76,7 +79,7 @@ public final class DataWorldDriver implements Driver {
     }
 
     public static synchronized void register() throws SQLException {
-        DriverManager.registerDriver(new DataWorldDriver());
+        DriverManager.registerDriver(new Driver());
     }
 
     @Override
@@ -85,22 +88,29 @@ public final class DataWorldDriver implements Driver {
     }
 
     @Override
-    public final DataWorldConnection connect(String url, Properties props) throws SQLException {
+    public DataWorldConnection connect(String url, Properties props) throws SQLException {
         if (!acceptsURL(url)) {
             return null;
         }
 
         Properties effectiveProps = new Properties();
-        String[] split = url.split(":");
-        effectiveProps.setProperty("lang", split[3]);
-        effectiveProps.setProperty("agentid", split[4]);
-        effectiveProps.setProperty("datasetid", split[5]);
+        String[] urlParts = url.split(";");
+        String[] urlFields = urlParts[0].split(":", 6);
+        check(urlFields.length == 6, "Invalid jdbc url, expected 'jdbc:data:world:<language>:<account>:<dataset>': %s", url);
+        effectiveProps.setProperty("lang", urlFields[3]);
+        effectiveProps.setProperty("agentid", urlFields[4]);
+        effectiveProps.setProperty("datasetid", urlFields[5]);
         effectiveProps.setProperty("querybaseurl", "https://query.data.world");
         if (props != null) {
             for (String key : props.stringPropertyNames()) {
                 String value = props.getProperty(key);
-                effectiveProps.setProperty(key.toLowerCase(Locale.ENGLISH), value);
+                effectiveProps.setProperty(key.toLowerCase(), value);
             }
+        }
+        for (int i = 1; i < urlParts.length; i++) {
+            String[] pair = urlParts[i].split("=", 2);
+            check(pair.length == 2, "Invalid jdbc url, expected ';name=value' pairs in suffix: %s", url);
+            effectiveProps.setProperty(pair[0].toLowerCase(), urlDecode(pair[1]));
         }
 
         String queryBaseUrl = effectiveProps.getProperty("querybaseurl");
@@ -108,10 +118,11 @@ public final class DataWorldDriver implements Driver {
         String agentId = effectiveProps.getProperty("agentid");
         String datasetId = effectiveProps.getProperty("datasetid");
         String password = effectiveProps.getProperty(PARAM_PASSWORD);
+        JdbcCompatibility jdbcCompatibility = getProperty(effectiveProps, PARAM_JDBC_COMPATIBILITY, JdbcCompatibility.class);
 
         // Create the QueryApi responsible for low-level HTTP details
         URL queryEndpoint = getQueryEndpoint(queryBaseUrl, lang, agentId, datasetId);
-        String userAgent = String.format("DwJdbc-%s/%s", lang, DataWorldDriver.VERSION);
+        String userAgent = String.format("DwJdbc-%s/%s", lang, Driver.VERSION);
         QueryApi queryApi = new HttpQueryApi(queryEndpoint, userAgent, password);
 
         // Create the QueryEngine responsible for query language-specific behavior
@@ -124,15 +135,28 @@ public final class DataWorldDriver implements Driver {
             throw new SQLException("Unknown query language: " + lang);
         }
 
-        return new ConnectionImpl(queryEngine);
+        return new ConnectionImpl(queryEngine, jdbcCompatibility);
     }
 
-    private URL getQueryEndpoint(String queryBaseUrl, String lang, String agentId, String datasetId) throws SQLException {
+    private static URL getQueryEndpoint(String queryBaseUrl, String lang, String agentId, String datasetId) throws SQLException {
         String queryUrl = String.format("%s/%s/%s/%s", queryBaseUrl, lang, agentId, datasetId);
         try {
             return new URL(queryUrl);
         } catch (MalformedURLException e) {
             throw new SQLException("Bad query service url: " + queryUrl, e);
+        }
+    }
+
+    private static <E extends Enum<E>> E getProperty(Properties props, String key, Class<E> enumClass) {
+        String value = props.getProperty(key.toLowerCase());
+        return value != null && !value.isEmpty() ? Enum.valueOf(enumClass, value.toUpperCase()) : null;
+    }
+
+    private static String urlDecode(String string) {
+        try {
+            return URLDecoder.decode(string, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -147,7 +171,7 @@ public final class DataWorldDriver implements Driver {
     }
 
     @Override
-    public final DriverPropertyInfo[] getPropertyInfo(String url, Properties props) throws SQLException {
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties props) throws SQLException {
         return new DriverPropertyInfo[0];
     }
 
@@ -157,14 +181,14 @@ public final class DataWorldDriver implements Driver {
      * don't meet that criteria
      */
     @Override
-    public final boolean jdbcCompliant() {
+    public boolean jdbcCompliant() {
         // This has to be false since we are not fully SQL-92 compliant (no ddl, no updates)
         return false;
     }
 
     // Java6/7 compatibility
     @Override
-    public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        throw new SQLFeatureNotSupportedException();
+    public Logger getParentLogger() {
+        return Logger.getLogger(getClass().getPackage().getName());
     }
 }

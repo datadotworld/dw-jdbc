@@ -19,7 +19,9 @@
 package world.data.jdbc.internal.metadata;
 
 import world.data.jdbc.DataWorldConnection;
-import world.data.jdbc.DataWorldDriver;
+import world.data.jdbc.Driver;
+import world.data.jdbc.internal.types.TypeMap;
+import world.data.jdbc.internal.types.TypeMapping;
 import world.data.jdbc.internal.util.Versions;
 import world.data.jdbc.vocab.Xsd;
 
@@ -28,11 +30,14 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 import static world.data.jdbc.internal.util.Conditions.check;
+import static world.data.jdbc.internal.util.Optionals.nullOrEquals;
+import static world.data.jdbc.internal.util.Optionals.nullOrMatches;
+import static world.data.jdbc.internal.util.Optionals.or;
 
 /**
  * Base class with functionality common to all query languages.
@@ -45,13 +50,13 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
     /** Constant for the term used for schemas. */
     private static final String SCHEMA_TERM = "Dataset";
 
-    static final int NO_LIMIT = 0;
+    private static final int NO_LIMIT = 0;
 
     private static final int UNKNOWN_LIMIT = 0;
 
-    protected final DataWorldConnection connection;
-    protected final String catalog;
-    protected final String schema;
+    final DataWorldConnection connection;
+    final String catalog;
+    final String schema;
 
     /**
      * Creates new connection metadata
@@ -154,11 +159,6 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
-        return MetaDataSchema.newResultSet(MetaDataSchema.COLUMN_COLUMNS);
-    }
-
-    @Override
     public Connection getConnection() {
         return connection;
     }
@@ -200,12 +200,12 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public int getDriverMajorVersion() {
-        return Versions.parseVersionNumbers(DataWorldDriver.VERSION)[0];
+        return Versions.parseVersionNumbers(Driver.VERSION)[0];
     }
 
     @Override
     public int getDriverMinorVersion() {
-        return Versions.parseVersionNumbers(DataWorldDriver.VERSION)[1];
+        return Versions.parseVersionNumbers(Driver.VERSION)[1];
     }
 
     @Override
@@ -215,7 +215,7 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public String getDriverVersion() {
-        return DataWorldDriver.VERSION;
+        return Driver.VERSION;
     }
 
     @Override
@@ -411,17 +411,21 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public ResultSet getSchemas() throws SQLException {
-        Object[][] rows = {{schema, catalog}};
-        return MetaDataSchema.newResultSet(MetaDataSchema.SCHEMA_COLUMNS, rows);
+        return getSchemas(null, null);
     }
 
     @Override
     public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
-        if (this.catalog.equals(catalog) && (schemaPattern == null || this.schema.equals(schemaPattern))) {
-            return getSchemas();
-        } else {
-            return MetaDataSchema.newResultSet(MetaDataSchema.SCHEMA_COLUMNS);
+        List<Object[]> rows = new ArrayList<>();
+        if (nullOrEquals(catalog, this.catalog) && nullOrMatches(schemaPattern, this.schema)) {
+            rows.add(new Object[]{
+                    // TABLE_SCHEM String => schema name
+                    schema,
+                    // TABLE_CATALOG String => catalog name (may be null)
+                    this.catalog,
+            });
         }
+        return MetaDataSchema.newResultSet(MetaDataSchema.SCHEMA_COLUMNS, rows);
     }
 
     @Override
@@ -446,74 +450,60 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getTableTypes() throws SQLException {
-        return MetaDataSchema.newResultSet(MetaDataSchema.TABLE_TYPE_COLUMNS);
-    }
-
-    @Override
-    public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
-        return MetaDataSchema.newResultSet(MetaDataSchema.TABLE_COLUMNS);
-    }
-
-    @Override
     public ResultSet getTypeInfo() throws SQLException {
-        // TYPE_NAME String => Type name
-        // DATA_TYPE int => SQL data type from java.sql.Types
-        // PRECISION int => maximum precision
-        // LITERAL_PREFIX String => prefix used to quote a literal (may be null)
-        // LITERAL_SUFFIX String => suffix used to quote a literal (may be null)
-        // CREATE_PARAMS String => parameters used in creating the type (may be
-        // null)
-        // NULLABLE short => can you use NULL for this type.
-        // typeNoNulls - does not allow NULL values
-        // typeNullable - allows NULL values
-        // typeNullableUnknown - nullability unknown
-        // CASE_SENSITIVE boolean=> is it case sensitive.
-        // SEARCHABLE short => can you use "WHERE" based on this type:
-        // typePredNone - No support
-        // typePredChar - Only supported with WHERE .. LIKE
-        // typePredBasic - Supported except for WHERE .. LIKE
-        // typeSearchable - Supported for all WHERE ..
-        // UNSIGNED_ATTRIBUTE boolean => is it unsigned.
-        // FIXED_PREC_SCALE boolean => can it be a money value.
-        // AUTO_INCREMENT boolean => can it be used for an auto-increment value.
-        // LOCAL_TYPE_NAME String => localized version of type name (may be
-        // null)
-        // MINIMUM_SCALE short => minimum scale supported
-        // MAXIMUM_SCALE short => maximum scale supported
-        // SQL_DATA_TYPE int => unused
-        // SQL_DATETIME_SUB int => unused
-        // NUM_PREC_RADIX int => usually 2 or 10
-
         // Report types we can marshal appropriately
-        int bytePrecision = Byte.toString(Byte.MAX_VALUE).length();
-        int intPrecision = Integer.toString(Integer.MAX_VALUE).length();
-        int longPrecision = Long.toString(Long.MAX_VALUE).length();
-        Object[][] rows = new Object[][]{
-                {Xsd.BOOLEAN, Types.BOOLEAN, 0, null, null, null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 0},
-                {Xsd.BYTE, Types.TINYINT, bytePrecision, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 0},
-                {Xsd.DATE, Types.DATE, 0, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 0},
-                {Xsd.DATETIME, Types.TIMESTAMP, 0, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 0},
-                {Xsd.DECIMAL, Types.DECIMAL, 16, null, null, null, typeNullable, false, typeSearchable, false, false, false, null, 0, (short) 16, 0, 0, 10},
-                {Xsd.DOUBLE, Types.DOUBLE, 16, null, null, null, typeNullable, false, typeSearchable, false, false, false, null, 0, (short) 16, 0, 0, 10},
-                {Xsd.FLOAT, Types.FLOAT, 15, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, (short) 7, 0, 0, 10},
-                {Xsd.SHORT, Types.INTEGER, intPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.INTEGER, Types.BIGINT, longPrecision, null, null, null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.LONG, Types.BIGINT, longPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.INT, Types.BIGINT, longPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.NEGATIVEINTEGER, Types.BIGINT, longPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.NONNEGATIVEINTEGER, Types.BIGINT, longPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, true, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.NONPOSITIVEINTEGER, Types.BIGINT, longPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.POSITIVEINTEGER, Types.BIGINT, longPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, true, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.UNSIGNEDBYTE, Types.TINYINT, bytePrecision, "\"", "\"", null, typeNullable, false, typeSearchable, true, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.UNSIGNEDINT, Types.BIGINT, longPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, true, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.UNSIGNEDLONG, Types.BIGINT, longPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, true, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.UNSIGNEDSHORT, Types.INTEGER, intPrecision, "\"", "\"", null, typeNullable, false, typeSearchable, true, false, false, null, 0, 0, 0, 0, 10},
-                {Xsd.STRING, Types.NVARCHAR, 0, "\"", "\"", null, typeNullable, true, typeSearchable, false, false, false, null, 0, 0, 0, 0, 0},
-                {Xsd.TIME, Types.TIME, 0, "\"", "\"", null, typeNullable, false, typeSearchable, false, false, false, null, 0, 0, 0, 0, 0},
-        };
+        List<Object[]> rows = new ArrayList<>();
+        for (TypeMapping mapping : TypeMap.INSTANCE.getAll()) {
+            rows.add(new Object[]{
+                    // TYPE_NAME String => Type name
+                    mapping.getDatatype(),
+                    // DATA_TYPE int => SQL data type from java.sql.Types
+                    mapping.getTypeNumber(),
+                    // PRECISION int => maximum precision
+                    mapping.getPrecision(),
+                    // LITERAL_PREFIX String => prefix used to quote a literal (may be null)
+                    mapping.isNumeric() || Xsd.BOOLEAN.equals(mapping.getDatatype()) ? null : getLiteralQuoteString(),
+                    // LITERAL_SUFFIX String => suffix used to quote a literal (may be null)
+                    mapping.isNumeric() || Xsd.BOOLEAN.equals(mapping.getDatatype()) ? null : getLiteralQuoteString(),
+                    // CREATE_PARAMS String => parameters used in creating the type (may be null)
+                    null,
+                    // NULLABLE short => can you use NULL for this type.
+                    // typeNoNulls - does not allow NULL values
+                    // typeNullable - allows NULL values
+                    // typeNullableUnknown - nullability unknown
+                    typeNullable,
+                    // CASE_SENSITIVE boolean=> is it case sensitive.
+                    !mapping.isNumeric(),
+                    // SEARCHABLE short => can you use "WHERE" based on this type:
+                    // typePredNone - No support
+                    // typePredChar - Only supported with WHERE .. LIKE
+                    // typePredBasic - Supported except for WHERE .. LIKE
+                    // typeSearchable - Supported for all WHERE ..
+                    typeSearchable,
+                    // UNSIGNED_ATTRIBUTE boolean => is it unsigned.
+                    !or(mapping.getSigned(), true),
+                    // FIXED_PREC_SCALE boolean => can it be a money value.
+                    or(mapping.getFixedPrecisionScale(), false),
+                    // AUTO_INCREMENT boolean => can it be used for an auto-increment value.
+                    false,
+                    // LOCAL_TYPE_NAME String => localized version of type name (may be null)
+                    null,
+                    // MINIMUM_SCALE short => minimum scale supported
+                    mapping.getMinScale(),
+                    // MAXIMUM_SCALE short => maximum scale supported
+                    mapping.getMaxScale(),
+                    // SQL_DATA_TYPE int => unused
+                    0,
+                    // SQL_DATETIME_SUB int => unused
+                    0,
+                    // NUM_PREC_RADIX int => usually 2 or 10
+                    mapping.isNumeric() ? 10 : 0,
+            });
+        }
         return MetaDataSchema.newResultSet(MetaDataSchema.TYPE_INFO_COLUMNS, rows);
     }
+
+    abstract String getLiteralQuoteString();
 
     @Override
     public ResultSet getUDTs(String catalog, String schemaPattern, String typeNamePattern, int[] types) throws SQLException {

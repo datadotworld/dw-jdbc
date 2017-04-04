@@ -16,23 +16,24 @@
  *
  * This product includes software developed at data.world, Inc.(http://www.data.world/).
  */
-package world.data.jdbc.internal.types;
+package world.data.jdbc.internal.util;
 
 import org.junit.Test;
 
-import java.sql.JDBCType;
-import java.util.Collection;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
-public class TypeMapTest {
+public class LikeTest {
     @Test
-    public void testAllJdbcMapped() {
-        // This test should fail when new JDBC types are added.  It forces us to either (a) add mappings for
-        // the new types to RDF datatypes or (b) explicitly ignore the new type via 'unmap()'
-        Collection<Integer> mappedTypes = TypeMap.INSTANCE.getMappedJdbcTypes();
-        for (JDBCType jdbcType : JDBCType.values()) {
-            assertThat(mappedTypes).as(jdbcType.name()).contains(jdbcType.getVendorTypeNumber());
-        }
+    public void testMatches() throws Exception {
+        assertThat(Like.matches("foo", "%")).isTrue();
+        assertThat(Like.matches("foo", "foo%")).isTrue();
+        assertThat(Like.matches("hello world", "hello%world")).isTrue();
+        assertThat(Like.matches("foo", "foo")).isTrue();
+        assertThat(Like.matches("foo", "fo_")).isTrue();
+        assertThat(Like.matches("foo\n", "foo_")).isTrue();
+        assertThat(Like.matches("fo", "fo_")).isFalse();
+        assertThat(Like.matches("foab", "fo%a")).isFalse();
     }
 }

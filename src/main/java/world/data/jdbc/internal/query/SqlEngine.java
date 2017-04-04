@@ -29,6 +29,7 @@ import world.data.jdbc.internal.metadata.SqlDatabaseMetaData;
 import world.data.jdbc.internal.results.ResultSetImpl;
 import world.data.jdbc.internal.transport.QueryApi;
 import world.data.jdbc.internal.transport.Response;
+import world.data.jdbc.internal.types.TypeMap;
 import world.data.jdbc.internal.util.CloseableRef;
 import world.data.jdbc.model.Iri;
 import world.data.jdbc.model.Node;
@@ -41,6 +42,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +79,7 @@ public class SqlEngine implements QueryEngine {
 
     @Override
     public JdbcCompatibility getDefaultCompatibilityLevel() {
+        // By default, use the metadata returned with the SQL query
         return JdbcCompatibility.HIGH;
     }
 
@@ -106,8 +109,14 @@ public class SqlEngine implements QueryEngine {
         try (CloseableRef cleanup = new CloseableRef(response.getCleanup())) {
             check(response.getRows() != null, "SQL response is missing row data");
 
-            ResultSetMetaData metaData = buildResultSetMetaData(response.getColumns());
-            ResultSet resultSet = new ResultSetImpl(statement, metaData, response.getRows(), response.getCleanup());
+            List<Response.Column> columns = response.getColumns();
+            Iterator<Node[]> rows = response.getRows();
+
+            JdbcCompatibility level = statement.getJdbcCompatibilityLevel();
+            List<ColumnInfo> columnInfos = buildColumnsMetadata(columns, level);
+            ResultSetMetaData metaData = new ResultSetMetaDataImpl(columnInfos);
+
+            ResultSet resultSet = new ResultSetImpl(statement, metaData, rows, response.getCleanup());
 
             // The caller becomes responsible for cleaning up
             return cleanup.detach(resultSet);
@@ -119,22 +128,39 @@ public class SqlEngine implements QueryEngine {
         }
     }
 
-    private ResultSetMetaData buildResultSetMetaData(List<Response.Column> columns) {
+    private List<ColumnInfo> buildColumnsMetadata(List<Response.Column> columns, JdbcCompatibility level) {
         List<ColumnInfo> columnsMetaData = new ArrayList<>();
         for (Response.Column column : columns) {
-            columnsMetaData.add(getColumnMetadata(column));
+            columnsMetaData.add(buildColumnMetadata(column, level));
         }
-        return new ResultSetMetaDataImpl(columnsMetaData);
+        return columnsMetaData;
     }
 
-    private ColumnInfo getColumnMetadata(Response.Column column) {
-        Iri datatype = or(mapIfPresent(column.getDatatypeIri(), Iri::new), Xsd.STRING);
+    private ColumnInfo buildColumnMetadata(Response.Column column, JdbcCompatibility level) {
+        Iri datatype = pickType(mapIfPresent(column.getDatatypeIri(), Iri::new), level);
         int nullable = column.isRequired() ? ResultSetMetaData.columnNoNulls : ResultSetMetaData.columnNullable;
         return ColumnFactory.builder(column.getName(), datatype)
                 .nullable(nullable)
                 .catalogName(catalog)
                 .schemaName(schema)
                 .build();
+    }
+
+    private Iri pickType(Iri datatype, JdbcCompatibility level) {
+        switch (level) {
+            case LOW:
+                // Type columns as Types.OTHER with Node as the column class
+                return TypeMap.DATATYPE_RAW_NODE;
+
+            case MEDIUM:
+                // Type columns as NVARCHAR with String as the column class
+                return Xsd.STRING;
+
+            case HIGH:
+            default:
+                // Use the table metadata returned along with the query
+                return or(datatype, Xsd.STRING);
+        }
     }
 
     @Override

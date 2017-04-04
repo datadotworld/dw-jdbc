@@ -247,7 +247,6 @@ public class CallableStatementTest {
             assertSQLFeatureNotSupported(() -> statement.setClob("p", mock(Clob.class)));
             assertSQLFeatureNotSupported(() -> statement.setClob("p", mock(Reader.class)));
             assertSQLFeatureNotSupported(() -> statement.setClob("p", mock(Reader.class), 100));
-            assertSQLFeatureNotSupported(() -> statement.setDate("p", Date.valueOf(LocalDate.now()), Calendar.getInstance()));
             assertSQLFeatureNotSupported(() -> statement.setNCharacterStream("p", mock(Reader.class)));
             assertSQLFeatureNotSupported(() -> statement.setNCharacterStream("p", mock(Reader.class), 100));
             assertSQLFeatureNotSupported(() -> statement.setNClob("p", mock(NClob.class)));
@@ -259,8 +258,6 @@ public class CallableStatementTest {
             assertSQLFeatureNotSupported(() -> statement.setObject("p", 123, JDBCType.DECIMAL, 11));
             assertSQLFeatureNotSupported(() -> statement.setRowId("p", mock(RowId.class)));
             assertSQLFeatureNotSupported(() -> statement.setSQLXML("p", mock(SQLXML.class)));
-            assertSQLFeatureNotSupported(() -> statement.setTime("p", Time.valueOf(LocalTime.now()), Calendar.getInstance()));
-            assertSQLFeatureNotSupported(() -> statement.setTimestamp("p", Timestamp.valueOf(LocalDateTime.now()), Calendar.getInstance()));
             assertSQLFeatureNotSupported(statement::wasNull);
         }
     }

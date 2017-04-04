@@ -41,14 +41,14 @@ public enum JdbcCompatibility {
     /**
      * Constant for low JDBC compatibility level
      * <p>
-     * This is the level you should use when you know you are accessing a SPARQL
-     * source and are able to cope with the native driver representation of RDF terms
-     * natively.
+     * This is the level you should use when you know you are accessing a SPARQL source and are able to cope with
+     * the native driver representation of RDF terms natively.
      * </p>
      * <h3>Behavior Specifies</h3>
      * <ul>
-     * <li>Column Typing - All result set columns are reported as being as typed
-     * as {@link Types#JAVA_OBJECT} and Java type is the {@link Node} type.</li>
+     * <li>Column Typing - All result set columns are reported as being as typed as {@link Types#OTHER} and
+     * Java type is the {@link Node} type.
+     * </li>
      * </ul>
      */
     LOW,
@@ -56,13 +56,14 @@ public enum JdbcCompatibility {
     /**
      * Constant for medium JDBC compatibility level
      * <p>
-     * This is the default compatibility level, we will make some effort to be
-     * compatible with JDBC but these efforts will not be perfect.
+     * This is the default compatibility level, we will make some effort to be compatible with JDBC but these
+     * efforts will not be perfect.
      * </p>
      * <h3>Behavior Specifics</h3>
      * <ul>
-     * <li>Column Typing - All result set columns are reported as being as typed
-     * as {@link Types#NVARCHAR} and Java type is {@link String}.</li>
+     * <li>Column Typing - All result set columns are reported as being as typed as {@link Types#NVARCHAR} and
+     * Java type is {@link String}.
+     * </li>
      * </ul>
      */
     MEDIUM,
@@ -70,15 +71,16 @@ public enum JdbcCompatibility {
     /**
      * Constant for high JDBC compatibility level
      * <p>
-     * This is the highest compatibility level, we will do our best to be
-     * compatible with JDBC however these efforts may still not be perfect.
+     * This is the highest compatibility level, we will do our best to be compatible with JDBC however these
+     * efforts may still not be perfect.
      * </p>
      * <h3>Behavior Specifics</h3>
      * <ul>
-     * <li>Column Typing - Result set columns are typed by inspecting the first
-     * row of the data so native JDBC types like {@link Types#INTEGER} and so
-     * forth may be reported depending on the query.</li>
+     * <li>Column Typing - For SPARQL, result set columns are typed by inspecting the first row of the data and,
+     * for SQL, result set columns are typed based on the column metadata returned by the server, so native JDBC
+     * types like {@link Types#INTEGER} and so forth may be reported depending on the query.
+     * </li>
      * </ul>
      */
-    HIGH;
+    HIGH,
 }

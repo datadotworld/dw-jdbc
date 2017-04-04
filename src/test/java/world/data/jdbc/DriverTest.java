@@ -23,12 +23,11 @@ import org.junit.Test;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static world.data.jdbc.testing.MoreAssertions.assertSQLFeatureNotSupported;
 
-public class DataWorldDriverTest {
+public class DriverTest {
     @Test
     public void acceptsURL() throws Exception {
-        DataWorldDriver driver = new DataWorldDriver();
+        Driver driver = new Driver();
         assertThat(driver.acceptsURL("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset")).isTrue();
         assertThat(driver.acceptsURL("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset")).isTrue();
         assertThat(driver.acceptsURL("mysql:dave:lahman-sabremetrics-dataset")).isFalse();
@@ -36,21 +35,29 @@ public class DataWorldDriverTest {
 
     @Test
     public void connect() throws Exception {
-        DataWorldDriver driver = new DataWorldDriver();
+        Driver driver = new Driver();
         assertThat(driver.connect("mysql:dave:lahman-sabremetrics-dataset", null)).isNull();
     }
 
     @Test
     public void connectWithOverride() throws Exception {
-        DataWorldDriver driver = new DataWorldDriver();
+        Driver driver = new Driver();
         Properties props = new Properties();
         props.setProperty("queryBaseUrl", "http://localhost:9092");
         assertThat(driver.connect("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset", props)).isNotNull();
     }
 
     @Test
+    public void connectWithUrlOverride() throws Exception {
+        Driver driver = new Driver();
+        DataWorldConnection connection = driver.connect("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset;jdbcCompatibility=LOW", null);
+        assertThat(connection).isNotNull();
+        assertThat(connection.getJdbcCompatibilityLevel()).isEqualTo(JdbcCompatibility.LOW);
+    }
+
+    @Test
     public void getMajorVersion() throws Exception {
-        DataWorldDriver driver = new DataWorldDriver();
+        Driver driver = new Driver();
         if (isMavenBuild()) {
             assertThat(driver.getMajorVersion()).isGreaterThan(0);
         } else {
@@ -60,7 +67,7 @@ public class DataWorldDriverTest {
 
     @Test
     public void getMinorVersion() throws Exception {
-        DataWorldDriver driver = new DataWorldDriver();
+        Driver driver = new Driver();
         if (isMavenBuild()) {
             assertThat(driver.getMajorVersion()).isGreaterThanOrEqualTo(0);
         } else {
@@ -70,20 +77,20 @@ public class DataWorldDriverTest {
 
     @Test
     public void getPropertyInfo() throws Exception {
-        DataWorldDriver driver = new DataWorldDriver();
+        Driver driver = new Driver();
         assertThat(driver.getPropertyInfo(null, null).length).isEqualTo(0);
     }
 
     @Test
     public void jdbcCompliant() throws Exception {
-        DataWorldDriver driver = new DataWorldDriver();
+        Driver driver = new Driver();
         assertThat(driver.jdbcCompliant()).isEqualTo(false);
     }
 
     @Test
-    public void testAllNotSupported() throws Exception {
-        DataWorldDriver driver = new DataWorldDriver();
-        assertSQLFeatureNotSupported(driver::getParentLogger);
+    public void parentLogger() throws Exception {
+        Driver driver = new Driver();
+        assertThat(driver.getParentLogger().getName()).isEqualTo("world.data.jdbc");
     }
 
     private boolean isMavenBuild() {

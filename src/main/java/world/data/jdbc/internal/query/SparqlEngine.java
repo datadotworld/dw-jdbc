@@ -36,6 +36,7 @@ import world.data.jdbc.model.Iri;
 import world.data.jdbc.model.Literal;
 import world.data.jdbc.model.LiteralFactory;
 import world.data.jdbc.model.Node;
+import world.data.jdbc.vocab.Rdfs;
 import world.data.jdbc.vocab.Xsd;
 
 import java.sql.DatabaseMetaData;
@@ -80,6 +81,7 @@ public final class SparqlEngine implements QueryEngine {
 
     @Override
     public JdbcCompatibility getDefaultCompatibilityLevel() {
+        // By default, type all columns as String
         return JdbcCompatibility.MEDIUM;
     }
 
@@ -102,6 +104,7 @@ public final class SparqlEngine implements QueryEngine {
     @Override
     public ResultSet execute(DataWorldStatement statement, String query, Map<String, Node> parameters, Integer timeoutSeconds)
             throws SQLException {
+        // Execute the query
         Response response = queryApi.executeQuery(query, parameters, timeoutSeconds);
 
         // Construct the ResultSet with the results
@@ -120,24 +123,29 @@ public final class SparqlEngine implements QueryEngine {
             Node[] firstRow = rows.peek();
 
             JdbcCompatibility level = statement.getJdbcCompatibilityLevel();
-
             List<ColumnInfo> columnInfos = buildColumnsMetadata(columns, level, firstRow);
             ResultSetMetaData metaData = new ResultSetMetaDataImpl(columnInfos);
 
+            ResultSet resultSet = new ResultSetImpl(statement, metaData, rows, response.getCleanup());
+
             // The caller becomes responsible for cleaning up
-            return cleanup.detach(new ResultSetImpl(statement, metaData, rows, response.getCleanup()));
+            return cleanup.detach(resultSet);
 
         } catch (SQLException e) {
             throw e;
         } catch (Exception e) {
-            throw new SQLException("Unexpected exception parsing SQL response from server.", e);
+            throw new SQLException("Unexpected exception parsing SPARQL response from server.", e);
         }
     }
 
     private ResultSet createAskResultSet(DataWorldStatement statement, boolean askResult) throws SQLException {
-        ColumnInfo singleColumn = ColumnFactory.builder("ASK", Xsd.BOOLEAN).nullable(ResultSetMetaData.columnNoNulls).build();
-        List<Node[]> singleRow = Collections.singletonList(new Node[]{LiteralFactory.createBoolean(askResult)});
-        return new ResultSetImpl(statement, new ResultSetMetaDataImpl(singleColumn), singleRow.iterator(), null);
+        ColumnInfo singleColumn = ColumnFactory.builder("ASK", Xsd.BOOLEAN)
+                .nullable(ResultSetMetaData.columnNoNulls)
+                .build();
+        List<Node[]> singleRow = Collections.singletonList(new Node[]{
+                LiteralFactory.createBoolean(askResult)
+        });
+        return new ResultSetImpl(statement, new ResultSetMetaDataImpl(singleColumn), singleRow);
     }
 
     private List<ColumnInfo> buildColumnsMetadata(List<Response.Column> columns, JdbcCompatibility level, Node[] firstRow) {
@@ -145,25 +153,28 @@ public final class SparqlEngine implements QueryEngine {
         for (int i = 0; i < columns.size(); i++) {
             Response.Column column = columns.get(i);
             Node sampleValue = firstRow != null ? firstRow[i] : null;
-            Iri datatype = pickType(level, sampleValue);
-            ColumnInfo columnInfo = ColumnFactory.builder(column.getName(), datatype)
-                    .catalogName(catalog)
-                    .schemaName(schema)
-                    .tableName("RDF")
-                    .build();
-            columnsMetaData.add(columnInfo);
+            columnsMetaData.add(buildColumnMetadata(column, level, sampleValue));
         }
         return columnsMetaData;
+    }
+
+    private ColumnInfo buildColumnMetadata(Response.Column column, JdbcCompatibility level, Node sampleValue) {
+        Iri datatype = pickType(level, sampleValue);
+        return ColumnFactory.builder(column.getName(), datatype)
+                .catalogName(catalog)
+                .schemaName(schema)
+                .tableName("RDF")
+                .build();
     }
 
     private Iri pickType(JdbcCompatibility level, Node sampleValue) {
         switch (level) {
             case LOW:
-                // Report columns as being typed as Types.OTHER with Node as the column class
+                // Type columns as Types.OTHER with Node as the column class
                 return TypeMap.DATATYPE_RAW_NODE;
 
             case MEDIUM:
-                // Report columns as being typed as NVARCHAR with String as the column class
+                // Type columns as NVARCHAR with String as the column class
                 return Xsd.STRING;
 
             case HIGH:
@@ -174,11 +185,9 @@ public final class SparqlEngine implements QueryEngine {
                     return Xsd.STRING;
                 } else if (sampleValue instanceof Literal) {
                     return ((Literal) sampleValue).getDatatype();
-                } else if (sampleValue instanceof Iri) {
-                    return Xsd.ANYURI;
                 } else {
-                    // Blank nodes
-                    return Xsd.STRING;
+                    // Iri or Blank
+                    return Rdfs.RESOURCE;  // ResultSet.getObject() will return String
                 }
         }
     }

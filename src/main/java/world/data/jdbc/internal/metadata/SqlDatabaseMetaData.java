@@ -19,7 +19,7 @@
 package world.data.jdbc.internal.metadata;
 
 import world.data.jdbc.DataWorldConnection;
-import world.data.jdbc.DataWorldDriver;
+import world.data.jdbc.Driver;
 import world.data.jdbc.internal.types.TypeMap;
 import world.data.jdbc.internal.types.TypeMapping;
 import world.data.jdbc.model.Iri;
@@ -32,6 +32,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static world.data.jdbc.internal.util.Optionals.mapIfPresent;
+import static world.data.jdbc.internal.util.Optionals.nullOrContains;
+import static world.data.jdbc.internal.util.Optionals.nullOrEquals;
+import static world.data.jdbc.internal.util.Optionals.nullOrMatches;
 import static world.data.jdbc.internal.util.Optionals.or;
 
 /**
@@ -51,12 +54,10 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     @Override
     public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
         List<Object[]> rows = new ArrayList<>();
-        if (catalog == null || this.catalog.equals(catalog)) {
+        if (nullOrEquals(catalog, this.catalog) && nullOrMatches(schemaPattern, this.schema)) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM TableColumns WHERE ? LIKE ? AND tableId LIKE ? AND columnName LIKE ?")) {
+                    "SELECT * FROM TableColumns WHERE tableId LIKE ? AND columnName LIKE ? ORDER BY tableId, columnIndex")) {
                 int index = 0;
-                statement.setString(++index, this.schema);
-                statement.setString(++index, or(schemaPattern, "%"));
                 statement.setString(++index, or(tableNamePattern, "%"));
                 statement.setString(++index, or(columnNamePattern, "%"));
                 ResultSet resultSet = statement.executeQuery();
@@ -66,10 +67,10 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
                     String columnName = resultSet.getString("columnName");
                     Iri datatype = mapIfPresent(resultSet.getString("columnDatatype"), Iri::new);
                     Boolean nullable = resultSet.getObject("columnNullable", Boolean.class);
-                    TypeMapping mapping = TypeMap.INSTANCE.getCustom(datatype);
+                    TypeMapping mapping = TypeMap.INSTANCE.getStandardOrCustom(datatype);
                     rows.add(new Object[]{
                             // TABLE_CAT String => table catalog (may be null)
-                            catalog,
+                            this.catalog,
                             // TABLE_SCHEM String => table schema (may be null)
                             schema,
                             // TABLE_NAME String => table name
@@ -86,7 +87,7 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
                             null,
                             // DECIMAL_DIGITS int => the number of fractional digits.
                             // Null is returned for data types where DECIMAL_DIGITS is not applicable.
-                            mapping.getScale(),
+                            mapping.getMaxScale(),
                             // NUM_PREC_RADIX int => Radix (typically either 10 or 2)
                             10,
                             // NULLABLE int => is NULL allowed.
@@ -135,12 +136,17 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
                 }
             }
         }
-        return MetaDataSchema.newResultSet(MetaDataSchema.COLUMN_COLUMNS, rows.toArray(new Object[rows.size()][]));
+        return MetaDataSchema.newResultSet(MetaDataSchema.COLUMN_COLUMNS, rows);
     }
 
     @Override
     public String getIdentifierQuoteString() {
         return "`";
+    }
+
+    @Override
+    String getLiteralQuoteString() {
+        return "'";
     }
 
     @Override
@@ -177,19 +183,17 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types)
             throws SQLException {
         List<Object[]> rows = new ArrayList<>();
-        if (catalog == null || this.catalog.equals(catalog)) {
+        if (nullOrEquals(catalog, this.catalog) && nullOrMatches(schemaPattern, this.schema) && nullOrContains(types, "TABLE")) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM TableColumns WHERE ? LIKE ? AND tableId LIKE ?")) {
+                    "SELECT * FROM Tables WHERE tableId LIKE ? ORDER BY tableId")) {
                 int index = 0;
-                statement.setString(++index, this.schema);
-                statement.setString(++index, or(schemaPattern, "%"));
                 statement.setString(++index, or(tableNamePattern, "%"));
                 ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
                     String tableId = resultSet.getString("tableId");
                     rows.add(new Object[]{
                             // TABLE_CAT String => table catalog (may be null)
-                            catalog,
+                            this.catalog,
                             // TABLE_SCHEM String => table schema (may be null)
                             schema,
                             // TABLE_NAME String => table name
@@ -215,7 +219,7 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
                 }
             }
         }
-        return MetaDataSchema.newResultSet(MetaDataSchema.TABLE_COLUMNS, rows.toArray(new Object[rows.size()][]));
+        return MetaDataSchema.newResultSet(MetaDataSchema.TABLE_COLUMNS, rows);
     }
 
     @Override
@@ -225,7 +229,7 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
 
     @Override
     public String getURL() throws SQLException {
-        return DataWorldDriver.SQL_PREFIX + catalog + ":" + schema;
+        return Driver.SQL_PREFIX + catalog + ":" + schema;
     }
 
     @Override

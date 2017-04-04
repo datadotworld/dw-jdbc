@@ -20,6 +20,7 @@ package world.data.jdbc.internal.types;
 
 import world.data.jdbc.model.Iri;
 import world.data.jdbc.model.Node;
+import world.data.jdbc.vocab.Rdfs;
 import world.data.jdbc.vocab.Xsd;
 
 import java.math.BigDecimal;
@@ -65,17 +66,17 @@ public class TypeMap {
         standard(TypeMapping.simple(javaIri(OffsetTime.class), JDBCType.TIME_WITH_TIMEZONE, OffsetTime.class, 24));
         standard(TypeMapping.simple(Xsd.DATETIMESTAMP, JDBCType.TIMESTAMP_WITH_TIMEZONE, OffsetDateTime.class, 40));
 
-        standard(TypeMapping.numeric(Xsd.BYTE, JDBCType.TINYINT, Byte.class, 3, 0, true, true));
-        standard(TypeMapping.numeric(Xsd.SHORT, JDBCType.SMALLINT, Short.class, 5, 0, true, true));
-        standard(TypeMapping.numeric(Xsd.INT, JDBCType.INTEGER, Integer.class, 10, 0, true, true));
-        standard(TypeMapping.numeric(Xsd.LONG, JDBCType.BIGINT, Long.class, 19, 0, true, true));
-        standard(TypeMapping.numeric(Xsd.FLOAT, JDBCType.REAL, Float.class, 9, 9, true, false));
-        standard(TypeMapping.numeric(Xsd.DOUBLE, JDBCType.DOUBLE, Double.class, 17, 17, true, false), JDBCType.FLOAT);
-        standard(TypeMapping.numeric(Xsd.DECIMAL, JDBCType.DECIMAL, BigDecimal.class, 38, 38, true, true));
+        standard(TypeMapping.numeric(Xsd.BYTE, JDBCType.TINYINT, Byte.class, 3, 0, 0, true, true));
+        standard(TypeMapping.numeric(Xsd.SHORT, JDBCType.SMALLINT, Short.class, 5, 0, 0, true, true));
+        standard(TypeMapping.numeric(Xsd.INT, JDBCType.INTEGER, Integer.class, 10, 0, 0, true, true));
+        standard(TypeMapping.numeric(Xsd.LONG, JDBCType.BIGINT, Long.class, 19, 0, 0, true, true));
+        standard(TypeMapping.numeric(Xsd.FLOAT, JDBCType.REAL, Float.class, 9, 6, 9, true, false));
+        standard(TypeMapping.numeric(Xsd.DOUBLE, JDBCType.DOUBLE, Double.class, 17, 15, 17, true, false), JDBCType.FLOAT);
+        standard(TypeMapping.numeric(Xsd.DECIMAL, JDBCType.DECIMAL, BigDecimal.class, 38, 38, 38, true, true));
 
         // data.world extension: JDBC doesn't contain a standard mapping to BigInteger, the closest "standard" type mapping
         // is to BigDecimal which would be quite surprising and unintuitive, so deviate from spec and use BigInteger
-        standard(TypeMapping.numeric(Xsd.INTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, true, true));
+        standard(TypeMapping.numeric(Xsd.INTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, true, true));
 
         // data.world extension: map to the most natural native Java object
         standard(TypeMapping.simple(DATATYPE_JAVA_OBJECT, JDBCType.JAVA_OBJECT, Object.class, max));
@@ -83,21 +84,22 @@ public class TypeMap {
         standard(TypeMapping.simple(DATATYPE_RAW_NODE, JDBCType.OTHER, Node.class, max));
 
         // Custom mappings Rdf -> Jdbc, Java
+        custom(TypeMapping.simple(Rdfs.RESOURCE, JDBCType.NVARCHAR, URI.class, max));
         custom(TypeMapping.simple(Xsd.ANYURI, JDBCType.NVARCHAR, URI.class, max));
         custom(TypeMapping.simple(Xsd.DAYTIMEDURATION, JDBCType.NVARCHAR, Duration.class, 36));
-        custom(TypeMapping.numeric(Xsd.GDAY, JDBCType.INTEGER, Integer.class, 2, 0, false, true));
-        custom(TypeMapping.numeric(Xsd.GMONTH, JDBCType.INTEGER, Month.class, 2, 0, false, true));
+        custom(TypeMapping.numeric(Xsd.GDAY, JDBCType.INTEGER, Integer.class, 2, 0, 0, false, true));
+        custom(TypeMapping.numeric(Xsd.GMONTH, JDBCType.INTEGER, Month.class, 2, 0, 0, false, true));
         custom(TypeMapping.simple(Xsd.GMONTHDAY, JDBCType.NVARCHAR, MonthDay.class, 7));
-        custom(TypeMapping.numeric(Xsd.GYEAR, JDBCType.INTEGER, Year.class, 9, 0, true, true));
+        custom(TypeMapping.numeric(Xsd.GYEAR, JDBCType.INTEGER, Year.class, 9, 0, 0, true, true));
         custom(TypeMapping.simple(Xsd.GYEARMONTH, JDBCType.NVARCHAR, YearMonth.class, 12));
-        custom(TypeMapping.numeric(Xsd.NEGATIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, true, true));
-        custom(TypeMapping.numeric(Xsd.NONNEGATIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, false, true));
-        custom(TypeMapping.numeric(Xsd.NONPOSITIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, true, true));
-        custom(TypeMapping.numeric(Xsd.POSITIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, false, true));
-        custom(TypeMapping.numeric(Xsd.UNSIGNEDBYTE, JDBCType.SMALLINT, Short.class, 3, 0, false, true));
-        custom(TypeMapping.numeric(Xsd.UNSIGNEDINT, JDBCType.BIGINT, Long.class, 10, 0, false, true));
-        custom(TypeMapping.numeric(Xsd.UNSIGNEDLONG, JDBCType.NUMERIC, BigInteger.class, 20, 0, false, true));
-        custom(TypeMapping.numeric(Xsd.UNSIGNEDSHORT, JDBCType.INTEGER, Integer.class, 6, 0, false, true));
+        custom(TypeMapping.numeric(Xsd.NEGATIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, true, true));
+        custom(TypeMapping.numeric(Xsd.NONNEGATIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, false, true));
+        custom(TypeMapping.numeric(Xsd.NONPOSITIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, true, true));
+        custom(TypeMapping.numeric(Xsd.POSITIVEINTEGER, JDBCType.NUMERIC, BigInteger.class, 38, 0, 0, false, true));
+        custom(TypeMapping.numeric(Xsd.UNSIGNEDBYTE, JDBCType.SMALLINT, Short.class, 3, 0, 0, false, true));
+        custom(TypeMapping.numeric(Xsd.UNSIGNEDINT, JDBCType.BIGINT, Long.class, 10, 0, 0, false, true));
+        custom(TypeMapping.numeric(Xsd.UNSIGNEDLONG, JDBCType.NUMERIC, BigInteger.class, 20, 0, 0, false, true));
+        custom(TypeMapping.numeric(Xsd.UNSIGNEDSHORT, JDBCType.INTEGER, Integer.class, 6, 0, 0, false, true));
         custom(TypeMapping.simple(Xsd.YEARMONTHDURATION, JDBCType.NVARCHAR, Period.class, 24));
 
         unmap(JDBCType.BINARY);
@@ -121,12 +123,16 @@ public class TypeMap {
         return standardByDatatype.getOrDefault(datatype, STRING);
     }
 
-    public TypeMapping getCustom(Iri datatype) {
+    public TypeMapping getStandard(int jdbcType) {
+        return standardByJdbcType.get(jdbcType);
+    }
+
+    public TypeMapping getStandardOrCustom(Iri datatype) {
         return byDatatype.getOrDefault(datatype, STRING);
     }
 
-    public TypeMapping getStandard(int jdbcType) {
-        return standardByJdbcType.get(jdbcType);
+    public Collection<TypeMapping> getAll() {
+        return byDatatype.values();
     }
 
     private void standard(TypeMapping mapping, JDBCType... additionalTypes) {
@@ -149,7 +155,7 @@ public class TypeMap {
     }
 
     // Visible for testing
-    Collection<Integer> getAllJdbcTypes() {
+    Collection<Integer> getMappedJdbcTypes() {
         return Collections.unmodifiableSet(standardByJdbcType.keySet());
     }
 

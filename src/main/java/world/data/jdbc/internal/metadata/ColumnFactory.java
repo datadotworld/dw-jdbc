@@ -30,13 +30,13 @@ public class ColumnFactory {
 
     public static ColumnInfo.Builder builder(String label, Iri datatype) {
         TypeMapping standard = TypeMap.INSTANCE.getStandard(datatype);
-        TypeMapping custom = TypeMap.INSTANCE.getCustom(datatype);
+        TypeMapping custom = TypeMap.INSTANCE.getStandardOrCustom(datatype);
         return ColumnInfo.builder()
                 .label(label)
                 .typeName(datatype.getIri())
                 .type(standard.getTypeNumber())
                 .className(standard.getJavaType().getName())
-                .scale(or(custom.getScale(), 0))
+                .scale(or(custom.getMaxScale(), 0))
                 .precision(or(custom.getPrecision(), 0))
                 .signed(or(custom.getSigned(), false));
     }

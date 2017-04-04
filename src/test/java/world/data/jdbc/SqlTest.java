@@ -167,7 +167,6 @@ public class SqlTest {
         assertSQLFeatureNotSupported(() -> statement.setClob(1, (Clob) null));
         assertSQLFeatureNotSupported(() -> statement.setClob(1, (Reader) null));
         assertSQLFeatureNotSupported(() -> statement.setClob(1, null, 3L));
-        assertSQLFeatureNotSupported(() -> statement.setDate(1, null, null));
         assertSQLFeatureNotSupported(() -> statement.setNCharacterStream(1, null));
         assertSQLFeatureNotSupported(() -> statement.setNCharacterStream(1, null, 3L));
         assertSQLFeatureNotSupported(() -> statement.setNClob(1, (NClob) null));
@@ -176,8 +175,6 @@ public class SqlTest {
         assertSQLFeatureNotSupported(() -> statement.setRef(1, null));
         assertSQLFeatureNotSupported(() -> statement.setRowId(1, null));
         assertSQLFeatureNotSupported(() -> statement.setSQLXML(1, null));
-        assertSQLFeatureNotSupported(() -> statement.setTime(1, null, null));
-        assertSQLFeatureNotSupported(() -> statement.setTimestamp(1, null, null));
         assertSQLFeatureNotSupported(() -> statement.setUnicodeStream(1, null, 3));
 
         ResultSetMetaData md = sampleResultSet().getMetaData();

@@ -34,20 +34,25 @@ public class TypeMapping {
     @Nonnull
     private final Class<?> javaType;
     private final int precision;  // aka columnSize
-    private final Integer scale;  // # digits to the right of the decimal point
+    private final Integer minScale;  // # digits to the right of the decimal point
+    private final Integer maxScale;  // # digits to the right of the decimal point
     private final Boolean signed;  // is this a signed number?
     private final Boolean fixedPrecisionScale;  // can it be used for money?
 
     static TypeMapping simple(Iri datatype, JDBCType jdbcType, Class<?> javaType, int columnSize) {
-        return new TypeMapping(datatype, jdbcType, javaType, columnSize, null, null, null);
+        return new TypeMapping(datatype, jdbcType, javaType, columnSize, null, null, null, null);
     }
 
-    static TypeMapping numeric(Iri datatype, JDBCType jdbcType, Class<?> javaType, int precision, int scale,
-                               boolean signed, boolean fixedPrecisionScale) {
-        return new TypeMapping(datatype, jdbcType, javaType, precision, scale, signed, fixedPrecisionScale);
+    static TypeMapping numeric(Iri datatype, JDBCType jdbcType, Class<?> javaType, int precision,
+                               int minScale, int maxScale, boolean signed, boolean fixedPrecisionScale) {
+        return new TypeMapping(datatype, jdbcType, javaType, precision, minScale, maxScale, signed, fixedPrecisionScale);
     }
 
     public int getTypeNumber() {
         return jdbcType.getVendorTypeNumber();
+    }
+
+    public boolean isNumeric() {
+        return signed != null;
     }
 }
