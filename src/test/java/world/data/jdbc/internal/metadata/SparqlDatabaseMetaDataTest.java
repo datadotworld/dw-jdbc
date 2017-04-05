@@ -16,14 +16,13 @@
  *
  * This product includes software developed at data.world, Inc.(http://www.data.world/).
  */
-package world.data.jdbc.internal.connections;
+package world.data.jdbc.internal.metadata;
 
 import org.junit.Rule;
 import org.junit.Test;
 import world.data.jdbc.DataWorldConnection;
-import world.data.jdbc.internal.metadata.SqlDatabaseMetaData;
 import world.data.jdbc.internal.util.Versions;
-import world.data.jdbc.testing.SqlHelper;
+import world.data.jdbc.testing.SparqlHelper;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -34,14 +33,14 @@ import java.sql.SQLException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class SqlDatabaseMetaDataTest {
+public class SparqlDatabaseMetaDataTest {
 
     @Rule
-    public final SqlHelper sql = new SqlHelper();
+    public final SparqlHelper sparql = new SparqlHelper();
 
     @Test
     public void test() throws SQLException {
-        DataWorldConnection connection = sql.connect();
+        DataWorldConnection connection = sparql.connect();
         DatabaseMetaData metaData = connection.getMetaData();
         assertThat(metaData.allProceduresAreCallable()).isFalse();
         assertThat(metaData.allTablesAreSelectable()).isTrue();
@@ -61,7 +60,7 @@ public class SqlDatabaseMetaDataTest {
         assertThat(metaData.getDatabaseProductName()).isEqualTo("data.world");
         assertThat(metaData.getDatabaseProductVersion()).isEqualTo("1.0");
         assertThat(metaData.getExtraNameCharacters()).isEqualTo("");
-        assertThat(metaData.getIdentifierQuoteString()).isEqualTo("`");
+        assertThat(metaData.getIdentifierQuoteString()).isEqualTo(" ");
         assertThat(metaData.getJDBCMajorVersion()).isEqualTo(4);
         assertThat(metaData.getJDBCMinorVersion()).isEqualTo(2);
         assertThat(metaData.getMaxBinaryLiteralLength()).isEqualTo(0);
@@ -69,7 +68,7 @@ public class SqlDatabaseMetaDataTest {
         assertThat(metaData.getMaxCharLiteralLength()).isEqualTo(0);
         assertThat(metaData.getMaxColumnNameLength()).isEqualTo(0);
         assertThat(metaData.getMaxColumnsInGroupBy()).isEqualTo(0);
-        assertThat(metaData.getMaxColumnsInIndex()).isEqualTo(0);
+        assertThat(metaData.getMaxColumnsInIndex()).isEqualTo(3);
         assertThat(metaData.getMaxColumnsInSelect()).isEqualTo(0);
         assertThat(metaData.getMaxColumnsInTable()).isEqualTo(0);
         assertThat(metaData.getMaxConnections()).isEqualTo(0);
@@ -87,13 +86,11 @@ public class SqlDatabaseMetaDataTest {
         assertThat(metaData.getMaxUserNameLength()).isEqualTo(0);
         assertThat(metaData.getMaxTableNameLength()).isEqualTo(0);
         assertThat(metaData.getMaxTablesInSelect()).isEqualTo(0);
-        //  assertThat(metaData.getURL()).isEqualTo(0);
-        //  assertThat(metaData.getUserName()).isEqualTo(0);
-        assertThat(metaData.getSQLKeywords()).isEqualTo("AND,AS,ASC,BY,CAST,DESC,DISTINCT,FROM,FULL,GROUP,HAVING,IN,INNER,INTERSECT,JOIN,LEFT,LIKE,LIMIT,MINUS,NATURAL,NOT,NULL,OFFSET,ON,OR,ORDER,OUTER,RIGHT,SELECT,UNION,USING,WHERE");
+        assertThat(metaData.getSQLKeywords()).isEqualTo("ABS,ADD,ALL,AS,ASC,ASK,AVG,BASE,BIND,BNODE,BOUND,BY,CEIL,CLEAR,COALESCE,CONCAT,CONSTRUCT,CONTAINS,COPY,COUNT,CREATE,DATATYPE,DAY,DEFAULT,DELETEDATA,DELETEWHERE,DESC,DESCRIBE,DISTINCT,DROP,ENCODE_FOR_URI,EXISTS,FILTER,FLOOR,FROM,GRAPH,GROUP,GROUP_CONCAT,HAVING,HOURS,IF,IN,INSERT,INSERTDATA,INTO,IRI,ISBLANK,ISIRI,ISURI,LANG,LANGMATCHES,LCASE,LIMIT,LOAD,MAX,MD5,MIN,MINUS,MINUTES,MONTH,MOVE,NAMED,NOTEXISTS,NOTIN,NOW,OFFSET,OPTIONAL,ORDER,PREFIX,RAND,REDUCED,REGEX,REPLACE,ROUND,SAMETERM,SAMPLE,SECONDS,SELECT,SEPARATOR,SERVICE,SHA1,SHA256,SHA384,SHA512,SILENT,STR,STRAFTER,STRBEFORE,STRDT,STRENDS,STRLANG,STRLEN,STRSTARTS,STRUUID,SUBSTR,SUM,TIMEZONE,TZ,UCASE,UNDEF,UNION,URI,USING,UUID,VALUES,WHERE,WITH,YEAR,a,false,true");
         assertThat(metaData.getSQLStateType()).isEqualTo(1);
-        assertThat(metaData.getStringFunctions()).isEqualTo("CONCAT,LENGTH,LENGTH,LOWER,REGEX,REPLACE,SUBSTRING,UPPER");
-        assertThat(metaData.getNumericFunctions()).isEqualTo("ABS,CEIL,FLOOR,ROUND");
-        assertThat(metaData.getTimeDateFunctions()).isEqualTo("DAY,HOURS,MINUTES,MONTH,NOW,SECONDS,YEAR");
+        assertThat(metaData.getStringFunctions()).isEqualTo("CONCAT,CONTAINS,ENCODE_FOR_URI,LANG,LANGMATCHES,LCASE,REGEX,REPLACE,STR,STRAFTER,STRBEFORE,STRENDS,STRLEN,STRSTARTS,SUBSTR,UCASE");
+        assertThat(metaData.getNumericFunctions()).isEqualTo("ABS,CEIL,FLOOR,RAND,ROUND");
+        assertThat(metaData.getTimeDateFunctions()).isEqualTo("DAY,HOURS,MINUTES,MONTH,NOW,SECONDS,TIMEZONE,TZ,YEAR");
         assertThat(metaData.supportsAlterTableWithAddColumn()).isFalse();
         assertThat(metaData.supportsAlterTableWithDropColumn()).isFalse();
         assertThat(metaData.supportsANSI92EntryLevelSQL()).isFalse();
@@ -127,13 +124,13 @@ public class SqlDatabaseMetaDataTest {
         assertThat(metaData.supportsLimitedOuterJoins()).isTrue();
         assertThat(metaData.supportsLikeEscapeClause()).isFalse();
         assertThat(metaData.supportsMinimumSQLGrammar()).isFalse();
-        assertThat(metaData.supportsMixedCaseIdentifiers()).isTrue();
+        assertThat(metaData.supportsMixedCaseIdentifiers()).isFalse();
         assertThat(metaData.supportsMixedCaseQuotedIdentifiers()).isTrue();
         assertThat(metaData.supportsMultipleOpenResults()).isTrue();
         assertThat(metaData.supportsMultipleResultSets()).isFalse();
-        assertThat(metaData.supportsMultipleTransactions()).isTrue();
-        assertThat(metaData.supportsNamedParameters()).isFalse();
-        assertThat(metaData.supportsNonNullableColumns()).isFalse();
+        assertThat(metaData.supportsMultipleTransactions()).isFalse();
+        assertThat(metaData.supportsNamedParameters()).isTrue();
+        assertThat(metaData.supportsNonNullableColumns()).isTrue();
         assertThat(metaData.supportsOpenCursorsAcrossCommit()).isFalse();
         assertThat(metaData.supportsOpenCursorsAcrossRollback()).isFalse();
         assertThat(metaData.supportsOpenStatementsAcrossCommit()).isTrue();
@@ -156,25 +153,25 @@ public class SqlDatabaseMetaDataTest {
         assertThat(metaData.supportsSelectForUpdate()).isFalse();
         assertThat(metaData.supportsStatementPooling()).isFalse();
         assertThat(metaData.supportsStoredFunctionsUsingCallSyntax()).isFalse();
-        assertThat(metaData.supportsStoredProcedures()).isFalse();
+        assertThat(metaData.supportsStoredProcedures()).isTrue();
         assertThat(metaData.supportsSubqueriesInComparisons()).isFalse();
-        assertThat(metaData.supportsSubqueriesInExists()).isFalse();
+        assertThat(metaData.supportsSubqueriesInExists()).isTrue();
         assertThat(metaData.supportsSubqueriesInIns()).isFalse();
         assertThat(metaData.supportsSubqueriesInQuantifieds()).isFalse();
         assertThat(metaData.supportsTransactions()).isFalse();
         assertThat(metaData.supportsUnion()).isTrue();
-        assertThat(metaData.supportsUnionAll()).isTrue();
+        assertThat(metaData.supportsUnionAll()).isFalse();
         assertThat(metaData.nullPlusNonNullIsNull()).isTrue();
         assertThat(metaData.nullsAreSortedAtEnd()).isFalse();
         assertThat(metaData.nullsAreSortedAtStart()).isTrue();
         assertThat(metaData.nullsAreSortedHigh()).isFalse();
         assertThat(metaData.nullsAreSortedLow()).isTrue();
-        assertThat(metaData.othersDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isTrue();
-        assertThat(metaData.othersInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isTrue();
-        assertThat(metaData.othersUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isTrue();
-        assertThat(metaData.ownDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isTrue();
-        assertThat(metaData.ownInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isTrue();
-        assertThat(metaData.ownUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isTrue();
+        assertThat(metaData.othersDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
+        assertThat(metaData.othersInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
+        assertThat(metaData.othersUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
+        assertThat(metaData.ownDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
+        assertThat(metaData.ownInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
+        assertThat(metaData.ownUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
         assertThat(metaData.storesLowerCaseIdentifiers()).isFalse();
         assertThat(metaData.storesLowerCaseQuotedIdentifiers()).isFalse();
         assertThat(metaData.storesUpperCaseIdentifiers()).isFalse();
@@ -184,21 +181,19 @@ public class SqlDatabaseMetaDataTest {
         assertThat(metaData.isCatalogAtStart()).isTrue();
         assertThat(metaData.isReadOnly()).isTrue();
         assertThat(metaData.locatorsUpdateCopy()).isFalse();
-        assertThat(metaData.supportsDataDefinitionAndDataManipulationTransactions()).isTrue();
-        assertThat(metaData.supportsDataManipulationTransactionsOnly()).isTrue();
-        assertThat(metaData.dataDefinitionCausesTransactionCommit()).isTrue();
+        assertThat(metaData.supportsDataDefinitionAndDataManipulationTransactions()).isFalse();
+        assertThat(metaData.supportsDataManipulationTransactionsOnly()).isFalse();
         assertThat(metaData.supportsTableCorrelationNames()).isFalse();
         assertThat(metaData.updatesAreDetected(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
         assertThat(metaData.insertsAreDetected(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
         assertThat(metaData.deletesAreDetected(ResultSet.TYPE_FORWARD_ONLY)).isFalse();
-        assertThat(metaData.dataDefinitionIgnoredInTransactions()).isFalse();
         assertThat(metaData.usesLocalFilePerTable()).isFalse();
         assertThat(metaData.usesLocalFiles()).isFalse();
-        assertThat(metaData.getURL()).isEqualTo("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset");
+        assertThat(metaData.getURL()).isEqualTo("jdbc:data:world:sparql:dave:lahman-sabremetrics-dataset");
         assertThat(metaData.getUserName()).isNull();
         assertThat(metaData.getProcedureTerm()).isNull();
         assertThat(metaData.getSystemFunctions()).isEmpty();
-        assertThat(metaData.getSearchStringEscape()).isEqualTo("\\");
+        assertThat(metaData.getSearchStringEscape()).isEqualTo("");
         assertThat(metaData.getCatalogTerm()).isEqualTo("Account");
         assertThat(metaData.getCatalogSeparator()).isEqualTo(".");
         assertThat(metaData.getSchemaTerm()).isEqualTo("Dataset");

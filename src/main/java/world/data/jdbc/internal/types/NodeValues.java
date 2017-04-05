@@ -27,7 +27,9 @@ import world.data.jdbc.vocab.Rdfs;
 import world.data.jdbc.vocab.Xsd;
 
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
@@ -52,7 +54,7 @@ import java.time.format.SignStyle;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
-import java.util.GregorianCalendar;
+import java.util.Calendar;
 
 import static java.time.temporal.ChronoField.DAY_OF_MONTH;
 import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
@@ -359,31 +361,53 @@ public final class NodeValues {
     @Deprecated
     public static java.util.Date parseUtilDate(Node node) throws SQLException {
         // Alternative implementation: java.sql.Date.valueOf(NodeValues.parseLocalDate(node))?
-        return parseLiteral(node, java.util.Date.class, s -> new java.util.Date(parseGregorianCalendar(s).getTimeInMillis()),
+        return parseLiteral(node, java.util.Date.class,
+                s -> new java.util.Date(parseCalendar(s, Calendar.getInstance()).getTimeInMillis()),
                 Xsd.DATE, Xsd.DATETIME, Xsd.DATETIMESTAMP);
     }
 
     /** @deprecated The {@link #parseLocalDate(Node)} method is preferred. */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public static java.sql.Date parseSqlDate(Node node) throws SQLException {
-        // Alternative implementation: java.sql.Date.valueOf(NodeValues.parseLocalDate(node))?
-        return parseLiteral(node, java.sql.Date.class, s -> new java.sql.Date(parseGregorianCalendar(s).getTimeInMillis()),
+        return parseSqlDate(node, Calendar.getInstance());
+    }
+
+    /** @deprecated The {@link #parseLocalDate(Node)} method is preferred. */
+    @Deprecated
+    public static java.sql.Date parseSqlDate(Node node, Calendar calendar) throws SQLException {
+        return parseLiteral(node, java.sql.Date.class,
+                s -> new java.sql.Date(parseCalendar(s, calendar).getTimeInMillis()),
                 Xsd.DATE, Xsd.DATETIME, Xsd.DATETIMESTAMP);
     }
 
     /** @deprecated The {@link #parseLocalTime(Node)} and {@link #parseOffsetTime(Node)} methods are preferred. */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public static java.sql.Time parseSqlTime(Node node) throws SQLException {
-        // Alternative implementation: java.sql.Time.valueOf(LocalTime.from(NodeValues.parseBestTime(node)))?
-        return parseLiteral(node, java.sql.Time.class, s -> new java.sql.Time(parseGregorianCalendar(s).getTimeInMillis()),
+        return parseSqlTime(node, Calendar.getInstance());
+    }
+
+    /** @deprecated The {@link #parseLocalTime(Node)} and {@link #parseOffsetTime(Node)} methods are preferred. */
+    @Deprecated
+    public static java.sql.Time parseSqlTime(Node node, Calendar calendar) throws SQLException {
+        return parseLiteral(node, java.sql.Time.class,
+                s -> new java.sql.Time(parseCalendar(s, calendar).getTimeInMillis()),
                 Xsd.TIME, Xsd.DATETIME, Xsd.DATETIMESTAMP);
     }
 
     /** @deprecated The {@link #parseLocalDateTime(Node)} and {@link #parseOffsetDateTime(Node)} methods are preferred. */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public static java.sql.Timestamp parseSqlTimestamp(Node node) throws SQLException {
-        // Alternative implementation: java.sql.Timestamp.valueOf(LocalDateTime.from(NodeValues.parseBestDateTime(node)))?
-        return parseLiteral(node, java.sql.Timestamp.class, s -> new java.sql.Timestamp(parseGregorianCalendar(s).getTimeInMillis()),
+        return parseSqlTimestamp(node, Calendar.getInstance());
+    }
+
+    /** @deprecated The {@link #parseLocalDateTime(Node)} and {@link #parseOffsetDateTime(Node)} methods are preferred. */
+    @Deprecated
+    public static java.sql.Timestamp parseSqlTimestamp(Node node, Calendar calendar) throws SQLException {
+        return parseLiteral(node, java.sql.Timestamp.class,
+                s -> new java.sql.Timestamp(parseCalendar(s, calendar).getTimeInMillis()),
                 Xsd.DATE, Xsd.TIME, Xsd.DATETIME, Xsd.DATETIMESTAMP);  // DATE and TIME are mandated by table B-6 in JDBC spec
     }
 
@@ -415,14 +439,29 @@ public final class NodeValues {
     // Private helper functions
     //
 
-    /** Uses XMLGregorianCalendar to parse old date/time types, don't use for newer java.time objects. */
-    private static GregorianCalendar parseGregorianCalendar(String lexicalForm) {
+    @SuppressWarnings("NumericOverflow")
+    private static Calendar parseCalendar(String lexicalForm, Calendar calendar) {
         // XMLGregorianCalendar is useful since it implements the same xsd date/time formats as rdf.
         // Can java.time.DateTimeFormatter parse methods replace XMLGregorianCalendar?  Not sure, using
-        // XMLGregorianCalendar for compatibility with old date/time types for now, isolating new java.time
-        // parsing to just java.time types.  Note that XMLGregorianCalendar probably knows whether or not the
-        // time zone is specified, but we don't take advantage of that information.
-        return XmlHolder.DATATYPE_FACTORY.newXMLGregorianCalendar(lexicalForm).toGregorianCalendar();
+        // XMLGregorianCalendar for compatibility with old java.sql date/time types for now, isolating new
+        // java.time parsing to just java.time types.
+        XMLGregorianCalendar xmlCalendar = XmlHolder.DATATYPE_FACTORY.newXMLGregorianCalendar(lexicalForm);
+        if (xmlCalendar.getTimezone() != DatatypeConstants.FIELD_UNDEFINED) {
+            calendar.setTimeZone(xmlCalendar.getTimeZone(DatatypeConstants.FIELD_UNDEFINED));
+        }
+        // java.sql epoch start is 1970-01-01T00:00:00.000
+        setWithDefault(calendar, Calendar.YEAR, xmlCalendar.getYear(), 1970, 0);
+        setWithDefault(calendar, Calendar.MONTH, xmlCalendar.getMonth(), 1, -1);
+        setWithDefault(calendar, Calendar.DAY_OF_MONTH, xmlCalendar.getDay(), 1, 0);
+        setWithDefault(calendar, Calendar.HOUR_OF_DAY, xmlCalendar.getHour(), 0, 0);
+        setWithDefault(calendar, Calendar.MINUTE, xmlCalendar.getMinute(), 0, 0);
+        setWithDefault(calendar, Calendar.SECOND, xmlCalendar.getSecond(), 0, 0);
+        setWithDefault(calendar, Calendar.MILLISECOND, xmlCalendar.getMillisecond(), 0, 0);
+        return calendar;
+    }
+
+    private static void setWithDefault(Calendar calendar, int field, int value, int defaultValue, int adjust) {
+        calendar.set(field, (value != DatatypeConstants.FIELD_UNDEFINED ? value : defaultValue) + adjust);
     }
 
     private static <V> V parseLiteral(Node node, Class<V> clazz, Parser<V> parser, Iri... allowedTypes) throws SQLException {

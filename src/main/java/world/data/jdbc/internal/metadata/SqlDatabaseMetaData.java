@@ -233,6 +233,16 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
+    public boolean supportsCatalogsInDataManipulation() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsCatalogsInTableDefinitions() {
+        return true;
+    }
+
+    @Override
     public boolean supportsColumnAliasing() {
         return true;
     }
@@ -263,18 +273,18 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
+    public boolean supportsLimitedOuterJoins() {
+        return true;
+    }
+
+    @Override
     public boolean supportsMixedCaseIdentifiers() {
         return true;
     }
 
     @Override
-    public boolean supportsNamedParameters() {
-        return false;
-    }
-
-    @Override
     public boolean supportsNonNullableColumns() {
-        return false;
+        return true;
     }
 
     @Override
@@ -288,13 +298,13 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
-    public boolean supportsStoredProcedures() {
-        return false;
+    public boolean supportsSchemasInDataManipulation() {
+        return true;
     }
 
     @Override
-    public boolean supportsSubqueriesInExists() {
-        return false;
+    public boolean supportsSchemasInTableDefinitions() {
+        return true;
     }
 
     @Override

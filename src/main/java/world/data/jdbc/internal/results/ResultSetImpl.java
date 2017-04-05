@@ -44,8 +44,6 @@ import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -98,6 +96,17 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
             columnIndexByLabel.put(metaData.getColumnLabel(i), i);
         }
         this.columnIndexByLabel = columnIndexByLabel;
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        check(isWrapperFor(iface), "Not a wrapper for the desired interface");
+        return iface.cast(this);
     }
 
     @Override
@@ -240,8 +249,15 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Date getDate(int columnIndex) throws SQLException {
-        return Date.valueOf(NodeValues.parseLocalDate(getNode(columnIndex)));
+        return NodeValues.parseSqlDate(getNode(columnIndex));
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public Date getDate(int columnIndex, Calendar calendar) throws SQLException {
+        return NodeValues.parseSqlDate(getNode(columnIndex), calendar);
     }
 
     @Override
@@ -294,16 +310,29 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
     @Override
     @SuppressWarnings("deprecation")
     public Time getTime(int columnIndex) throws SQLException {
-        return Time.valueOf(LocalTime.from(NodeValues.parseBestTime(getNode(columnIndex))));
+        return NodeValues.parseSqlTime(getNode(columnIndex));
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public Time getTime(int columnIndex, Calendar calendar) throws SQLException {
+        return NodeValues.parseSqlTime(getNode(columnIndex), calendar);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
-        return Timestamp.valueOf(LocalDateTime.from(NodeValues.parseBestDateTime(getNode(columnIndex))));
+        return NodeValues.parseSqlTimestamp(getNode(columnIndex));
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    public Timestamp getTimestamp(int columnIndex, Calendar calendar) throws SQLException {
+        return NodeValues.parseSqlTimestamp(getNode(columnIndex), calendar);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public URL getURL(int columnIndex) throws SQLException {
         return NodeValues.parseUrl(getNode(columnIndex));
     }
@@ -311,17 +340,6 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
     //
     // Methods for things we don't support
     //
-
-    @Override
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
-    public <T> T unwrap(Class<T> iface) throws SQLException {
-        check(isWrapperFor(iface), "Not a wrapper for the desired interface");
-        return iface.cast(this);
-    }
 
     @Override
     public Array getArray(int columnIndex) throws SQLException {
@@ -370,11 +388,6 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
     }
 
     @Override
-    public Date getDate(int columnIndex, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
     public Reader getNCharacterStream(int columnIndex) throws SQLException {
         throw new SQLFeatureNotSupportedException("Only the single argument form of getDate() is supported");
     }
@@ -402,16 +415,6 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
     @Override
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
         throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
-    public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Only the single argument form of getTime() is supported");
-    }
-
-    @Override
-    public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException("Only the single argument form of getTimestamp() is supported");
     }
 
     @Deprecated

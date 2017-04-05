@@ -204,6 +204,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public DataWorldStatement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
         checkClosed();
+        // TODO: this should add SQLWarnings instead of throwing SQLException
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "data.world connections only support forward-scrolling result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
         return new StatementImpl(queryEngine, this);
@@ -301,6 +302,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public DataWorldCallableStatement prepareCall(String query, int resultSetType, int resultSetConcurrency) throws SQLException {
         checkClosed();
+        // TODO: this should add SQLWarnings instead of throwing SQLException
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Does not support scroll sensitive result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Only support read-only result sets");
         return new CallableStatementImpl(query, queryEngine, this);
@@ -336,6 +338,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public DataWorldPreparedStatement prepareStatement(String query, int resultSetType, int resultSetConcurrency) throws SQLException {
         checkClosed();
+        // TODO: this should add SQLWarnings instead of throwing SQLException
         checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Does not support scroll sensitive result sets");
         checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Only supports read-only result sets");
         return new PreparedStatementImpl(query, queryEngine, this);

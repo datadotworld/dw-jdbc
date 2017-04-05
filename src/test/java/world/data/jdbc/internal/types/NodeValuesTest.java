@@ -29,21 +29,24 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
-import java.sql.Date;
 import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.MonthDay;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Period;
 import java.time.Year;
+import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,7 +57,7 @@ public class NodeValuesTest {
     @Test
     public void testBestDateTime() throws Exception {
         LocalDateTime localDateTime = LocalDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000);
-        OffsetDateTime offsetDateTime = OffsetDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000, ZoneOffset.UTC);
+        OffsetDateTime offsetDateTime = OffsetDateTime.of(localDateTime, ZoneOffset.UTC);
         assertThat(NodeValues.parseBestDateTime(null)).isNull();
         assertThat(NodeValues.parseBestDateTime(LiteralFactory.createDateTime(localDateTime))).isEqualTo(localDateTime);
         assertThat(NodeValues.parseBestDateTime(LiteralFactory.createDateTime(offsetDateTime))).isEqualTo(offsetDateTime);
@@ -169,6 +172,7 @@ public class NodeValuesTest {
         assertThat(NodeValues.parseDouble(LiteralFactory.createDouble(Double.NaN), 0d)).isEqualTo(Double.NaN);
     }
 
+    /** Test day+hour+minute+second+nanos duration. */
     @Test
     public void testDuration() throws Exception {
         Duration duration = Duration.ofSeconds(6 + 60 * (5 + 60 * (4 + 24 * 3))); // 3D4H5M6S
@@ -176,6 +180,7 @@ public class NodeValuesTest {
         assertThat(NodeValues.parseDuration(LiteralFactory.createDayTimeDuration(duration))).isEqualTo(duration);
     }
 
+    /** Test year+month duration. */
     @Test
     public void testPeriod() throws Exception {
         Period period = Period.of(3, 8, 0);
@@ -184,9 +189,16 @@ public class NodeValuesTest {
     }
 
     @Test
+    public void testLocalDate() throws Exception {
+        LocalDate localDate = LocalDate.of(2017, 3, 27);
+        assertThat(NodeValues.parseLocalDate(null)).isNull();
+        assertThat(NodeValues.parseLocalDate(LiteralFactory.createDate(localDate))).isEqualTo(localDate);
+    }
+
+    @Test
     public void testLocalDateTime() throws Exception {
         LocalDateTime localDateTime = LocalDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000);
-        OffsetDateTime offsetDateTime = OffsetDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000, ZoneOffset.UTC);
+        OffsetDateTime offsetDateTime = OffsetDateTime.of(localDateTime, ZoneOffset.UTC);
         assertThat(NodeValues.parseLocalDateTime(null)).isNull();
         assertThat(NodeValues.parseLocalDateTime(LiteralFactory.createDateTime(localDateTime))).isEqualTo(localDateTime);
         assertThatThrownBy(() -> NodeValues.parseLocalDateTime(LiteralFactory.createDateTime(offsetDateTime)))
@@ -197,7 +209,7 @@ public class NodeValuesTest {
     @Test
     public void testLocalTime() throws Exception {
         LocalTime localTime = LocalTime.of(16, 25, 41, 123_450_000);
-        OffsetTime offsetTime = OffsetTime.of(16, 25, 41, 123_450_000, ZoneOffset.UTC);
+        OffsetTime offsetTime = OffsetTime.of(localTime, ZoneOffset.UTC);
         assertThat(NodeValues.parseLocalTime(null)).isNull();
         assertThat(NodeValues.parseLocalTime(LiteralFactory.createTime(localTime))).isEqualTo(localTime);
         assertThatThrownBy(() -> NodeValues.parseLocalTime(LiteralFactory.createTime(offsetTime)))
@@ -207,7 +219,7 @@ public class NodeValuesTest {
     @Test
     public void testOffsetDateTime() throws Exception {
         LocalDateTime localDateTime = LocalDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000);
-        OffsetDateTime offsetDateTime = OffsetDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000, ZoneOffset.UTC);
+        OffsetDateTime offsetDateTime = OffsetDateTime.of(localDateTime, ZoneOffset.UTC);
         assertThat(NodeValues.parseOffsetDateTime(null)).isNull();
         assertThat(NodeValues.parseOffsetDateTime(LiteralFactory.createDateTime(offsetDateTime))).isEqualTo(offsetDateTime);
         assertThatThrownBy(() -> NodeValues.parseOffsetDateTime(LiteralFactory.createDateTime(localDateTime)))
@@ -215,13 +227,37 @@ public class NodeValuesTest {
     }
 
     @Test
+    public void testZonedDateTime() throws Exception {
+        LocalDateTime localDateTime = LocalDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000);
+        ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, ZoneOffset.UTC);
+        assertThat(NodeValues.parseZonedDateTime(null)).isNull();
+        assertThat(NodeValues.parseZonedDateTime(LiteralFactory.createDateTime(zonedDateTime))).isEqualTo(zonedDateTime);
+        assertThatThrownBy(() -> NodeValues.parseZonedDateTime(LiteralFactory.createDateTime(localDateTime)))
+                .isInstanceOf(SQLException.class).hasMessage("Unable to marshal xsd:dateTime to java.time.ZonedDateTime");
+    }
+
+    @Test
     public void testOffsetTime() throws Exception {
         LocalTime localTime = LocalTime.of(16, 25, 41, 123_450_000);
-        OffsetTime offsetTime = OffsetTime.of(16, 25, 41, 123_450_000, ZoneOffset.UTC);
+        OffsetTime offsetTime = OffsetTime.of(localTime, ZoneOffset.UTC);
         assertThat(NodeValues.parseOffsetTime(null)).isNull();
         assertThat(NodeValues.parseOffsetTime(LiteralFactory.createTime(offsetTime))).isEqualTo(offsetTime);
         assertThatThrownBy(() -> NodeValues.parseOffsetTime(LiteralFactory.createTime(localTime)))
                 .isInstanceOf(SQLException.class).hasMessage("Unable to marshal xsd:time to java.time.OffsetTime");
+    }
+
+    @Test
+    public void testYearMonth() throws Exception {
+        YearMonth ym = YearMonth.of(2017, Month.APRIL);
+        assertThat(NodeValues.parseYearMonth(null)).isNull();
+        assertThat(NodeValues.parseYearMonth(LiteralFactory.createYearMonth(ym))).isEqualTo(ym);
+    }
+
+    @Test
+    public void testMonthDay() throws Exception {
+        MonthDay md = MonthDay.of(Month.FEBRUARY, 29);
+        assertThat(NodeValues.parseMonthDay(null)).isNull();
+        assertThat(NodeValues.parseMonthDay(LiteralFactory.createMonthDay(md))).isEqualTo(md);
     }
 
     @Test
@@ -254,7 +290,19 @@ public class NodeValuesTest {
     public void testSqlDate() throws Exception {
         LocalDate localDate = LocalDate.of(2017, 3, 27);
         assertThat(NodeValues.parseSqlDate(null)).isNull();
-        assertThat(NodeValues.parseSqlDate(LiteralFactory.createDate(localDate))).isEqualTo(Date.valueOf(localDate));
+        assertThat(NodeValues.parseSqlDate(LiteralFactory.createDate(localDate))).isEqualTo(java.sql.Date.valueOf(localDate));
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void testSqlDate_Calendar() throws Exception {
+        LocalDate localDate = LocalDate.of(2017, 3, 27);
+        assertThat(NodeValues.parseSqlDate(null, Calendar.getInstance())).isNull();
+        java.sql.Date utcDate = NodeValues.parseSqlDate(LiteralFactory.createDate(localDate), newCalendar("UTC"));
+        java.sql.Date cstDate = NodeValues.parseSqlDate(LiteralFactory.createDate(localDate), newCalendar("CST"));
+        assertThat(utcDate).isEqualTo(new java.sql.Date(localDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()));
+        assertThat(cstDate).isEqualTo(new java.sql.Date(localDate.atStartOfDay(ZoneId.of("America/Chicago")).toInstant().toEpochMilli()));
+        assertThat(utcDate).isBefore(cstDate);
     }
 
     @Test
@@ -262,8 +310,27 @@ public class NodeValuesTest {
     public void testSqlTime() throws Exception {
         LocalTime localTime = LocalTime.of(16, 25, 41, 123_450_000);
         assertThat(NodeValues.parseSqlTime(null)).isNull();
-        assertThat(NodeValues.parseSqlTime(LiteralFactory.createTime(localTime)))
-                .isEqualTo(localTimeToTimeWithMillis(localTime));
+        assertThat(NodeValues.parseSqlTime(LiteralFactory.createTime(localTime))).isEqualTo(localToSqlTime(localTime));
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void testSqlTime_Calendar() throws Exception {
+        LocalDate epochStart = LocalDate.of(1970, 1, 1);
+        LocalTime localTime = LocalTime.of(16, 25, 41, 123_450_000);
+        OffsetTime offsetTime = OffsetTime.of(localTime, ZoneOffset.UTC);
+
+        assertThat(NodeValues.parseSqlTime(null, Calendar.getInstance())).isNull();
+
+        java.sql.Time utcTime = NodeValues.parseSqlTime(LiteralFactory.createTime(localTime), newCalendar("UTC"));
+        java.sql.Time cstTime = NodeValues.parseSqlTime(LiteralFactory.createTime(localTime), newCalendar("CST"));
+        assertThat(utcTime).isEqualTo(new java.sql.Time(OffsetDateTime.of(epochStart, localTime, ZoneOffset.UTC).toInstant().toEpochMilli()));
+        assertThat(cstTime).isEqualTo(new java.sql.Time(ZonedDateTime.of(epochStart, localTime, ZoneId.of("America/Chicago")).toInstant().toEpochMilli()));
+        assertThat(utcTime).isBefore(cstTime);
+
+        // If the time string has an explicit 'Z' suffix then the input Calendar timezone is ignored
+        assertThat(NodeValues.parseSqlTime(LiteralFactory.createTime(offsetTime), newCalendar("UTC"))).isEqualTo(utcTime);
+        assertThat(NodeValues.parseSqlTime(LiteralFactory.createTime(offsetTime), newCalendar("CST"))).isEqualTo(utcTime);
     }
 
     @Test
@@ -272,7 +339,26 @@ public class NodeValuesTest {
         LocalDateTime localDateTime = LocalDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000);
         assertThat(NodeValues.parseSqlTimestamp(null)).isNull();
         assertThat(NodeValues.parseSqlTimestamp(LiteralFactory.createDateTime(localDateTime)))
-                .isEqualTo(Timestamp.valueOf(localDateTime.withNano(123_000_000)));
+                .isEqualTo(java.sql.Timestamp.valueOf(localDateTime.withNano(123_000_000)));
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void testSqlTimestamp_Calendar() throws Exception {
+        LocalDateTime localDateTime = LocalDateTime.of(2017, 3, 27, 16, 25, 41, 123_450_000);
+        ZonedDateTime utcDateTime = ZonedDateTime.of(localDateTime, ZoneOffset.UTC);
+        ZonedDateTime cstDateTime = ZonedDateTime.of(localDateTime, ZoneId.of("America/Chicago"));
+        assertThat(NodeValues.parseSqlTimestamp(null, Calendar.getInstance())).isNull();
+
+        java.sql.Timestamp utcTimestamp = NodeValues.parseSqlTimestamp(LiteralFactory.createDateTime(localDateTime), newCalendar("UTC"));
+        java.sql.Timestamp cstTimestamp = NodeValues.parseSqlTimestamp(LiteralFactory.createDateTime(localDateTime), newCalendar("CST"));
+        assertThat(utcTimestamp).isEqualTo(new java.sql.Timestamp(utcDateTime.toInstant().toEpochMilli()));
+        assertThat(cstTimestamp).isEqualTo(new java.sql.Timestamp(cstDateTime.toInstant().toEpochMilli()));
+        assertThat(utcTimestamp).isBefore(cstTimestamp);
+
+        // If the time string has an explicit 'Z' suffix then the input Calendar timezone is ignored
+        assertThat(NodeValues.parseSqlTimestamp(LiteralFactory.createDateTime(cstDateTime), newCalendar("UTC"))).isEqualTo(cstTimestamp);
+        assertThat(NodeValues.parseSqlTimestamp(LiteralFactory.createDateTime(utcDateTime), newCalendar("CST"))).isEqualTo(utcTimestamp);
     }
 
     @Test
@@ -291,10 +377,14 @@ public class NodeValuesTest {
         assertThat(NodeValues.parseUrl(new Iri("http://example.com#foo"))).isEqualTo(new URL("http://example.com#foo"));
     }
 
-    private Time localTimeToTimeWithMillis(LocalTime localTime) {
-        // It is surprisingly awkward to create a java.sql.Time from a LocalTime w/fractional seconds?
-        Time time = Time.valueOf(localTime);
+    private java.sql.Time localToSqlTime(LocalTime localTime) {
+        // It is surprisingly awkward to create a java.sql.Time from a LocalTime w/fractional seconds!
+        java.sql.Time time = java.sql.Time.valueOf(localTime);
         time.setTime(time.getTime() + localTime.getNano() / 1_000_000);
         return time;
+    }
+
+    private Calendar newCalendar(String zoneId) {
+        return Calendar.getInstance(TimeZone.getTimeZone(zoneId));
     }
 }

@@ -576,44 +576,32 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public boolean othersDeletesAreVisible(int type) throws SQLException {
-        // Since results are streamed it may be possible to see deletes from
-        // others depending on the underlying implementation
-        return true;
+        return false;
     }
 
     @Override
     public boolean othersInsertsAreVisible(int type) throws SQLException {
-        // Since results are streamed it may be possible to see inserts from
-        // others depending on the underlying implementation
-        return true;
+        return false;
     }
 
     @Override
     public boolean othersUpdatesAreVisible(int type) {
-        // Since results are streamed it may be possible to see updates from
-        // others depending on the underlying implementation
-        return true;
+        return false;
     }
 
     @Override
     public boolean ownDeletesAreVisible(int type) {
-        // Since results are streamed it may be possible to see deletes from
-        // ourselves depending on the underlying implementation
-        return true;
+        return false;
     }
 
     @Override
     public boolean ownInsertsAreVisible(int type) {
-        // Since results are streamed it may be possible to see inserts from
-        // ourselves depending on the underlying implementation
-        return true;
+        return false;
     }
 
     @Override
     public boolean ownUpdatesAreVisible(int type) {
-        // Since results are streamed it may be possible to see deletes from
-        // others depending on the underlying implementation
-        return true;
+        return false;
     }
 
     @Override
@@ -729,12 +717,12 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public boolean supportsDataDefinitionAndDataManipulationTransactions() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean supportsDataManipulationTransactionsOnly() {
-        return true;
+        return false;
     }
 
     @Override
@@ -763,11 +751,6 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
     }
 
     @Override
-    public boolean supportsLimitedOuterJoins() {
-        return true;
-    }
-
-    @Override
     public boolean supportsMinimumSQLGrammar() {
         return false;
     }
@@ -789,7 +772,12 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public boolean supportsMultipleTransactions() {
-        return true;
+        return false;
+    }
+
+    @Override
+    public boolean supportsNamedParameters() {
+        return false;
     }
 
     @Override
@@ -816,13 +804,11 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public boolean supportsPositionedDelete() {
-        // We don't support deleting from result set
         return false;
     }
 
     @Override
     public boolean supportsPositionedUpdate() {
-        // We don't support updating from result set
         return false;
     }
 
@@ -889,6 +875,11 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
     }
 
     @Override
+    public boolean supportsStoredProcedures() {
+        return false;
+    }
+
+    @Override
     public boolean supportsSubqueriesInComparisons() {
         return false;
     }
@@ -910,19 +901,21 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
 
     @Override
     public boolean supportsTableCorrelationNames() {
-        // We don't really support tables
         return false;
     }
 
     @Override
     public boolean supportsTransactions() {
-        // Currently transactions are not supported
+        return false;
+    }
+
+    @Override
+    public boolean supportsUnionAll() {
         return false;
     }
 
     @Override
     public boolean updatesAreDetected(int type) {
-        // Updates are never detectable
         return false;
     }
 

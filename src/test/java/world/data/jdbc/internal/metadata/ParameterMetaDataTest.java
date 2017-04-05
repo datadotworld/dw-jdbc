@@ -15,10 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package world.data.jdbc.internal.statements;
+package world.data.jdbc.internal.metadata;
 
 import org.junit.Test;
-import world.data.jdbc.internal.metadata.ParameterMetaDataImpl;
 
 import java.sql.ParameterMetaData;
 import java.sql.ResultSetMetaData;

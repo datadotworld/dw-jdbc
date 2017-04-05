@@ -178,6 +178,11 @@ public final class SparqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
+    public boolean supportsLimitedOuterJoins() {
+        return true;
+    }
+
+    @Override
     public boolean supportsMixedCaseIdentifiers() {
         return false;
     }
@@ -217,27 +222,8 @@ public final class SparqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
-    public boolean supportsSubqueriesInIns() {
-        // Can't use subqueries in this way in SPARQL
-        return false;
-    }
-
-    @Override
-    public boolean supportsSubqueriesInQuantifieds() {
-        // I have no idea what this mean so assume we can't use sub-queries this
-        // way in SPARQL
-        return false;
-    }
-
-    @Override
     public boolean supportsUnion() {
         // SPARQL supports UNION
         return true;
-    }
-
-    @Override
-    public boolean supportsUnionAll() {
-        // No SPARQL equivalent of UNION ALL
-        return false;
     }
 }

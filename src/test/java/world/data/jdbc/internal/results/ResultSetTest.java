@@ -486,8 +486,6 @@ public class ResultSetTest {
         assertSQLFeatureNotSupported(() -> resultSet.getClob("s"));
         assertSQLFeatureNotSupported(() -> resultSet.getClob(3));
         assertSQLFeatureNotSupported(resultSet::getCursorName);
-        assertSQLFeatureNotSupported(() -> resultSet.getDate("s", null));
-        assertSQLFeatureNotSupported(() -> resultSet.getDate(3, null));
         assertSQLFeatureNotSupported(() -> resultSet.getNCharacterStream("s"));
         assertSQLFeatureNotSupported(() -> resultSet.getNCharacterStream(3));
         assertSQLFeatureNotSupported(() -> resultSet.getNClob("s"));
@@ -500,10 +498,6 @@ public class ResultSetTest {
         assertSQLFeatureNotSupported(() -> resultSet.getRowId(3));
         assertSQLFeatureNotSupported(() -> resultSet.getSQLXML("s"));
         assertSQLFeatureNotSupported(() -> resultSet.getSQLXML(3));
-        assertSQLFeatureNotSupported(() -> resultSet.getTime("s", null));
-        assertSQLFeatureNotSupported(() -> resultSet.getTime(3, null));
-        assertSQLFeatureNotSupported(() -> resultSet.getTimestamp("s", null));
-        assertSQLFeatureNotSupported(() -> resultSet.getTimestamp(3, null));
         assertSQLFeatureNotSupported(() -> resultSet.getUnicodeStream("s"));
         assertSQLFeatureNotSupported(() -> resultSet.getUnicodeStream(3));
         assertSQLFeatureNotSupported(() -> resultSet.isWrapperFor(Class.class));
