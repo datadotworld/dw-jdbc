@@ -1,0 +1,9 @@
+// Empty (variation w/empty bindings array)
+{
+  "head": {
+    "vars": [ " " ]
+  },
+  "results": {
+    "bindings": [ ]
+  }
+}

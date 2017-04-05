@@ -1,43 +1,26 @@
 /*
-* dw-jdbc
-* Copyright 2016 data.world, Inc.
+ * dw-jdbc
+ * Copyright 2017 data.world, Inc.
 
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the
-* License.
-*
-* You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-* implied. See the License for the specific language governing
-* permissions and limitations under the License.
-*
-* This product includes software developed at data.world, Inc.(http://www.data.world/).
-*/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the
+ * License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * This product includes software developed at data.world, Inc.(http://www.data.world/).
+ */
 package world.data.jdbc;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.jdbc.results.metadata.columns.BooleanColumn;
-import org.apache.jena.jdbc.results.metadata.columns.ByteColumn;
-import org.apache.jena.jdbc.results.metadata.columns.ColumnInfo;
-import org.apache.jena.jdbc.results.metadata.columns.DateColumn;
-import org.apache.jena.jdbc.results.metadata.columns.DateTimeColumn;
-import org.apache.jena.jdbc.results.metadata.columns.DecimalColumn;
-import org.apache.jena.jdbc.results.metadata.columns.DoubleColumn;
-import org.apache.jena.jdbc.results.metadata.columns.FloatColumn;
-import org.apache.jena.jdbc.results.metadata.columns.IntegerColumn;
-import org.apache.jena.jdbc.results.metadata.columns.LongIntegerColumn;
-import org.apache.jena.jdbc.results.metadata.columns.StringColumn;
-import org.apache.jena.jdbc.results.metadata.columns.TimeColumn;
-import org.apache.jena.vocabulary.XSD;
+import world.data.jdbc.model.Node;
 
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.sql.Types;
-
-import static world.data.jdbc.util.Conditions.check;
 
 /**
  * <p>
@@ -58,14 +41,14 @@ public enum JdbcCompatibility {
     /**
      * Constant for low JDBC compatibility level
      * <p>
-     * This is the level you should use when you know you are accessing a SPARQL
-     * source and are able to cope with the Jena/ARQ representation of RDF terms
-     * natively.
+     * This is the level you should use when you know you are accessing a SPARQL source and are able to cope with
+     * the native driver representation of RDF terms natively.
      * </p>
      * <h3>Behavior Specifies</h3>
      * <ul>
-     * <li>Column Typing - All result set columns are reported as being as typed
-     * as {@link Types#JAVA_OBJECT} and Java type is the ARQ {@link Node} type.</li>
+     * <li>Column Typing - All result set columns are reported as being as typed as {@link Types#OTHER} and
+     * Java type is the {@link Node} type.
+     * </li>
      * </ul>
      */
     LOW,
@@ -73,13 +56,14 @@ public enum JdbcCompatibility {
     /**
      * Constant for medium JDBC compatibility level
      * <p>
-     * This is the default compatibility level, we will make some effort to be
-     * compatible with JDBC but these efforts will not be perfect.
+     * This is the default compatibility level, we will make some effort to be compatible with JDBC but these
+     * efforts will not be perfect.
      * </p>
      * <h3>Behavior Specifics</h3>
      * <ul>
-     * <li>Column Typing - All result set columns are reported as being as typed
-     * as {@link Types#NVARCHAR} and Java type is {@link String}.</li>
+     * <li>Column Typing - All result set columns are reported as being as typed as {@link Types#NVARCHAR} and
+     * Java type is {@link String}.
+     * </li>
      * </ul>
      */
     MEDIUM,
@@ -87,156 +71,16 @@ public enum JdbcCompatibility {
     /**
      * Constant for high JDBC compatibility level
      * <p>
-     * This is the highest compatibility level, we will do our best to be
-     * compatible with JDBC however these efforts may still not be perfect.
+     * This is the highest compatibility level, we will do our best to be compatible with JDBC however these
+     * efforts may still not be perfect.
      * </p>
      * <h3>Behavior Specifics</h3>
      * <ul>
-     * <li>Column Typing - Result set columns are typed by inspecting the first
-     * row of the data so native JDBC types like {@link Types#INTEGER} and so
-     * forth may be reported depending on the query.</li>
+     * <li>Column Typing - For SPARQL, result set columns are typed by inspecting the first row of the data and,
+     * for SQL, result set columns are typed based on the column metadata returned by the server, so native JDBC
+     * types like {@link Types#INTEGER} and so forth may be reported depending on the query.
+     * </li>
      * </ul>
      */
-    HIGH;
-
-    /**
-     * Constant for default JDBC compatibility which is set to {@link #MEDIUM}
-     */
-    public static final JdbcCompatibility DEFAULT = MEDIUM;
-
-    /**
-     * Returns whether a result set is expected to determine the column types
-     * from the returned data
-     *
-     * @param level Desired compatibility level
-     * @return True if column types should be detected, false otherwise
-     */
-    public static boolean shouldDetectColumnTypes(JdbcCompatibility level) {
-        return level == HIGH;
-    }
-
-    /**
-     * Returns whether a result set is expected to type returned columns as
-     * strings
-     *
-     * @param level Desired compatibility level
-     * @return True if columns should be typed as string, false otherwise
-     */
-    public static boolean shouldTypeColumnsAsString(JdbcCompatibility level) {
-        return level == MEDIUM;
-    }
-
-    /**
-     * Detects the column type information based on an example value
-     *
-     * @param var         Variable Name i.e. the column label
-     * @param value       Example value
-     * @param allowsNulls Whether the result set we are detecting the type for allows
-     *                    null values in this column
-     * @return Column Information
-     * @throws SQLException Thrown if the column type cannot be detected, this should
-     *                      only occur if you state that the column does not allow nulls
-     *                      and then provide a null example value
-     */
-    public static ColumnInfo detectColumnType(String var, Node value, boolean allowsNulls) throws SQLException {
-        if (allowsNulls && value == null) {
-            // If we are allowing nulls and the value is null just type the
-            // column as string
-            return new StringColumn(var, ResultSetMetaData.columnNullable);
-        }
-        check(allowsNulls || value != null, "Unable to determine column type, column is non-nullable but example value is null");
-
-        // We know we have a non-null value so now we need to determine the
-        // column type appropriately
-        int nullable = allowsNulls ? ResultSetMetaData.columnNullable : ResultSetMetaData.columnNoNulls;
-        if (value.isBlank()) {
-            // Type blank nodes as strings
-            return new StringColumn(var, nullable);
-        } else if (value.isURI()) {
-            // Type URIs as strings
-            // TODO: Does JDBC have a URL type?
-            return new StringColumn(var, nullable);
-        } else if (value.isLiteral()) {
-            // Literals will be typed based on the declared data type where
-            // applicable
-            String dtUri = value.getLiteralDatatypeURI();
-            if (dtUri != null) {
-                // Is a typed literal
-                return selectColumnType(var, dtUri, nullable);
-            } else {
-                // Untyped literals are typed as strings
-                return new StringColumn(var, nullable);
-            }
-        } else {
-            // Anything else we treat as a string
-            return new StringColumn(var, nullable);
-        }
-    }
-
-    /**
-     * Select the column type based on the data type URI
-     *
-     * @param var      Variable Name i.e. the column label
-     * @param dtUri    Data type URI
-     * @param nullable Whether the column is nullable
-     * @return Column type
-     */
-    private static ColumnInfo selectColumnType(String var, String dtUri, int nullable) throws SQLException {
-        if (dtUri.equals(XSD.date.toString())) {
-            // Date column
-            return new DateColumn(var, nullable);
-        } else if (dtUri.equals(XSD.dateTime.toString())) {
-            // Date time column
-            return new DateTimeColumn(var, nullable);
-        } else if (dtUri.equals(XSD.decimal.toString())) {
-            // Decimal column
-            return new DecimalColumn(var, nullable);
-        } else if (dtUri.equals(XSD.duration.toString())) {
-            // JDBC has no notion of durations so return as a string
-            return new StringColumn(var, nullable);
-        } else if (dtUri.equals(XSD.integer.toString()) || dtUri.equals(XSD.xint.toString())
-                || dtUri.equals(XSD.xlong.toString())) {
-            // Integer column
-            return new LongIntegerColumn(var, nullable, true);
-        } else if (dtUri.equals(XSD.unsignedInt.toString()) || dtUri.equals(XSD.unsignedLong.toString())) {
-            // Unsigned Integer column
-            return new LongIntegerColumn(var, nullable, false);
-        } else if (dtUri.equals(XSD.positiveInteger.toString()) || dtUri.equals(XSD.nonNegativeInteger.toString())) {
-            // Unsigned Integer column
-            return new LongIntegerColumn(var, nullable, false);
-        } else if (dtUri.equals(XSD.nonPositiveInteger.toString()) || dtUri.equals(XSD.negativeInteger.toString())) {
-            // Signed Integer column
-            return new LongIntegerColumn(var, nullable, true);
-        } else if (dtUri.equals(XSD.xshort.toString())) {
-            // Short Integer column
-            return new IntegerColumn(var, nullable, true);
-        } else if (dtUri.equals(XSD.unsignedShort.toString())) {
-            // Unsigned Short Integer column
-            return new IntegerColumn(var, nullable, false);
-        } else if (dtUri.equals(XSD.xbyte.toString())) {
-            // Signed Byte
-            return new ByteColumn(var, nullable, true);
-        } else if (dtUri.equals(XSD.unsignedByte.toString())) {
-            // Unsigned Byte
-            return new ByteColumn(var, nullable, false);
-        } else if (dtUri.equals(XSD.time.toString())) {
-            // Time column
-            return new TimeColumn(var, nullable);
-        } else if (dtUri.equals(XSD.xboolean.toString())) {
-            // Boolean column
-            return new BooleanColumn(var, nullable);
-        } else if (dtUri.equals(XSD.xdouble.toString())) {
-            // Double column
-            return new DoubleColumn(var, nullable);
-        } else if (dtUri.equals(XSD.xfloat.toString())) {
-            // Float column
-            return new FloatColumn(var, nullable);
-        } else if (dtUri.equals(XSD.xstring.toString())) {
-            // String column
-            return new StringColumn(var, nullable);
-        } else {
-            // Anything else we'll treat as a String
-            return new StringColumn(var, nullable);
-        }
-    }
+    HIGH,
 }

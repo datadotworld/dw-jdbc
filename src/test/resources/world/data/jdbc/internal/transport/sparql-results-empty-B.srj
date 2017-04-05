@@ -1,0 +1,9 @@
+// Empty (variation w/singleton bindings array containing an empty object)
+{
+  "head": {
+    "vars": [ " " ]
+  },
+  "results": {
+    "bindings": [ { } ]
+  }
+}

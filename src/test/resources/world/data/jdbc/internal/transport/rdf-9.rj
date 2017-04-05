@@ -1,0 +1,11 @@
+// Example 9 from https://www.w3.org/TR/2013/NOTE-rdf-json-20131107/
+{
+  "_:anna": {
+    "http://xmlns.com/foaf/0.1/homepage": [
+      {
+        "value": "http://example.org/anna",
+        "type": "uri"
+      }
+    ]
+  }
+}

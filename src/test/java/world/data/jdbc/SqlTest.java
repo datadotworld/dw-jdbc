@@ -1,35 +1,35 @@
 /*
-* dw-jdbc
-* Copyright 2016 data.world, Inc.
+ * dw-jdbc
+ * Copyright 2017 data.world, Inc.
 
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the
-* License.
-*
-* You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-* implied. See the License for the specific language governing
-* permissions and limitations under the License.
-*
-* This product includes software developed at data.world, Inc.(http://www.data.world/).
-*/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the
+ * License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * This product includes software developed at data.world, Inc.(http://www.data.world/).
+ */
 package world.data.jdbc;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Method;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import world.data.jdbc.connections.Connection;
-import world.data.jdbc.statements.PreparedStatement;
-import world.data.jdbc.statements.Statement;
 import world.data.jdbc.testing.NanoHTTPDHandler;
 import world.data.jdbc.testing.NanoHTTPDResource;
 import world.data.jdbc.testing.SqlHelper;
+import world.data.jdbc.testing.Utils;
+import world.data.jdbc.vocab.Xsd;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -40,7 +40,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import static fi.iki.elonen.NanoHTTPD.Method.GET;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -52,7 +51,7 @@ public class SqlTest {
 
     private static NanoHTTPDHandler lastBackendRequest;
     private static final String resultResourceName = "/hall_of_fame.json";
-    private static final String resultMimeType = "application/json";
+    private static final String resultMimeType = Utils.TYPE_SPARQL_RESULTS;
 
     @ClassRule
     public static final NanoHTTPDResource proxiedServer = new NanoHTTPDResource(3333) {
@@ -76,83 +75,45 @@ public class SqlTest {
         lastBackendRequest = mock(NanoHTTPDHandler.class);
     }
 
-    private PreparedStatement samplePreparedStatement() throws SQLException {
-        Connection connection = sql.connect();
+    private DataWorldPreparedStatement samplePreparedStatement() throws SQLException {
+        DataWorldConnection connection = sql.connect();
         return sql.prepareStatement(connection, "select * from HallOfFame where yearid > ? order by yearid, playerID limit 10");
     }
 
     private ResultSet sampleResultSet() throws SQLException {
-        Statement statement = sql.createStatement(sql.connect());
+        DataWorldStatement statement = sql.createStatement(sql.connect());
         return sql.executeQuery(statement, "select * from HallOfFame order by yearid, playerID limit 10");
     }
 
     @Test
     public void test() throws Exception {
-        Statement statement = sql.createStatement(sql.connect());
-        ResultSet resultSet = sql.executeQuery(statement, "select * from HallOfFame order by yearid, playerID limit 10 ");
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        for (int i = 1; i <= columnsNumber; i++) {
-            if (i > 1) {
-                System.out.print(",  ");
-            }
-            System.out.print(rsmd.getColumnName(i));
-        }
-        System.out.println("");
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) {
-                    System.out.print(",  ");
-                }
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue);
-            }
-            System.out.println("");
-        }
-        verify(lastBackendRequest).handle(GET, "/sql/dave/lahman-sabremetrics-dataset",
-                "query=select+*+from+HallOfFame+order+by+yearid%2C+playerID+limit+10+");
+        DataWorldStatement statement = sql.createStatement(sql.connect());
+        Utils.dumpToStdout(sql.executeQuery(statement, "select * from HallOfFame order by yearid, playerID limit 10 "));
+        verify(lastBackendRequest).handle(Method.POST, sql.urlPath(), null, Utils.TYPE_FORM_URLENCODED,
+                Utils.queryParam("query", "select * from HallOfFame order by yearid, playerID limit 10 "));
     }
 
     @Test
     public void testPrepared() throws Exception {
-        Connection connection = sql.connect();
-        PreparedStatement statement = sql.prepareStatement(connection, "select * from HallOfFame where yearid > ? order by yearid, playerID limit 10 ");
+        DataWorldConnection connection = sql.connect();
+        DataWorldPreparedStatement statement = sql.prepareStatement(connection, "select * from HallOfFame where yearid > ? order by yearid, playerID limit 10");
         statement.setInt(1, 3);
-        ResultSet resultSet = sql.executeQuery(statement);
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        for (int i = 1; i <= columnsNumber; i++) {
-            if (i > 1) {
-                System.out.print(",  ");
-            }
-            System.out.print(rsmd.getColumnName(i));
-        }
-        System.out.println("");
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) {
-                    System.out.print(",  ");
-                }
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue);
-            }
-            System.out.println("");
-        }
-        verify(lastBackendRequest).handle(GET, "/sql/dave/lahman-sabremetrics-dataset",
-                "query=select+*+from+HallOfFame+where+yearid+%3E+%3F+order+by+yearid%2C+playerID+limit+10+" +
-                        "&%24data_world_param0=%223%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23integer%3E");
+        Utils.dumpToStdout(sql.executeQuery(statement));
+        verify(lastBackendRequest).handle(Method.POST, sql.urlPath(), null, Utils.TYPE_FORM_URLENCODED, String.join("&",
+                Utils.queryParam("query", "select * from HallOfFame where yearid > ? order by yearid, playerID limit 10"),
+                Utils.queryParam("$data_world_param0", "\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>")));
     }
 
     @Test
     public void testIndexOutOfBounds() throws Exception {
-        PreparedStatement statement = samplePreparedStatement();
+        DataWorldPreparedStatement statement = samplePreparedStatement();
         statement.setInt(1, 3);
         assertSQLException(() -> statement.setString(2, "foo"));
     }
 
     @Test
     public void testMetadataQueries() throws Exception {
-        Statement statement = sql.createStatement(sql.connect());
+        DataWorldStatement statement = sql.createStatement(sql.connect());
         ResultSet resultSet = sql.executeQuery(statement, "select * from HallOfFame order by yearid, playerID limit 10");
         ResultSetMetaData metaData = resultSet.getMetaData();
         assertThat(metaData.getColumnCount()).isEqualTo(10);
@@ -161,8 +122,8 @@ public class SqlTest {
         assertThat(metaData.getColumnLabel(1)).isEqualTo("playerID");
         assertThat(metaData.getColumnName(1)).isEqualTo("playerID");
         assertThat(metaData.getScale(1)).isEqualTo(0);
-        assertThat(metaData.getPrecision(1)).isEqualTo(0);
-        assertThat(metaData.getSchemaName(1)).isEqualTo("");
+        assertThat(metaData.getPrecision(1)).isEqualTo(Integer.MAX_VALUE);
+        assertThat(metaData.getSchemaName(1)).isEqualTo("lahman-sabremetrics-dataset");
         assertThat(metaData.getTableName(1)).isEqualTo("");
         assertThat(metaData.isNullable(1)).isEqualTo(1);
         assertThat(metaData.isSigned(1)).isEqualTo(false);
@@ -174,8 +135,9 @@ public class SqlTest {
         assertThat(metaData.isSearchable(1)).isEqualTo(true);
         assertThat(metaData.isWritable(1)).isEqualTo(false);
         assertThat(metaData.getColumnType(1)).isEqualTo(-9);
-        assertThat(metaData.getColumnTypeName(1)).isEqualTo("org.apache.jena.graph.Node");
-        assertThat(metaData.getCatalogName(1)).isEqualTo("RDF");
+        assertThat(metaData.getColumnClassName(1)).isEqualTo(String.class.getName());
+        assertThat(metaData.getColumnTypeName(1)).isEqualTo(Xsd.STRING.getIri());
+        assertThat(metaData.getCatalogName(1)).isEqualTo("dave");
     }
 
     @Test
@@ -187,7 +149,7 @@ public class SqlTest {
     @Test
     @SuppressWarnings("deprecation")
     public void testAllNotSupported() throws Exception {
-        PreparedStatement statement = samplePreparedStatement();
+        DataWorldPreparedStatement statement = samplePreparedStatement();
         assertSQLFeatureNotSupported(() -> statement.setArray(1, null));
         assertSQLFeatureNotSupported(() -> statement.setAsciiStream(1, null));
         assertSQLFeatureNotSupported(() -> statement.setAsciiStream(1, null, 3));
@@ -205,7 +167,6 @@ public class SqlTest {
         assertSQLFeatureNotSupported(() -> statement.setClob(1, (Clob) null));
         assertSQLFeatureNotSupported(() -> statement.setClob(1, (Reader) null));
         assertSQLFeatureNotSupported(() -> statement.setClob(1, null, 3L));
-        assertSQLFeatureNotSupported(() -> statement.setDate(1, null, null));
         assertSQLFeatureNotSupported(() -> statement.setNCharacterStream(1, null));
         assertSQLFeatureNotSupported(() -> statement.setNCharacterStream(1, null, 3L));
         assertSQLFeatureNotSupported(() -> statement.setNClob(1, (NClob) null));
@@ -214,8 +175,6 @@ public class SqlTest {
         assertSQLFeatureNotSupported(() -> statement.setRef(1, null));
         assertSQLFeatureNotSupported(() -> statement.setRowId(1, null));
         assertSQLFeatureNotSupported(() -> statement.setSQLXML(1, null));
-        assertSQLFeatureNotSupported(() -> statement.setTime(1, null, null));
-        assertSQLFeatureNotSupported(() -> statement.setTimestamp(1, null, null));
         assertSQLFeatureNotSupported(() -> statement.setUnicodeStream(1, null, 3));
 
         ResultSetMetaData md = sampleResultSet().getMetaData();

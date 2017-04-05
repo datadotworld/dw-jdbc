@@ -1,0 +1,19 @@
+// Example 7 from https://www.w3.org/TR/2013/NOTE-rdf-json-20131107/
+{
+  "http://example.org/about": {
+    "http://purl.org/dc/terms/creator": [
+      {
+        "value": "_:anna",
+        "type": "bnode"
+      }
+    ]
+  },
+  "_:anna": {
+    "http://xmlns.com/foaf/0.1/name": [
+      {
+        "value": "Anna",
+        "type": "literal"
+      }
+    ]
+  }
+}

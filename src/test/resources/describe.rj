@@ -1,0 +1,18 @@
+{
+  "http://www.w3.org/ns/entailment/Simple": {
+    "http://www.w3.org/ns/sparql-service-description#defaultEntailmentRegime": [
+      {
+        "type": "uri",
+        "value": "http://data.world/user8/lahman-baseball/"
+      }
+    ]
+  },
+  "https://query.data.world/sparql/user8/lahman-baseball": {
+    "http://www.w3.org/ns/sparql-service-description#endpoint": [
+      {
+        "type": "uri",
+        "value": "http://data.world/user8/lahman-baseball/"
+      }
+    ]
+  }
+}

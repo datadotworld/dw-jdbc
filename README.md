@@ -2,20 +2,20 @@
 
 dw-jdbc is a JDBC driver for connecting to datasets hosted on data.world.
 It can be used to provide read-only access to any dataset provided by data.world
-from any JVM language.  dw-jdbc supports query access both in dwSQL 
+from any JVM language.  dw-jdbc supports query access both in dwSQL
 (data.world's SQL dialect) and in SPARQL 1.1, the native query language
 for semantic web data sources.
 
 
 ## JDBC URLs
 
-JDBC connects to data source based on a provided JDBC url.  data.world 
+JDBC connects to data source based on a provided JDBC url.  data.world
 JDBC urls have the form
 
 jdbc:data:world:[language]:[user id]:[dataset id]
 
 where [language] is either "sql" or "sparql",[user id] is the data.world
-id of the dataset owner, and [dataset id] is the data.world identifier for 
+id of the dataset owner, and [dataset id] is the data.world identifier for
 the dataset.
 
 ## Sample code (Java 8)
@@ -33,7 +33,7 @@ final String URL = "jdbc:data:world:sql:dave:lahman-sabremetrics-dataset";
 
 
 try (final Connection connection =    // get a connection to the database, which will automatically be closed when done
-         DriverManager.getConnection(URL, "<your user name>", "<your API token>"); 
+         DriverManager.getConnection(URL, "<your user name>", "<your API token>");
      final PreparedStatement statement = // get a connection to the database, which will automatically be closed when done
          connection.prepareStatement(QUERY)) {
     statement.setString(1, "alexape01"); //bind a query parameter
@@ -52,6 +52,9 @@ try (final Connection connection =    // get a connection to the database, which
                 System.out.print(columnValue);
             }
             System.out.println("");
+
+            // Note: when calling ResultSet.getObject() prefer the version that takes an explicit Class argument:
+            // Integer n = resultSet.getObject(param, Integer.class);
         }
     }
 }
@@ -65,7 +68,7 @@ If using Maven, you can use dw-jdbc by just including the following in your pom.
 <dependency>
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
-    <version>0.1.1</version>
+    <version>0.4</version>
 </dependency>
 ```
 
@@ -77,7 +80,7 @@ provide dw-jdbc bundled with all its dependencies under the following:
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
     <classifier>shaded</classifier>
-    <version>0.2</version>
+    <version>0.4</version>
 </dependency>
 ```
 
