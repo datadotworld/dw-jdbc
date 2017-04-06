@@ -37,7 +37,7 @@ final class RdfParser implements StreamParser<Response> {
     }
 
     @Override
-    public Response parse(InputStream in) throws Exception {
+    public Response parse(InputStream in, String contentType) throws Exception {
         JsonParser parser = ParserUtil.JSON_FACTORY.createParser(in);
         Response.Column[] columns = {
                 Response.Column.builder().name("Subject").required(true).build(),

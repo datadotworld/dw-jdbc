@@ -28,7 +28,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -37,6 +36,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static world.data.jdbc.internal.util.Conditions.check;
@@ -94,7 +94,7 @@ public final class HttpQueryApi implements QueryApi {
                 }
                 buf.append(encode(entry.getKey())).append('=').append(encode(entry.getValue()));
             }
-            byte[] requestBody = buf.toString().getBytes(StandardCharsets.UTF_8);
+            byte[] requestBody = buf.toString().getBytes(UTF_8);
 
             String acceptTypes = responseParsers.stream()
                     .map(StreamParser::getAcceptType)
@@ -124,10 +124,20 @@ public final class HttpQueryApi implements QueryApi {
             int status = connection.getResponseCode();
             String message = connection.getResponseMessage();
 
+            String contentType = trimHeader(connection.getHeaderField("Content-Type"));
+
             // Check for errors, eg. 401 Unauthorized etc.
             if (status >= 400) {
-                new CloseableRef(connection.getErrorStream()).close();
-                throw new SQLException(String.format("HTTP request to '%s' failed with response %d: %s", queryEndpoint, status, message));
+                String details;
+                InputStream err = connection.getErrorStream();
+                try (CloseableRef ignored = new CloseableRef(err)) {
+                    details = err != null ? new ErrorMessageParser().parse(err, contentType) : null;
+                }
+                if (details == null || details.isEmpty()) {
+                    throw new SQLException(String.format("HTTP request to '%s' failed with response %d: %s", queryEndpoint, status, message));
+                } else {
+                    throw new SQLException(String.format("HTTP request to '%s' failed with response %d: %s; %s", queryEndpoint, status, message, details));
+                }
             }
 
             // This endpoint isn't expected to return redirects or other 2xx, 3xx responses
@@ -144,17 +154,8 @@ public final class HttpQueryApi implements QueryApi {
                     in = cleanup.set(new GZIPInputStream(new BufferedInputStream(in)));
                 }
 
-                // Pick a parser based on the content type returned.  The parser becomes responsible for closing
-                // for closing the InputStream
-                String contentType = trimHeader(connection.getHeaderField("Content-Type"));
-                for (StreamParser<T> responseParser : responseParsers) {
-                    for (String acceptType : responseParser.getAcceptType().split(",")) {
-                        if (trimHeader(acceptType).equals(contentType)) {
-                            return responseParser.parse(cleanup.detach(in));
-                        }
-                    }
-                }
-                throw new SQLException(String.format("HTTP request to '%s' failed with unexpected content type: %s", queryEndpoint, contentType));
+                // Parse the InputStream.  The parser becomes responsible for closing.
+                return cleanup.detach(parseResponse(in, contentType, responseParsers));
 
             } catch (SQLException e) {
                 throw e;
@@ -170,6 +171,19 @@ public final class HttpQueryApi implements QueryApi {
         } catch (Exception e) {
             throw new SQLException("Unexpected exception while making HTTP request to server: " + queryEndpoint, e);
         }
+    }
+
+    private <T> T parseResponse(InputStream in, String contentType, List<StreamParser<T>> responseParsers) throws Exception {
+        // Pick a parser based on the content type returned.
+        // for closing the InputStream
+        for (StreamParser<T> responseParser : responseParsers) {
+            for (String acceptType : responseParser.getAcceptType().split(",")) {
+                if (trimHeader(acceptType).equals(contentType)) {
+                    return responseParser.parse(in, contentType);
+                }
+            }
+        }
+        throw new SQLException(String.format("HTTP request to '%s' failed with unexpected content type: %s", queryEndpoint, contentType));
     }
 
     private String trimHeader(String header) {

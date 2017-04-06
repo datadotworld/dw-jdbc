@@ -49,7 +49,7 @@ public class RdfParserTest {
     @Test
     public void testParser() throws Exception {
         RdfParser parser = new RdfParser();
-        Response response = parser.parse(getResource("rdf-1.rj"));
+        Response response = parser.parse(getResource("rdf-1.rj"), "application/rdf+json");
         closer.register(response.getCleanup());
 
         assertThat(response.getBooleanResult()).isNull();
