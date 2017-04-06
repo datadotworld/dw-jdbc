@@ -132,7 +132,7 @@ public class SparqlResultsParserTest {
 
     private Response parse(String resourceName) throws Exception {
         SparqlResultsParser parser = new SparqlResultsParser();
-        Response response = parser.parse(getResource(resourceName));
+        Response response = parser.parse(getResource(resourceName), "application/sparql-results+json");
         if (response.getCleanup() != null) {
             closer.register(response.getCleanup());
         }

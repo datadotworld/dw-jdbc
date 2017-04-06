@@ -29,5 +29,5 @@ interface StreamParser<T> {
     String getAcceptType();
 
     /** Parses an HTTP response.  The parser is responsible for closing the InputStream. */
-    T parse(InputStream in) throws Exception;
+    T parse(InputStream in, String contentType) throws Exception;
 }

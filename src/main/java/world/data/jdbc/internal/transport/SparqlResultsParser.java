@@ -45,7 +45,7 @@ final class SparqlResultsParser implements StreamParser<Response> {
     }
 
     @Override
-    public Response parse(InputStream in) throws IOException {
+    public Response parse(InputStream in, String contentType) throws IOException {
         JsonParser parser = ParserUtil.JSON_FACTORY.createParser(in);
         List<Response.Column> columns = null;
         List<String> variables = new ArrayList<>();
