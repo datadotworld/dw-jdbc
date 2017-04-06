@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -10,7 +9,7 @@
     </parent>
 
     <artifactId>dw-jdbc</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4</version>
 
     <name>dw-jdbc</name>
 
@@ -26,7 +25,7 @@
         <connection>scm:git:git@github.com:datadotworld/dw-jdbc.git</connection>
         <developerConnection>scm:git:git@github.com:datadotworld/dw-jdbc.git</developerConnection>
         <url>git@github.com:datadotworld/dw-jdbc.git</url>
-        <tag>HEAD</tag>
+        <tag>v0.4</tag>
     </scm>
 
     <properties>
@@ -111,7 +110,7 @@
                         </relocation>
                     </relocations>
                     <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                     </transformers>
                 </configuration>
             </plugin>
@@ -221,8 +220,7 @@
                         </goals>
                         <configuration>
                             <rules>
-                                <compound
-                                        implementation="com.github.ferstl.maven.pomenforcers.CompoundPedanticEnforcer">
+                                <compound implementation="com.github.ferstl.maven.pomenforcers.CompoundPedanticEnforcer">
                                     <enforcers>
                                         POM_SECTION_ORDER,MODULE_ORDER,DEPENDENCY_MANAGEMENT_ORDER,DEPENDENCY_ORDER,DEPENDENCY_SCOPE,PLUGIN_MANAGEMENT_ORDER
                                     </enforcers>
