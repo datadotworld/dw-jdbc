@@ -72,6 +72,9 @@ If using Maven, you can use dw-jdbc by just including the following in your pom.
 </dependency>
 ```
 
+See [this link at Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cdw-jdbc) to find the latest version
+number for the JDBC driver.
+
 For some database tools it's easier to install the jdbc driver if it's a single jar.  For this reason we also
 provide dw-jdbc bundled with all its dependencies under the following:
 

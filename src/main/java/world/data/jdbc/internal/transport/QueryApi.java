@@ -20,10 +20,11 @@ package world.data.jdbc.internal.transport;
 
 import world.data.jdbc.model.Node;
 
+import java.io.Closeable;
 import java.sql.SQLException;
 import java.util.Map;
 
-public interface QueryApi {
+public interface QueryApi extends Closeable {
 
     Response executeQuery(String query, Map<String, Node> parameters, Integer timeoutSeconds) throws SQLException;
 }

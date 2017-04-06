@@ -33,7 +33,10 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPInputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -46,6 +49,7 @@ import static world.data.jdbc.internal.util.Optionals.or;
  * The class that actually executes HTTP requests against a remote data.world query server.
  */
 public final class HttpQueryApi implements QueryApi {
+    private static final AtomicLong THREAD_COUNTER = new AtomicLong(0);
 
     // Order the response parsers from most to least desirable for content-type negotiation
     private static final List<StreamParser<Response>> STANDARD_PARSERS = Arrays.asList(
@@ -55,11 +59,18 @@ public final class HttpQueryApi implements QueryApi {
     private final URL queryEndpoint;
     private final String userAgent;
     private final String authToken;
+    private final ExecutorService cachedThreadPool = Executors.newCachedThreadPool((Runnable target) ->
+            new Thread(target, String.format("dw-jdbc-%d", THREAD_COUNTER.getAndIncrement())));
 
     public HttpQueryApi(URL queryEndpoint, String userAgent, String authToken) {
         this.queryEndpoint = requireNonNull(queryEndpoint, "queryEndpoint");
         this.userAgent = requireNonNull(userAgent, "userAgent");
         this.authToken = authToken;
+    }
+
+    @Override
+    public void close() {
+        cachedThreadPool.shutdown();
     }
 
     @Override
@@ -148,6 +159,8 @@ public final class HttpQueryApi implements QueryApi {
             // Once we've checked that status is 2xx or 3xx it's safe to get the InputStream
             InputStream in = connection.getInputStream();
             try (CloseableRef cleanup = new CloseableRef(in)) {
+                // Download the content as fast as possible to release the http connection quickly
+                in = cleanup.set(new FileBackedInputStream(in, 16384, cachedThreadPool));
 
                 // Decompress the response, if necessary
                 if ("gzip".equals(trimHeader(connection.getHeaderField("Content-Encoding")))) {

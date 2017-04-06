@@ -135,7 +135,9 @@ public final class Driver implements java.sql.Driver {
             throw new SQLException("Unknown query language: " + lang);
         }
 
-        return new ConnectionImpl(queryEngine, jdbcCompatibility);
+        ConnectionImpl connection = new ConnectionImpl(queryEngine, jdbcCompatibility);
+        connection.getResources().register(queryApi);
+        return connection;
     }
 
     private static URL getQueryEndpoint(String queryBaseUrl, String lang, String agentId, String datasetId) throws SQLException {
