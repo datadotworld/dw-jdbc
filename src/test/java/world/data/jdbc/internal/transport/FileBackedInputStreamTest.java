@@ -23,7 +23,11 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import world.data.jdbc.testing.CloserResource;
 
+import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
+import java.io.FilterInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.concurrent.Executor;
@@ -32,6 +36,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -130,6 +135,29 @@ public class FileBackedInputStreamTest {
         semaphore.release();
         verify(contentIn, timeout(1000)).close();
         verifyNoMoreInteractions(contentIn);
+    }
+
+    @Test
+    public void testDownloadException() throws Exception {
+        byte[] content = genSampleBytes(8000);
+        // Simulate the socket being closed before all expected bytes were downloaded.
+        InputStream contentIn = new FilterInputStream(new ByteArrayInputStream(content)) {
+            @Override
+            public int read(@Nonnull byte[] b, int off, int len) throws IOException {
+                int count = super.read(b, off, len);
+                if (count == -1) {
+                    throw new EOFException("Unexpected end of input");
+                }
+                return count;
+            }
+        };
+        try (InputStream in = new FileBackedInputStream(contentIn, 0, newCachedExecutor())) {
+            //noinspection ResultOfMethodCallIgnored
+            assertThatThrownBy(() -> in.skip(10000))
+                    .isExactlyInstanceOf(IOException.class)
+                    .hasMessage("Unexpected end of input")
+                    .hasCauseExactlyInstanceOf(EOFException.class);
+        }
     }
 
     private byte[] genSampleBytes(int length) {

@@ -97,12 +97,6 @@ class FileBackedInputStream extends InputStream {
         }
     }
 
-    private void checkAsyncException() throws IOException {
-        if (throwable != null) {
-            throw new IOException(throwable.getMessage(), throwable);
-        }
-    }
-
     @Override
     public int read() throws IOException {
         if (memIn != null) {
@@ -110,18 +104,14 @@ class FileBackedInputStream extends InputStream {
             if (b != -1) {
                 return b;
             }
+            // Reached 'memIn' EOF, fall through to 'fileIn'
             memIn = null;
         }
         if (fileIn != null) {
-            try {
-                sync.acquireSharedInterruptibly(1);
-                checkAsyncException();
-                return fileIn.read();
-            } catch (InterruptedException e) {
-                throw new IOException("Interrupted while reading from file.", e);
-            }
+            acquire(1);
+            return fileIn.read();
         }
-        return -1;
+        return -1;  // EOF
     }
 
     @Override
@@ -131,18 +121,27 @@ class FileBackedInputStream extends InputStream {
             if (count != -1) {
                 return count;
             }
+            // Reached 'memIn' EOF, fall through to 'fileIn'
             memIn = null;
         }
         if (fileIn != null) {
-            try {
-                sync.acquireSharedInterruptibly(len);
-                checkAsyncException();
-                return fileIn.read(b, off, len);
-            } catch (InterruptedException e) {
-                throw new IOException("Interrupted while reading from file.", e);
-            }
+            acquire(len);
+            return fileIn.read(b, off, len);
         }
-        return -1;
+        return -1;  // EOF
+    }
+
+    /** Wait until the copyAsync() thread has copied enough to read 'len' more bytes, or EOF. */
+    private void acquire(int len) throws IOException {
+        try {
+            sync.acquireSharedInterruptibly(len);
+        } catch (InterruptedException e) {
+            throw new IOException("Interrupted while reading from file.", e);
+        }
+        // Rethrow on the main thread exceptions caught by the copyAsync() thread.
+        if (throwable != null) {
+            throw new IOException(throwable.getMessage(), throwable);
+        }
     }
 
     @Override
