@@ -68,7 +68,7 @@ If using Maven, you can use dw-jdbc by just including the following in your pom.
 <dependency>
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
-    <version>0.4</version>
+    <version>0.4.1</version>
 </dependency>
 ```
 
@@ -83,7 +83,7 @@ provide dw-jdbc bundled with all its dependencies under the following:
     <groupId>world.data</groupId>
     <artifactId>dw-jdbc</artifactId>
     <classifier>shaded</classifier>
-    <version>0.4</version>
+    <version>0.4.1</version>
 </dependency>
 ```
 
