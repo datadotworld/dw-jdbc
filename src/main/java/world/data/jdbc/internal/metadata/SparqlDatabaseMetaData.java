@@ -71,6 +71,20 @@ public final class SparqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
+    public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
+        List<Object[]> rows = new ArrayList<>();
+        if (nullOrEquals(catalog, this.catalog) && nullOrMatches(schemaPattern, this.schema)) {
+            rows.add(new Object[]{
+                    // TABLE_SCHEM String => schema name
+                    schema,
+                    // TABLE_CATALOG String => catalog name (may be null)
+                    this.catalog,
+            });
+        }
+        return MetaDataSchema.newResultSet(MetaDataSchema.SCHEMA_COLUMNS, rows);
+    }
+
+    @Override
     public String getSQLKeywords() {
         return String.join(",", "ABS", "ADD", "ALL", "AS", "ASC", "ASK", "AVG", "BASE", "BIND", "BNODE", "BOUND",
                 "BY", "CEIL", "CLEAR", "COALESCE", "CONCAT", "CONSTRUCT", "CONTAINS", "COPY", "COUNT", "CREATE",
