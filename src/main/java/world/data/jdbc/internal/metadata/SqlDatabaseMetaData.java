@@ -55,13 +55,13 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT *" +
                         " FROM TableColumns" +
-                        " WHERE owner = ?" +
+                        " WHERE owner = COALESCE(?,owner)" +
                         " AND dataset LIKE ?" +
                         " AND tableName LIKE ?" +
                         " AND columnName LIKE ?" +
                         " ORDER BY owner, dataset, tableName, columnIndex")) {
             int index = 0;
-            statement.setString(++index, or(catalog, this.catalog));
+            statement.setString(++index, catalog);
             statement.setString(++index, or(schemaPattern, "%"));
             statement.setString(++index, or(tableNamePattern, "%"));
             statement.setString(++index, or(columnNamePattern, "%"));
@@ -166,11 +166,11 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT DISTINCT owner, dataset" +
                         " FROM Tables" +
-                        " WHERE owner = ?" +
+                        " WHERE owner = COALESCE(?,owner)" +
                         " AND dataset LIKE ?" +
                         " ORDER BY owner, dataset")) {
             int index = 0;
-            statement.setString(++index, or(catalog, this.catalog));
+            statement.setString(++index, catalog);
             statement.setString(++index, or(schemaPattern, "%"));
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -220,12 +220,12 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
             try (PreparedStatement statement = connection.prepareStatement(
                     "SELECT DISTINCT owner, dataset, tableName" +
                             " FROM Tables" +
-                            " WHERE owner = ?" +
+                            " WHERE owner = COALESCE(?,owner)" +
                             " AND dataset LIKE ?" +
                             " AND tableName LIKE ?" +
                             " ORDER BY owner, dataset, tableName")) {
                 int index = 0;
-                statement.setString(++index, or(catalog, this.catalog));
+                statement.setString(++index, catalog);
                 statement.setString(++index, or(schemaPattern, "%"));
                 statement.setString(++index, or(tableNamePattern, "%"));
                 ResultSet resultSet = statement.executeQuery();
