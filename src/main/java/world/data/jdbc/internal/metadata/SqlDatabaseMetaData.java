@@ -33,8 +33,6 @@ import java.util.List;
 
 import static world.data.jdbc.internal.util.Optionals.mapIfPresent;
 import static world.data.jdbc.internal.util.Optionals.nullOrContains;
-import static world.data.jdbc.internal.util.Optionals.nullOrEquals;
-import static world.data.jdbc.internal.util.Optionals.nullOrMatches;
 import static world.data.jdbc.internal.util.Optionals.or;
 
 /**
@@ -54,86 +52,94 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     @Override
     public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
         List<Object[]> rows = new ArrayList<>();
-        if (nullOrEquals(catalog, this.catalog) && nullOrMatches(schemaPattern, this.schema)) {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM TableColumns WHERE tableId LIKE ? AND columnName LIKE ? ORDER BY tableId, columnIndex")) {
-                int index = 0;
-                statement.setString(++index, or(tableNamePattern, "%"));
-                statement.setString(++index, or(columnNamePattern, "%"));
-                ResultSet resultSet = statement.executeQuery();
-                while (resultSet.next()) {
-                    String tableName = resultSet.getString("tableId");
-                    int columnIndex = resultSet.getInt("columnIndex");
-                    String columnName = resultSet.getString("columnName");
-                    Iri datatype = mapIfPresent(resultSet.getString("columnDatatype"), Iri::new);
-                    Boolean nullable = resultSet.getObject("columnNullable", Boolean.class);
-                    TypeMapping mapping = TypeMap.INSTANCE.getStandardOrCustom(datatype);
-                    rows.add(new Object[]{
-                            // TABLE_CAT String => table catalog (may be null)
-                            this.catalog,
-                            // TABLE_SCHEM String => table schema (may be null)
-                            schema,
-                            // TABLE_NAME String => table name
-                            tableName,
-                            // COLUMN_NAME String => column name
-                            columnName,
-                            // DATA_TYPE int => SQL type from java.sql.Types
-                            mapping.getJdbcType().getVendorTypeNumber(),
-                            // TYPE_NAME String => Data source dependent type name, for a UDT the type name is fully qualified
-                            mapping.getDatatype(),
-                            // COLUMN_SIZE int => column size.
-                            mapping.getPrecision(),
-                            // BUFFER_LENGTH is not used.
-                            null,
-                            // DECIMAL_DIGITS int => the number of fractional digits.
-                            // Null is returned for data types where DECIMAL_DIGITS is not applicable.
-                            mapping.getMaxScale(),
-                            // NUM_PREC_RADIX int => Radix (typically either 10 or 2)
-                            10,
-                            // NULLABLE int => is NULL allowed.
-                            // columnNoNulls - might not allow NULL values
-                            // columnNullable - definitely allows NULL values
-                            // columnNullableUnknown - nullability unknown
-                            nullable == null ? columnNullableUnknown : nullable ? columnNullable : columnNoNulls,
-                            // REMARKS String => comment describing column (may be null),
-                            null,
-                            // COLUMN_DEF String => default value for the column, which should
-                            // be interpreted as a string when the value is enclosed in single quotes (may be null)
-                            null,
-                            // SQL_DATA_TYPE int => unused
-                            null,
-                            // SQL_DATETIME_SUB int => unused
-                            null,
-                            // CHAR_OCTET_LENGTH int => for char types the maximum number of bytes in the column
-                            Xsd.STRING.equals(mapping.getDatatype()) ? Integer.MAX_VALUE : null,
-                            // ORDINAL_POSITION int => index of column in table (starting at 1)
-                            columnIndex,
-                            // IS_NULLABLE String => ISO rules are used to determine the nullability for a column.
-                            // YES --- if the parameter can include NULLs
-                            // NO --- if the parameter cannot include NULLs
-                            // empty string --- if the nullability for the parameter is unknown
-                            nullable == null ? "" : nullable ? "YES" : "NO",
-                            // SCOPE_CATLOG String => catalog of table that is the scope of a
-                            // reference attribute (null if DATA_TYPE isn't REF)
-                            null,
-                            // SCOPE_SCHEMA String => schema of table that is the scope of a
-                            // reference attribute (null if the DATA_TYPE isn't REF)
-                            null,
-                            // SCOPE_TABLE String => table name that this the scope of a
-                            // reference attribure (null if the DATA_TYPE isn't REF)
-                            null,
-                            // SOURCE_DATA_TYPE short => source type of a distinct type or
-                            // user-generated Ref type, SQL type from java.sql.Types (null if
-                            // DATA_TYPE isn't DISTINCT or user-generated REF)
-                            null,
-                            // IS_AUTOINCREMENT String => Indicates whether this column is auto incremented
-                            // YES --- if the column is auto incremented
-                            // NO --- if the column is not auto incremented
-                            // empty string --- if it cannot be determined whether the column is
-                            // auto incremented parameter is unknown
-                            "NO",
-                    });
-                }
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT *" +
+                        " FROM TableColumns" +
+                        " WHERE owner = ?" +
+                        " AND dataset LIKE ?" +
+                        " AND tableName LIKE ?" +
+                        " AND columnName LIKE ?" +
+                        " ORDER BY owner, dataset, tableName, columnIndex")) {
+            int index = 0;
+            statement.setString(++index, or(catalog, this.catalog));
+            statement.setString(++index, or(schemaPattern, "%"));
+            statement.setString(++index, or(tableNamePattern, "%"));
+            statement.setString(++index, or(columnNamePattern, "%"));
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String owner = resultSet.getString("owner");
+                String dataset = resultSet.getString("dataset");
+                String tableName = resultSet.getString("tableName");
+                int columnIndex = resultSet.getInt("columnIndex");
+                String columnName = resultSet.getString("columnName");
+                Iri datatype = mapIfPresent(resultSet.getString("columnDatatype"), Iri::new);
+                Boolean nullable = resultSet.getObject("columnNullable", Boolean.class);
+                TypeMapping mapping = TypeMap.INSTANCE.getStandardOrCustom(datatype);
+                rows.add(new Object[]{
+                        // TABLE_CAT String => table catalog (may be null)
+                        owner,
+                        // TABLE_SCHEM String => table schema (may be null)
+                        dataset,
+                        // TABLE_NAME String => table name
+                        tableName,
+                        // COLUMN_NAME String => column name
+                        columnName,
+                        // DATA_TYPE int => SQL type from java.sql.Types
+                        mapping.getJdbcType().getVendorTypeNumber(),
+                        // TYPE_NAME String => Data source dependent type name, for a UDT the type name is fully qualified
+                        mapping.getDatatype(),
+                        // COLUMN_SIZE int => column size.
+                        mapping.getPrecision(),
+                        // BUFFER_LENGTH is not used.
+                        null,
+                        // DECIMAL_DIGITS int => the number of fractional digits.
+                        // Null is returned for data types where DECIMAL_DIGITS is not applicable.
+                        mapping.getMaxScale(),
+                        // NUM_PREC_RADIX int => Radix (typically either 10 or 2)
+                        10,
+                        // NULLABLE int => is NULL allowed.
+                        // columnNoNulls - might not allow NULL values
+                        // columnNullable - definitely allows NULL values
+                        // columnNullableUnknown - nullability unknown
+                        nullable == null ? columnNullableUnknown : nullable ? columnNullable : columnNoNulls,
+                        // REMARKS String => comment describing column (may be null),
+                        null,
+                        // COLUMN_DEF String => default value for the column, which should
+                        // be interpreted as a string when the value is enclosed in single quotes (may be null)
+                        null,
+                        // SQL_DATA_TYPE int => unused
+                        null,
+                        // SQL_DATETIME_SUB int => unused
+                        null,
+                        // CHAR_OCTET_LENGTH int => for char types the maximum number of bytes in the column
+                        Xsd.STRING.equals(mapping.getDatatype()) ? Integer.MAX_VALUE : null,
+                        // ORDINAL_POSITION int => index of column in table (starting at 1)
+                        columnIndex,
+                        // IS_NULLABLE String => ISO rules are used to determine the nullability for a column.
+                        // YES --- if the parameter can include NULLs
+                        // NO --- if the parameter cannot include NULLs
+                        // empty string --- if the nullability for the parameter is unknown
+                        nullable == null ? "" : nullable ? "YES" : "NO",
+                        // SCOPE_CATLOG String => catalog of table that is the scope of a
+                        // reference attribute (null if DATA_TYPE isn't REF)
+                        null,
+                        // SCOPE_SCHEMA String => schema of table that is the scope of a
+                        // reference attribute (null if the DATA_TYPE isn't REF)
+                        null,
+                        // SCOPE_TABLE String => table name that this the scope of a
+                        // reference attribure (null if the DATA_TYPE isn't REF)
+                        null,
+                        // SOURCE_DATA_TYPE short => source type of a distinct type or
+                        // user-generated Ref type, SQL type from java.sql.Types (null if
+                        // DATA_TYPE isn't DISTINCT or user-generated REF)
+                        null,
+                        // IS_AUTOINCREMENT String => Indicates whether this column is auto incremented
+                        // YES --- if the column is auto incremented
+                        // NO --- if the column is not auto incremented
+                        // empty string --- if it cannot be determined whether the column is
+                        // auto incremented parameter is unknown
+                        "NO",
+                });
             }
         }
         return MetaDataSchema.newResultSet(MetaDataSchema.COLUMN_COLUMNS, rows);
@@ -152,6 +158,33 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     @Override
     public String getNumericFunctions() {
         return String.join(",", "ABS", "CEIL", "FLOOR", "ROUND");
+    }
+
+    @Override
+    public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
+        List<Object[]> rows = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT DISTINCT owner, dataset" +
+                        " FROM Tables" +
+                        " WHERE owner = ?" +
+                        " AND dataset LIKE ?" +
+                        " ORDER BY owner, dataset")) {
+            int index = 0;
+            statement.setString(++index, or(catalog, this.catalog));
+            statement.setString(++index, or(schemaPattern, "%"));
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String owner = resultSet.getString("owner");
+                String dataset = resultSet.getString("dataset");
+                rows.add(new Object[]{
+                        // TABLE_SCHEM String => schema name
+                        dataset,
+                        // TABLE_CATALOG String => catalog name (may be null)
+                        owner,
+                });
+            }
+        }
+        return MetaDataSchema.newResultSet(MetaDataSchema.SCHEMA_COLUMNS, rows);
     }
 
     @Override
@@ -183,21 +216,30 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types)
             throws SQLException {
         List<Object[]> rows = new ArrayList<>();
-        if (nullOrEquals(catalog, this.catalog) && nullOrMatches(schemaPattern, this.schema) && nullOrContains(types, "TABLE")) {
+        if (nullOrContains(types, "TABLE")) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM Tables WHERE tableId LIKE ? ORDER BY tableId")) {
+                    "SELECT DISTINCT owner, dataset, tableName" +
+                            " FROM Tables" +
+                            " WHERE owner = ?" +
+                            " AND dataset LIKE ?" +
+                            " AND tableName LIKE ?" +
+                            " ORDER BY owner, dataset, tableName")) {
                 int index = 0;
+                statement.setString(++index, or(catalog, this.catalog));
+                statement.setString(++index, or(schemaPattern, "%"));
                 statement.setString(++index, or(tableNamePattern, "%"));
                 ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
-                    String tableId = resultSet.getString("tableId");
+                    String owner = resultSet.getString("owner");
+                    String dataset = resultSet.getString("dataset");
+                    String tableName = resultSet.getString("tableName");
                     rows.add(new Object[]{
                             // TABLE_CAT String => table catalog (may be null)
-                            this.catalog,
+                            owner,
                             // TABLE_SCHEM String => table schema (may be null)
-                            schema,
+                            dataset,
                             // TABLE_NAME String => table name
-                            tableId,
+                            tableName,
                             // TABLE_TYPE String => table type. Typical types are "TABLE", "VIEW", "SYSTEM TABLE",
                             // "GLOBAL TEMPORARY", "LOCAL TEMPORARY", "ALIAS", "SYNONYM".
                             "TABLE",

@@ -35,8 +35,6 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 import static world.data.jdbc.internal.util.Conditions.check;
-import static world.data.jdbc.internal.util.Optionals.nullOrEquals;
-import static world.data.jdbc.internal.util.Optionals.nullOrMatches;
 import static world.data.jdbc.internal.util.Optionals.or;
 
 /**
@@ -412,20 +410,6 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
     @Override
     public ResultSet getSchemas() throws SQLException {
         return getSchemas(null, null);
-    }
-
-    @Override
-    public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
-        List<Object[]> rows = new ArrayList<>();
-        if (nullOrEquals(catalog, this.catalog) && nullOrMatches(schemaPattern, this.schema)) {
-            rows.add(new Object[]{
-                    // TABLE_SCHEM String => schema name
-                    schema,
-                    // TABLE_CATALOG String => catalog name (may be null)
-                    this.catalog,
-            });
-        }
-        return MetaDataSchema.newResultSet(MetaDataSchema.SCHEMA_COLUMNS, rows);
     }
 
     @Override
