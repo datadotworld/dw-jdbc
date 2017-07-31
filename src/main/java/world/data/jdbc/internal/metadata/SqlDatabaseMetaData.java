@@ -50,6 +50,25 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
+    public ResultSet getCatalogs() throws SQLException {
+        List<Object[]> rows = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT DISTINCT owner" +
+                        " FROM Schemata" +
+                        " ORDER BY owner")) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String owner = resultSet.getString("owner");
+                rows.add(new Object[]{
+                        // TABLE_CAT String => catalog name
+                        owner,
+                });
+            }
+        }
+        return MetaDataSchema.newResultSet(MetaDataSchema.CATALOG_COLUMNS, rows);
+    }
+
+    @Override
     public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
         List<Object[]> rows = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
@@ -165,7 +184,7 @@ public final class SqlDatabaseMetaData extends AbstractDatabaseMetaData {
         List<Object[]> rows = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT DISTINCT owner, dataset" +
-                        " FROM Tables" +
+                        " FROM Schemata" +
                         " WHERE owner = COALESCE(?,owner)" +
                         " AND dataset LIKE ?" +
                         " ORDER BY owner, dataset")) {

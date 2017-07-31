@@ -141,12 +141,6 @@ abstract class AbstractDatabaseMetaData implements DatabaseMetaData {
     }
 
     @Override
-    public ResultSet getCatalogs() throws SQLException {
-        Object[][] rows = {{catalog}};
-        return MetaDataSchema.newResultSet(MetaDataSchema.CATALOG_COLUMNS, rows);
-    }
-
-    @Override
     public ResultSet getClientInfoProperties() throws SQLException {
         return MetaDataSchema.newResultSet(MetaDataSchema.CLIENT_INFO_PROPERTY_COLUMNS);
     }
