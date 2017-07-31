@@ -45,6 +45,12 @@ public final class SparqlDatabaseMetaData extends AbstractDatabaseMetaData {
     }
 
     @Override
+    public ResultSet getCatalogs() throws SQLException {
+        Object[][] rows = {{catalog}};
+        return MetaDataSchema.newResultSet(MetaDataSchema.CATALOG_COLUMNS, rows);
+    }
+
+    @Override
     public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
         return MetaDataSchema.newResultSet(MetaDataSchema.COLUMN_COLUMNS);
     }
