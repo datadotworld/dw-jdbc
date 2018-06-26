@@ -47,9 +47,10 @@ import static world.data.jdbc.internal.util.Optionals.mapIfPresent;
 
 public final class CallableStatementImpl extends PreparedStatementImpl implements DataWorldCallableStatement, ReadOnlyCallableStatement {
 
-    public CallableStatementImpl(String query, QueryEngine queryEngine, DataWorldConnection connection)
+    public CallableStatementImpl(String query, QueryEngine queryEngine, DataWorldConnection connection,
+                                 int resultSetType, int resultSetConcurrency, int resultSetHoldability)
             throws SQLException {
-        super(query, queryEngine, connection);
+        super(query, queryEngine, connection, resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override

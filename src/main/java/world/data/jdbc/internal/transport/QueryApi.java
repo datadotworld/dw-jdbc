@@ -26,5 +26,6 @@ import java.util.Map;
 
 public interface QueryApi extends Closeable {
 
-    Response executeQuery(String query, Map<String, Node> parameters, Integer timeoutSeconds) throws SQLException;
+    Response executeQuery(String query, Map<String, Node> parameters,
+                          Integer maxRowsToReturn, Integer timeoutSeconds) throws SQLException;
 }

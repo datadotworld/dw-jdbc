@@ -66,6 +66,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>2.4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.10.0</version>
@@ -196,7 +202,8 @@
                                 <bannedDependencies>
                                     <excludes>
                                         <!-- The jdbc driver should use java.util.Logging, not a 3rd-party logging library -->
-                                        <exclude>commons-logging:commons-logging</exclude>
+                                        <exclude>commons-logging:commons-logging:*:*:compile</exclude>
+                                        <exclude>commons-logging:commons-logging:*:*:runtime</exclude>
                                         <exclude>log4j:log4j</exclude>
                                         <exclude>org.slf4j:slf4j-api</exclude>
 
@@ -206,7 +213,8 @@
                                         <exclude>com.fasterxml.jackson.core:jackson-databind</exclude>
                                         <exclude>com.google.guava:guava</exclude>
                                         <exclude>commons-io:commons-io:*:*:compile</exclude>
-                                        <exclude>org.apache.commons</exclude>
+                                        <exclude>org.apache.commons:*:*:compile</exclude>
+                                        <exclude>org.apache.commons:*:*:runtime</exclude>
                                         <exclude>org.apache.httpcomponents</exclude>
                                         <exclude>org.apache.jena</exclude>
                                     </excludes>

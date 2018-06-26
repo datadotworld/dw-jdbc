@@ -41,6 +41,10 @@ import java.util.Queue;
 
 import static java.util.Objects.requireNonNull;
 import static world.data.jdbc.internal.util.Conditions.check;
+import static world.data.jdbc.internal.util.Conditions.checkResultSetConcurrency;
+import static world.data.jdbc.internal.util.Conditions.checkResultSetDirection;
+import static world.data.jdbc.internal.util.Conditions.checkResultSetHoldability;
+import static world.data.jdbc.internal.util.Conditions.checkResultSetType;
 import static world.data.jdbc.internal.util.Conditions.checkSupported;
 import static world.data.jdbc.internal.util.Optionals.or;
 
@@ -50,8 +54,9 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     private static final int NO_LIMIT = 0;
 
     private int timeout = NO_LIMIT;
+    private int maxRows = NO_LIMIT;
     private JdbcCompatibility compatibilityLevel;
-    private SQLWarning warnings = null;
+    private SQLWarning warnings;
 
     final QueryEngine queryEngine;
     private final DataWorldConnection connection;
@@ -63,9 +68,18 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     private ResultSet currResults;
     private boolean closed;
 
-    public StatementImpl(QueryEngine queryEngine, DataWorldConnection connection) {
+    public StatementImpl(QueryEngine queryEngine, DataWorldConnection connection,
+                         int resultSetType, int resultSetConcurrency, int resultSetHoldability)
+            throws SQLException {
         this.queryEngine = requireNonNull(queryEngine, "queryEngine");
         this.connection = requireNonNull(connection, "connection");
+
+        checkResultSetType(resultSetType);
+        checkResultSetConcurrency(resultSetConcurrency);
+        checkResultSetHoldability(resultSetHoldability);
+        checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Only forward-only result sets are supported");
+        checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Only read-only concurrency result sets are supported");
+
         ((ResourceContainer) connection).getResources().register(this);
     }
 
@@ -115,62 +129,70 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     }
 
     @Override
-    public final DataWorldConnection getConnection() {
+    public final DataWorldConnection getConnection() throws SQLException {
+        checkClosed();
         return connection;
     }
 
     @Override
-    public final void clearWarnings() {
+    public final void clearWarnings() throws SQLException {
+        checkClosed();
         warnings = null;
     }
 
     @Override
-    public final int getFetchDirection() {
+    public final int getFetchDirection() throws SQLException {
+        checkClosed();
         return ResultSet.FETCH_FORWARD;
     }
 
     @Override
-    public final int getFetchSize() {
+    public final int getFetchSize() throws SQLException {
+        checkClosed();
         return 0;
     }
 
     @Override
-    public final int getMaxFieldSize() {
+    public final int getMaxFieldSize() throws SQLException {
+        checkClosed();
         return NO_LIMIT;
     }
 
     @Override
-    public final int getMaxRows() {
-        return NO_LIMIT;
+    public final int getMaxRows() throws SQLException {
+        checkClosed();
+        return maxRows;
     }
 
     /**
      * Gets that result sets are read-only
      */
     @Override
-    public final int getResultSetConcurrency() {
+    public final int getResultSetConcurrency() throws SQLException {
+        checkClosed();
         return ResultSet.CONCUR_READ_ONLY;
     }
 
     @Override
-    public final int getResultSetHoldability() {
+    public final int getResultSetHoldability() throws SQLException {
+        checkClosed();
         return ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
 
     @Override
-    public final int getResultSetType() {
+    public final int getResultSetType() throws SQLException {
+        checkClosed();
         return ResultSet.TYPE_FORWARD_ONLY;
     }
 
     @Override
-    public final SQLWarning getWarnings() {
+    public final SQLWarning getWarnings() throws SQLException {
+        checkClosed();
         return warnings;
     }
 
     /**
      * Helper method that derived classes may use to set warnings
-     *
-     * @param warning Warning
      */
     private void setWarning(SQLWarning warning) {
         log.warning("SQL Warning was issued: " + warning);
@@ -200,7 +222,7 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
         doAddBatch(query, Collections.emptyMap());
     }
 
-    void doAddBatch(String query, Map<String, Node> params) throws SQLException {
+    void doAddBatch(String query, Map<String, Node> params) {
         commands.add(new BatchItem(query, params));
     }
 
@@ -290,28 +312,32 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
 
     @Override
     public final void setFetchDirection(int direction) throws SQLException {
-        checkSupported(direction == ResultSet.FETCH_FORWARD, "Only ResultSet.FETCH_FORWARD is supported as a fetch direction");
+        checkResultSetDirection(direction);
+        // The fetch direction is a hint that this driver ignores
     }
 
     @Override
-    public final void setFetchSize(int rows) {
-        setWarning("setMaxFieldSize() was called but there is no fetch size control for data.world JDBC connections");
+    public final void setFetchSize(int rows) throws SQLException {
+        check(rows >= 0, "rows must be non-negative");
     }
 
     @Override
-    public final void setMaxFieldSize(int max) {
-        // Ignored
+    public final void setMaxFieldSize(int max) throws SQLException {
+        check(max >= 0, "max must be non-negative");
         setWarning("setMaxFieldSize() was called but there is no field size limit for data.world JDBC connections");
     }
 
     @Override
-    public final void setMaxRows(int max) {
-        setWarning("setMaxRows() was called but there is no row size limit for data.world JDBC connections");
+    public final void setMaxRows(int max) throws SQLException {
+        check(max >= 0, "max must be non-negative");
+        this.maxRows = max;
     }
 
     @Override
     public final void setPoolable(boolean poolable) {
-        setWarning("setPoolable() was called but data.world JDBC statements are always considered poolable");
+        if (!poolable) {
+            setWarning("setPoolable() was called but data.world JDBC statements are always considered poolable");
+        }
     }
 
     @Override
@@ -330,8 +356,7 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     @Override
     @SuppressWarnings("javadoc")
     public final void closeOnCompletion() throws SQLException {
-        // We don't support the JDBC 4.1 feature of closing statements
-        // automatically
+        // We don't support the JDBC 4.1 feature of closing statements automatically
         throw new SQLFeatureNotSupportedException();
     }
 

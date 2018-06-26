@@ -71,9 +71,10 @@ public class PreparedStatementImpl extends StatementImpl implements DataWorldPre
      * @param connection Connection
      * @throws SQLException Thrown if there is a problem preparing the statement
      */
-    public PreparedStatementImpl(String query, QueryEngine queryEngine, DataWorldConnection connection)
+    public PreparedStatementImpl(String query, QueryEngine queryEngine, DataWorldConnection connection,
+                                 int resultSetType, int resultSetConcurrency, int resultSetHoldability)
             throws SQLException {
-        super(queryEngine, connection);
+        super(queryEngine, connection, resultSetType, resultSetConcurrency, resultSetHoldability);
         this.query = requireNonNull(query, "query");
         this.paramMetadata = queryEngine.getParameterMetaData(query);
     }

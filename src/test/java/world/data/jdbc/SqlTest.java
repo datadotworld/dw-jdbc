@@ -31,10 +31,12 @@ import world.data.jdbc.testing.SqlHelper;
 import world.data.jdbc.testing.Utils;
 import world.data.jdbc.vocab.Xsd;
 
+import javax.sql.DataSource;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -102,6 +104,17 @@ public class SqlTest {
         verify(lastBackendRequest).handle(Method.POST, sql.urlPath(), null, Utils.TYPE_FORM_URLENCODED, String.join("&",
                 Utils.queryParam("query", "select * from HallOfFame where yearid > ? order by yearid, playerID limit 10"),
                 Utils.queryParam("$data_world_param0", "\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>")));
+    }
+
+    @Test
+    public void testPooled() throws Exception {
+        DataSource pool = sql.createPool();
+        try (Connection connection = pool.getConnection()) {
+            DataWorldStatement statement = sql.createStatement(connection.unwrap(DataWorldConnection.class));
+            Utils.dumpToStdout(sql.executeQuery(statement, "select * from HallOfFame order by yearid, playerID limit 10 "));
+            verify(lastBackendRequest).handle(Method.POST, sql.urlPath(), null, Utils.TYPE_FORM_URLENCODED,
+                    Utils.queryParam("query", "select * from HallOfFame order by yearid, playerID limit 10 "));
+        }
     }
 
     @Test
