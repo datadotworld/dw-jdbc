@@ -30,6 +30,7 @@ import world.data.jdbc.internal.statements.PreparedStatementImpl;
 import world.data.jdbc.internal.statements.StatementImpl;
 import world.data.jdbc.internal.util.ResourceContainer;
 import world.data.jdbc.internal.util.ResourceManager;
+import world.data.jdbc.internal.util.WarningList;
 
 import java.sql.Array;
 import java.sql.Blob;
@@ -40,7 +41,6 @@ import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.sql.SQLRecoverableException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Savepoint;
@@ -87,9 +87,9 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     private final QueryEngine queryEngine;
     private final DatabaseMetaData metadata;
     private final ResourceManager resources = new ResourceManager();
+    private final WarningList warnings = new WarningList();
 
     private Properties clientInfo = new Properties();
-    private SQLWarning warnings;
     private JdbcCompatibility compatibilityLevel;
     private boolean closed;
 
@@ -154,7 +154,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public void clearWarnings() throws SQLException {
         checkClosed();
-        this.warnings = null;
+        warnings.clear();
     }
 
     @Override
@@ -275,21 +275,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public SQLWarning getWarnings() throws SQLException {
         checkClosed();
-        return warnings;
-    }
-
-    /**
-     * Helper method that derived classes may use to set warnings
-     */
-    private void setWarning(SQLWarning warning) {
-        log.warning("SQL Warning was issued: " + warning);
-        if (warnings == null) {
-            warnings = warning;
-        } else {
-            // Chain with existing warnings
-            warning.setNextWarning(warnings);
-            warnings = warning;
-        }
+        return warnings.get();
     }
 
     @Override
@@ -410,7 +396,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     public void setReadOnly(boolean readOnly) throws SQLException {
         checkClosed();
         if (!readOnly && warnedReadOnly.compareAndSet(false, true)) {
-            setWarning(new SQLWarning("Only read-only connections are supported"));
+            warnings.add("Only read-only connections are supported");
         }
     }
 
@@ -429,7 +415,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
         checkClosed();
         checkConnectionTransactionIsolation(level);
         if (level != Connection.TRANSACTION_NONE && warnedTransactionIsolation.compareAndSet(false, true)) {
-            setWarning(new SQLWarning("Transaction isolation level was set but transactions are not supported"));
+            warnings.add("Transaction isolation level was set but transactions are not supported");
         }
     }
 

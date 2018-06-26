@@ -26,6 +26,7 @@ import world.data.jdbc.JdbcCompatibility;
 import world.data.jdbc.internal.query.QueryEngine;
 import world.data.jdbc.internal.util.ResourceContainer;
 import world.data.jdbc.internal.util.ResourceManager;
+import world.data.jdbc.internal.util.WarningList;
 import world.data.jdbc.model.Node;
 
 import java.sql.ResultSet;
@@ -56,11 +57,11 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     private int timeout = NO_LIMIT;
     private int maxRows = NO_LIMIT;
     private JdbcCompatibility compatibilityLevel;
-    private SQLWarning warnings;
 
     final QueryEngine queryEngine;
     private final DataWorldConnection connection;
     private final ResourceManager resources = new ResourceManager();
+    private final WarningList warnings = new WarningList();
 
     private final List<BatchItem> commands = new ArrayList<>();
     private final Queue<ResultSet> batchResults = new LinkedList<>();
@@ -137,7 +138,7 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     @Override
     public final void clearWarnings() throws SQLException {
         checkClosed();
-        warnings = null;
+        warnings.clear();
     }
 
     @Override
@@ -188,21 +189,7 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     @Override
     public final SQLWarning getWarnings() throws SQLException {
         checkClosed();
-        return warnings;
-    }
-
-    /**
-     * Helper method that derived classes may use to set warnings
-     */
-    private void setWarning(SQLWarning warning) {
-        log.warning("SQL Warning was issued: " + warning);
-        if (warnings == null) {
-            warnings = warning;
-        } else {
-            // Chain with existing warnings
-            warning.setNextWarning(warnings);
-            warnings = warning;
-        }
+        return warnings.get();
     }
 
     @Override
@@ -301,10 +288,6 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
         }
     }
 
-    private void setWarning(String warning) {
-        setWarning(new SQLWarning(warning));
-    }
-
     @Override
     public final void setEscapeProcessing(boolean enable) {
         // Ignored, no-op
@@ -324,7 +307,7 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     @Override
     public final void setMaxFieldSize(int max) throws SQLException {
         check(max >= 0, "max must be non-negative");
-        setWarning("setMaxFieldSize() was called but there is no field size limit for data.world JDBC connections");
+        warnings.add("setMaxFieldSize() was called but there is no field size limit for data.world JDBC connections");
     }
 
     @Override
@@ -336,7 +319,7 @@ public class StatementImpl implements DataWorldStatement, ReadOnlyStatement, Res
     @Override
     public final void setPoolable(boolean poolable) {
         if (!poolable) {
-            setWarning("setPoolable() was called but data.world JDBC statements are always considered poolable");
+            warnings.add("setPoolable() was called but data.world JDBC statements are always considered poolable");
         }
     }
 
