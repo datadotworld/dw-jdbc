@@ -30,16 +30,17 @@ import world.data.jdbc.internal.statements.PreparedStatementImpl;
 import world.data.jdbc.internal.statements.StatementImpl;
 import world.data.jdbc.internal.util.ResourceContainer;
 import world.data.jdbc.internal.util.ResourceManager;
+import world.data.jdbc.internal.util.WarningList;
 
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.sql.SQLRecoverableException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Savepoint;
@@ -48,9 +49,13 @@ import java.sql.Struct;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Objects.requireNonNull;
 import static world.data.jdbc.internal.util.Conditions.check;
+import static world.data.jdbc.internal.util.Conditions.checkConnectionTransactionIsolation;
+import static world.data.jdbc.internal.util.Conditions.checkResultSetHoldability;
+import static world.data.jdbc.internal.util.Conditions.checkStatementGeneratedKeys;
 import static world.data.jdbc.internal.util.Conditions.checkSupported;
 import static world.data.jdbc.internal.util.Optionals.or;
 
@@ -82,11 +87,14 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     private final QueryEngine queryEngine;
     private final DatabaseMetaData metadata;
     private final ResourceManager resources = new ResourceManager();
+    private final WarningList warnings = new WarningList();
 
     private Properties clientInfo = new Properties();
-    private SQLWarning warnings;
     private JdbcCompatibility compatibilityLevel;
     private boolean closed;
+
+    private final AtomicBoolean warnedReadOnly = new AtomicBoolean();
+    private final AtomicBoolean warnedTransactionIsolation = new AtomicBoolean();
 
     /**
      * Creates a new connection
@@ -146,7 +154,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public void clearWarnings() throws SQLException {
         checkClosed();
-        this.warnings = null;
+        warnings.clear();
     }
 
     @Override
@@ -198,21 +206,18 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
 
     @Override
     public DataWorldStatement createStatement() throws SQLException {
-        return createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        return createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
     }
 
     @Override
     public DataWorldStatement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-        checkClosed();
-        // TODO: this should add SQLWarnings instead of throwing SQLException
-        checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "data.world connections only support forward-scrolling result sets");
-        checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Remote endpoint backed connections only support read-only result sets");
-        return new StatementImpl(queryEngine, this);
+        return createStatement(resultSetType, resultSetConcurrency, getHoldability());
     }
 
     @Override
     public final DataWorldStatement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        return createStatement(resultSetType, resultSetConcurrency);  // Ignore holdability
+        checkClosed();
+        return new StatementImpl(queryEngine, this, resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
@@ -270,7 +275,7 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public SQLWarning getWarnings() throws SQLException {
         checkClosed();
-        return warnings;
+        return warnings.get();
     }
 
     @Override
@@ -296,33 +301,31 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
 
     @Override
     public DataWorldCallableStatement prepareCall(String query) throws SQLException {
-        return prepareCall(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        return prepareCall(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
     }
 
     @Override
     public DataWorldCallableStatement prepareCall(String query, int resultSetType, int resultSetConcurrency) throws SQLException {
-        checkClosed();
-        // TODO: this should add SQLWarnings instead of throwing SQLException
-        checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Does not support scroll sensitive result sets");
-        checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Only support read-only result sets");
-        return new CallableStatementImpl(query, queryEngine, this);
+        return prepareCall(query, resultSetType, resultSetConcurrency, getHoldability());
     }
 
     @Override
     public DataWorldCallableStatement prepareCall(String query, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        return prepareCall(query, resultSetType, resultSetConcurrency);  // Ignore holdability
+        checkClosed();
+        return new CallableStatementImpl(query, queryEngine, this, resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
     public DataWorldPreparedStatement prepareStatement(String query) throws SQLException {
-        return prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        return prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
     }
 
     @Override
     public DataWorldPreparedStatement prepareStatement(String query, int autoGeneratedKeys) throws SQLException {
         checkClosed();
+        checkStatementGeneratedKeys(autoGeneratedKeys);
         checkSupported(autoGeneratedKeys == Statement.NO_GENERATED_KEYS, "Does not support auto-generated keys");
-        return prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        return prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
     }
 
     @Override
@@ -337,16 +340,13 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
 
     @Override
     public DataWorldPreparedStatement prepareStatement(String query, int resultSetType, int resultSetConcurrency) throws SQLException {
-        checkClosed();
-        // TODO: this should add SQLWarnings instead of throwing SQLException
-        checkSupported(resultSetType == ResultSet.TYPE_FORWARD_ONLY, "Does not support scroll sensitive result sets");
-        checkSupported(resultSetConcurrency == ResultSet.CONCUR_READ_ONLY, "Only supports read-only result sets");
-        return new PreparedStatementImpl(query, queryEngine, this);
+        return prepareStatement(query, resultSetType, resultSetConcurrency, getHoldability());
     }
 
     @Override
     public DataWorldPreparedStatement prepareStatement(String query, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        return prepareStatement(query, resultSetType, resultSetConcurrency);  // Ignore holdability
+        checkClosed();
+        return new PreparedStatementImpl(query, queryEngine, this, resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
@@ -388,15 +388,16 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public void setHoldability(int holdability) throws SQLException {
         checkClosed();
-        if (holdability != ResultSet.CLOSE_CURSORS_AT_COMMIT) {
-            throw new SQLRecoverableException(String.format("%d is not a valid holdability setting", holdability));
-        }
+        checkResultSetHoldability(holdability);
+        // Don't care what the holdability setting is since cursors aren't supported
     }
 
     @Override
     public void setReadOnly(boolean readOnly) throws SQLException {
         checkClosed();
-        check(readOnly, "data.world does not support read/write connections");
+        if (!readOnly && warnedReadOnly.compareAndSet(false, true)) {
+            warnings.add("Only read-only connections are supported");
+        }
     }
 
     @Override
@@ -412,7 +413,10 @@ public final class ConnectionImpl implements DataWorldConnection, ResourceContai
     @Override
     public void setTransactionIsolation(int level) throws SQLException {
         checkClosed();
-        checkSupported(level == TRANSACTION_NONE, "Transactions are not supported");
+        checkConnectionTransactionIsolation(level);
+        if (level != Connection.TRANSACTION_NONE && warnedTransactionIsolation.compareAndSet(false, true)) {
+            warnings.add("Transaction isolation level was set but transactions are not supported");
+        }
     }
 
     @Override

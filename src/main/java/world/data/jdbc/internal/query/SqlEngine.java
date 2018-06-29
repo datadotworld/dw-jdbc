@@ -102,8 +102,10 @@ public class SqlEngine implements QueryEngine {
     @Override
     public ResultSet execute(DataWorldStatement statement, String query, Map<String, Node> parameters, Integer timeoutSeconds)
             throws SQLException {
+        Integer maxRowsToReturn = statement.getMaxRows() != 0 ? statement.getMaxRows() : null;
+
         // Execute the query
-        Response response = queryApi.executeQuery(query, parameters, timeoutSeconds);
+        Response response = queryApi.executeQuery(query, parameters, maxRowsToReturn, timeoutSeconds);
 
         // Construct the ResultSet with the results
         try (CloseableRef cleanup = new CloseableRef(response.getCleanup())) {

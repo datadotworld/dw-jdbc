@@ -21,6 +21,7 @@ package world.data.jdbc.internal.results;
 import world.data.jdbc.DataWorldStatement;
 import world.data.jdbc.internal.types.NodeConversions;
 import world.data.jdbc.internal.types.NodeValues;
+import world.data.jdbc.internal.util.LimitedIterator;
 import world.data.jdbc.internal.util.ResourceContainer;
 import world.data.jdbc.model.Node;
 
@@ -84,7 +85,7 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
             throws SQLException {
         this.statement = statement;
         this.metaData = requireNonNull(metaData, "metaData");
-        this.rowIter = requireNonNull(rowIter, "rowIter");
+        this.rowIter = applyLimit(requireNonNull(rowIter, "rowIter"));
         this.cleanup = cleanup;
         if (statement != null) {
             ((ResourceContainer) statement).getResources().register(this);
@@ -96,6 +97,13 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
             columnIndexByLabel.put(metaData.getColumnLabel(i), i);
         }
         this.columnIndexByLabel = columnIndexByLabel;
+    }
+
+    private <T> Iterator<T> applyLimit(Iterator<T> rowIter) throws SQLException {
+        if (statement != null && statement.getMaxRows() > 0) {
+            return new LimitedIterator<>(rowIter, statement.getMaxRows());
+        }
+        return rowIter;
     }
 
     @Override
@@ -149,7 +157,7 @@ public final class ResultSetImpl implements ResultSet, ReadOnlyResultSet, Forwar
     public void setFetchSize(int rows) throws SQLException {
         checkClosed();
         check(rows >= 0, "Fetch size must be non-negative");
-        // The fetch size is a hint that this class ignores
+        // The fetch size is a hint that this driver ignores
     }
 
     @Override

@@ -104,7 +104,7 @@ public class StatementTest {
     @Test
     public void getWarnings() throws Exception {
         DataWorldStatement statement = sparql.createStatement(sparql.connect());
-        statement.setFetchSize(100);
+        statement.setMaxFieldSize(100);
         assertThat((Throwable) statement.getWarnings()).isNotNull();
         assertThat((Iterable<Throwable>) statement.getWarnings()).isNotEmpty();
     }
@@ -112,7 +112,7 @@ public class StatementTest {
     @Test
     public void getClearWarnings() throws Exception {
         DataWorldStatement statement = sparql.createStatement(sparql.connect());
-        statement.setFetchSize(100);
+        statement.setMaxFieldSize(100);
         assertThat((Throwable) statement.getWarnings()).isNotNull();
         assertThat((Iterable<Throwable>) statement.getWarnings()).isNotEmpty();
         statement.clearWarnings();
@@ -143,7 +143,6 @@ public class StatementTest {
         assertThat(statement.getMoreResults()).isTrue();
         assertThat(statement.getMoreResults()).isFalse();
         assertThat(statement.getResultSet()).isNull();
-
     }
 
     @Test
@@ -203,6 +202,10 @@ public class StatementTest {
     public void setFetchDirection() throws Exception {
         DataWorldStatement statement = sparql.createStatement(sparql.connect());
         statement.setFetchDirection(ResultSet.FETCH_FORWARD);
+        assertThat(statement.getFetchDirection()).isEqualTo(ResultSet.FETCH_FORWARD);
+
+        statement.setFetchDirection(ResultSet.FETCH_REVERSE);
+        assertThat(statement.getFetchDirection()).isEqualTo(ResultSet.FETCH_FORWARD);
     }
 
     @Test
@@ -222,7 +225,7 @@ public class StatementTest {
     @Test
     public void setPoolable() throws Exception {
         DataWorldStatement statement = sparql.createStatement(sparql.connect());
-        statement.setPoolable(true);
+        statement.setPoolable(false);
         assertThat((Throwable) statement.getWarnings()).isNotNull();
         assertThat((Iterable<Throwable>) statement.getWarnings()).isNotEmpty();
     }
@@ -252,7 +255,7 @@ public class StatementTest {
     public void multipleWarnings() throws Exception {
         DataWorldStatement statement = sparql.createStatement(sparql.connect());
         statement.setMaxFieldSize(100);
-        statement.setMaxRows(100);
+        statement.setPoolable(false);
         assertThat((Throwable) statement.getWarnings()).isNotNull();
         assertThat((Throwable) statement.getWarnings().getNextWarning()).isNotNull();
         assertThat((Iterable<Throwable>) statement.getWarnings()).hasSize(2);
@@ -339,6 +342,5 @@ public class StatementTest {
         assertSQLFeatureNotSupported(() -> statement.executeUpdate("foo", new int[0]));
         assertSQLFeatureNotSupported(statement::getGeneratedKeys);
         assertSQLFeatureNotSupported(() -> statement.setCursorName("foo"));
-        assertSQLFeatureNotSupported(() -> statement.setFetchDirection(ResultSet.FETCH_REVERSE));
     }
 }

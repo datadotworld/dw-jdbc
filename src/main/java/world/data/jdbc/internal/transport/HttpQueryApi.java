@@ -74,7 +74,8 @@ public final class HttpQueryApi implements QueryApi {
     }
 
     @Override
-    public Response executeQuery(String query, Map<String, Node> parameters, Integer timeoutSeconds) throws SQLException {
+    public Response executeQuery(String query, Map<String, Node> parameters,
+                                 Integer maxRowsToReturn, Integer timeoutSeconds) throws SQLException {
         requireNonNull(query, "query");
         requireNonNull(parameters, "parameters");
 
@@ -88,6 +89,9 @@ public final class HttpQueryApi implements QueryApi {
             if (value != null) {
                 requestParams.put(name, value.toString());
             }
+        }
+        if (maxRowsToReturn != null) {
+            requestParams.put("maxRowsReturned", Integer.toString(maxRowsToReturn));
         }
 
         // Execute the request

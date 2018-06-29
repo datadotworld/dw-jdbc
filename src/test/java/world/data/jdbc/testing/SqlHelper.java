@@ -18,11 +18,14 @@
  */
 package world.data.jdbc.testing;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import world.data.jdbc.DataWorldCallableStatement;
 import world.data.jdbc.DataWorldConnection;
 import world.data.jdbc.DataWorldPreparedStatement;
 import world.data.jdbc.DataWorldStatement;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -56,5 +59,15 @@ public class SqlHelper extends CloserResource {
 
     public ResultSet executeQuery(DataWorldPreparedStatement statement) throws SQLException {
         return register(statement.executeQuery());
+    }
+
+    public DataSource createPool() {
+        BasicDataSource ds = new BasicDataSource();
+        ds.setDriverClassName("world.data.jdbc.Driver");
+        ds.setUrl("jdbc:data:world:sql:dave:lahman-sabremetrics-dataset");
+        TestConfigSource.testProperties().forEach((k, v) -> ds.addConnectionProperty((String) k, (String) v));
+        ds.setDefaultReadOnly(false);
+        ds.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        return register(ds);
     }
 }

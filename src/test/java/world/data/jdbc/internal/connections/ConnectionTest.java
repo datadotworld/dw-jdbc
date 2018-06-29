@@ -26,6 +26,7 @@ import world.data.jdbc.testing.SparqlHelper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,24 +86,27 @@ public class ConnectionTest {
     public void testHoldability() throws SQLException {
         DataWorldConnection connection = sparql.connect();
         connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+        connection.setHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT);
     }
 
     @Test
     public void testBadHoldability() throws Exception {
         DataWorldConnection connection = sparql.connect();
-        assertSQLException(() -> connection.setHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT));
+        assertSQLException(() -> connection.setHoldability(0));
     }
 
     @Test
     public void testSetReadOnly() throws Exception {
         DataWorldConnection connection = sparql.connect();
-        assertSQLException(() -> connection.setReadOnly(false));
+        connection.setReadOnly(false);  // silently ignored
+        assertThat(connection.isReadOnly()).isTrue();
     }
 
     @Test
     public void testSetReadOnlyOkay() throws SQLException {
         DataWorldConnection connection = sparql.connect();
         connection.setReadOnly(true);
+        assertThat(connection.isReadOnly()).isTrue();
     }
 
     @Test()
@@ -149,6 +153,14 @@ public class ConnectionTest {
     }
 
     @Test
+    public void testSetTransactionIsolation() throws SQLException {
+        DataWorldConnection connection = sparql.connect();
+        assertThat(connection.getTransactionIsolation()).isEqualTo(DataWorldConnection.TRANSACTION_NONE);
+        assertThat((Throwable) connection.getWarnings()).isNull();
+        assertSQLException(() -> connection.setTransactionIsolation(99));
+    }
+
+    @Test
     public void testWrapperFor() throws SQLException {
         DataWorldConnection connection = sparql.connect();
         assertThat(connection.isWrapperFor(DataWorldConnection.class)).isTrue();
@@ -186,23 +198,22 @@ public class ConnectionTest {
         assertSQLFeatureNotSupported(connection::createClob);
         assertSQLFeatureNotSupported(connection::createNClob);
         assertSQLFeatureNotSupported(connection::createSQLXML);
-        assertSQLFeatureNotSupported(() -> connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE, 0));
-        assertSQLFeatureNotSupported(() -> connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 0, 0));
+        assertSQLFeatureNotSupported(() -> connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT));
+        assertSQLFeatureNotSupported(() -> connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY, ResultSet.CLOSE_CURSORS_AT_COMMIT));
         assertSQLFeatureNotSupported(() -> connection.createStruct("String", new Object[0]));
         assertSQLFeatureNotSupported(connection::getNetworkTimeout);
         assertSQLFeatureNotSupported(connection::getTypeMap);
         assertSQLFeatureNotSupported(() -> connection.nativeSQL(""));
         assertSQLFeatureNotSupported(() -> connection.prepareStatement("", (String[]) null));
         assertSQLFeatureNotSupported(() -> connection.prepareStatement("", (int[]) null));
-        assertSQLFeatureNotSupported(() -> connection.prepareStatement("", 3));
-        assertSQLFeatureNotSupported(() -> connection.prepareStatement("", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE, 0));
-        assertSQLFeatureNotSupported(() -> connection.prepareStatement("", ResultSet.TYPE_SCROLL_INSENSITIVE, 0, 0));
+        assertSQLFeatureNotSupported(() -> connection.prepareStatement("", Statement.RETURN_GENERATED_KEYS));
+        assertSQLFeatureNotSupported(() -> connection.prepareStatement("", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT));
+        assertSQLFeatureNotSupported(() -> connection.prepareStatement("", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY, ResultSet.CLOSE_CURSORS_AT_COMMIT));
         assertSQLFeatureNotSupported(() -> connection.releaseSavepoint(null));
         assertSQLFeatureNotSupported(() -> connection.rollback(null));
         assertSQLFeatureNotSupported(() -> connection.setNetworkTimeout(null, 1000));
         assertSQLFeatureNotSupported(() -> connection.setSavepoint(""));
         assertSQLFeatureNotSupported(connection::setSavepoint);
-        assertSQLFeatureNotSupported(() -> connection.setTransactionIsolation(DataWorldConnection.TRANSACTION_READ_COMMITTED));
         assertSQLFeatureNotSupported(() -> connection.setTypeMap(null));
     }
 }
