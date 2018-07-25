@@ -49,15 +49,6 @@ do_release() {
 
     mvn release:clean
 
-    # Instruct Bintray to GPG sign the contents of this version using the private key stored there
-    curl \
-        --silent \
-        --fail \
-        --request POST \
-        --user "${BINTRAY_USERNAME}:${BINTRAY_PASSWORD}" \
-        --header "X-GPG-PASSPHRASE: ${GPG_PASSPHRASE}" \
-    https://api.bintray.com/gpg/${BINTRAY_REPO_OWNER}/${BINTRAY_REPO}/${CIRCLE_PROJECT_REPONAME}/versions/${MVN_RELEASE_VER}
-
     # Instruct Bintray to publish the signature files just created
     curl \
         --silent \
