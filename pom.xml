@@ -172,6 +172,7 @@
                         <exclude>NOTICE.txt</exclude>
                         <exclude>README.md</exclude>
                         <exclude>circle.yml</exclude>
+                        <exclude>docs/**</exclude>
                         <exclude>pom.xml</exclude>
                         <exclude>settings.xml</exclude>
                         <exclude>**/META-INF/services/*</exclude>
