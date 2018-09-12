@@ -1,7 +1,6 @@
 version: 2
 
 resources:
-  working_directory: ~/dw-jdbc
   defaults: &defaults
     machine:
       java:
@@ -15,6 +14,7 @@ jobs:
   build_maven:
     <<: *defaults
     steps:
+      - checkout
       - run:
           name: Maven build
           command: mvn clean verify -s settings.xml
