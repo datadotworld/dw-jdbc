@@ -15,9 +15,18 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+
+      - restore_cache:
+          key: dependency-cache-{{ checksum "pom.xml" }}
+
       - run:
           name: Maven build
           command: mvn clean verify -s settings.xml
+
+      - save_cache:
+          key: dependency-cache-{{ checksum "pom.xml" }}
+          paths:
+          - ~/.m2
 
       - run:
           name: Move Surefire test results
@@ -25,10 +34,18 @@ jobs:
             mkdir -p $CIRCLE_TEST_REPORTS/junit/
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
+      - persist_to_workspace:
+          root: /home/circleci/
+          paths:
+          - project
+
   deploy:
     <<: *defaults
     steps:
-      - deploy:
+    - attach_workspace:
+        at: /home/circleci/
+
+    - deploy:
           name: Maven deploy
           command: mvn deploy -s settings.xml
 
