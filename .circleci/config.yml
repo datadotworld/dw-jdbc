@@ -1,12 +1,13 @@
 version: 2
 
-defaults: &defaults
-  machine:
-    java:
-      version: openjdk8
+resources:
+  defaults: &defaults
+    machine:
+      java:
+        version: openjdk8
 
-  environment:
-    _JAVA_OPTIONS: "-Xmx512m -Xms512m"
+    environment:
+      _JAVA_OPTIONS: "-Xmx512m -Xms512m"
 
 jobs:
 
@@ -45,4 +46,4 @@ workflows:
           filters:
             branches:
               only:
-                -master
+                - master
