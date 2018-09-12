@@ -11,7 +11,7 @@ resources:
 
 jobs:
 
-  build_maven:
+  build:
     <<: *defaults
     steps:
       - checkout
@@ -49,18 +49,18 @@ jobs:
           name: Maven deploy
           command: mvn deploy -s settings.xml
 
-      - deploy:
-          name: Maven release
-          commands: ./mvn-release.sh
+    - deploy:
+        name: Maven release
+        commands: ./mvn-release.sh
 
 workflows:
   version: 2
   build-and-deploy:
     jobs:
-      - build_maven
+      - build
       - deploy:
           requires:
-            - build_maven
+            - build
           filters:
             branches:
               only:
