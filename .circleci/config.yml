@@ -11,7 +11,7 @@ resources:
 
 jobs:
 
-  build:
+  build_maven:
     <<: *defaults
     steps:
       - run:
@@ -39,8 +39,8 @@ workflows:
   version: 2
   build-and-deploy:
     jobs:
-      - build
-      - deploy
+      - build_maven
+      - deploy:
           requires:
             - build
           filters:
