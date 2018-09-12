@@ -42,7 +42,7 @@ workflows:
       - build_maven
       - deploy:
           requires:
-            - build
+            - build_maven
           filters:
             branches:
               only:
