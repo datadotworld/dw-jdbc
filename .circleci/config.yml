@@ -1,0 +1,47 @@
+version: 2
+
+defaults: &defaults
+  machine:
+    java:
+      version: openjdk8
+
+  environment:
+    _JAVA_OPTIONS: "-Xmx512m -Xms512m"
+
+jobs:
+
+  build:
+    <<: *defaults
+    steps:
+      - run:
+          name: Maven build
+          command: mvn clean verify -s settings.xml
+
+      - run:
+          name: Move Surefire test results
+          command: |
+            mkdir -p $CIRCLE_TEST_REPORTS/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+
+  deploy:
+    <<: *defaults
+    steps:
+      - deploy:
+          name: Maven deploy
+          command: mvn deploy -s settings.xml
+
+      - deploy:
+          name: Maven release
+          commands: ./mvn-release.sh
+
+workflows:
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                -master
