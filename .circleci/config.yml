@@ -1,6 +1,7 @@
 version: 2
 
 resources:
+  working_directory: ~/dw-jdbc
   defaults: &defaults
     machine:
       java:
