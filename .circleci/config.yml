@@ -1,0 +1,70 @@
+version: 2
+
+resources:
+  defaults: &defaults
+    machine:
+      java:
+        version: openjdk8
+
+    environment:
+      _JAVA_OPTIONS: "-Xmx512m -Xms512m"
+
+jobs:
+
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: dependency-cache-{{ checksum "pom.xml" }}
+
+      - run:
+          name: Maven build
+          command: mvn clean verify -s settings.xml
+
+      - save_cache:
+          key: dependency-cache-{{ checksum "pom.xml" }}
+          paths:
+          - ~/.m2
+
+      - run:
+          name: Extract test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+
+      - store_test_results:
+          path: ~/junit
+
+      - persist_to_workspace:
+          root: /home/circleci/
+          paths:
+          - project
+
+  deploy:
+    <<: *defaults
+    steps:
+    - attach_workspace:
+        at: /home/circleci/
+
+    - deploy:
+          name: Maven deploy
+          command: mvn deploy -s settings.xml
+
+    - deploy:
+        name: Maven release
+        commands: ./mvn-release.sh
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
