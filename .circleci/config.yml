@@ -54,7 +54,7 @@ jobs:
 
     - deploy:
         name: Maven release
-        commands: ./mvn-release.sh
+        command: ./mvn-release.sh
 
 workflows:
   version: 2
