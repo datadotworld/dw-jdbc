@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+
+    <title>data.world and Java/JDBC</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700,700i" rel="stylesheet">
+  </head>
+  <body style="color:#333D49;">
+<!--jumbotron header-->
+    <div class="header" style="background:#333D49; max-height:150px;">
+      
+      <div class="container p-responsive py-6 py-lg-10 text-center" style="color:#fff;">
+        <img src="dw+java_light.png" class="mb-3 mb-sm-5 col-6 col-sm-12" style="max-width:550px;">
+      </div>
+
+    </div>
+<!--first intro-->
+  <div class="container align-items-center text-center form-group align-items-center" style="padding-bottom:1em;padding-top:4em;">
+    <h1 style="font-weight:400"> You've enabled Java/JDBC, now what?</h1>
+            <p class="h5" style="font-weight:300"> Use data.world's JDBC driver to query thousands of datasets on data.world with any program written in a JVM-based language.   
+            </p>
+            
+  </div>
+<!--first section-->
+  <div class="container" style="padding-bottom:1em;padding-top:2em;">
+  <div class="row">
+  <div class="col">
+    <h2 style="font-weight:400">Download and configure the data.world JDBC driver. </h2>
+            <p class="h5" style="font-weight:300; padding-bottom:1em;"> Download data.world's JDBC driver and create a JDBC connection.</p>
+            <ol style="list-style-position: inside;">
+              <li style="padding-bottom:1em; font-weight:300; padding-top:1em;">Download the <a href="https://search.maven.org/remote_content?g=world.data&a=dw-jdbc&v=LATEST&c=shaded" target="_blank">dw-jdbc.jar</a> file directly from the central <a href="https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22world.data%22%20AND%20a%3A%22dw-jdbc%22" target="_blank">Maven repository</a>. 
+              </li>
+              <div class="alert alert-info border col-sm-10" style="font-weight:300;">
+                     <i>Alternatively, you can add the file to a project as a Maven dependency.</i>
+              </div>
+              <li style="padding-bottom:1em; font-weight:300; padding-top:1em;">Configure the driver in your tool of choice and connect using: 
+              </li>
+<div class="alert alert-secondary border col-sm-10" style="font-weight:300; padding-top:1.5em;">
+<pre>
+URL:  jdbc:data:world:sql:[user id]:[dataset id]
+User: your data.world username
+Password: your data.world API token</pre>
+
+</div>
+              
+              <div class="alert alert-info col-sm-10" style="font-weight:300;">
+                     <b>Note: </b>You will need to have your data.world API token, which you can get from data.world's <a href="https://data.world/settings/advanced" target="_blank">advanced settings</a>.
+              </div>
+              <div class="col-sm-10" style="padding-top:1em;">
+                  <img src="jdbc_config.png" class="img-fluid rounded" style="box-shadow:7px 7px 30px grey;">
+              </div>
+            </ol>
+            
+            
+</div>            
+ </div>
+ </div>
+<!--second section-->
+  <div class="container" style="padding-bottom:1em;padding-top:2em;">
+    <div class="row">
+        <div class="col">
+            <h2 style="font-weight:400"> Start querying your dataset.</h2>
+              <p class="h5" style="font-weight:300">After you've connected to data.world with a JDBC connection, you can begin querying the data.</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+        <div class="col">
+            <ol style="list-style-position: inside;">
+              <li style="font-weight:300; padding-top:1em; padding-bottom:1em;">Write & execute your first query.
+              </li>
+              <div class="alert alert-secondary col-sm-9" style="font-weight:300;">
+                  <b>Example:</b> Using <a href="https://data.world/dave/lahman-sabremetrics-dataset" target="_blank">https://data.world/dave/lahman-sabremetrics-dataset</a>.
+                  <div class="alert alert-light border col-sm-10" style="margin-top:1em; color:#333D49; ">
+                         <code>
+SELECT * from halloffame where yearid=? limit 100</code>
+                  </div>
+              </div>
+               <div class="col-sm-10" style="padding-top:1em;">
+                  <img src="jdbc_query-params.png" class="img-fluid rounded" style="box-shadow:7px 7px 30px grey;">
+              </div>
+</div>  
+</div> 
+</div>   
+<!--what's next-->
+<hr style="margin-top:2em;">
+<div class="container" style="padding-bottom:1em;">
+<div class="row">
+<div class="col">
+
+    <h2 style="font-weight:400; padding-top:1em;"> What next?</h2>
+            <p class="h5" style="font-weight:300"> Here are some things you can do with Java/JDBC and data.world:</p>
+            <ul style="list-style-position: inside; padding-top:1em;">
+              <li style="padding-bottom:1em; font-weight:300;">Query datasets in SQL or SPARQL. 
+              </li>
+              <div class="alert alert-info col-sm-9" style="font-weight:300;">
+              See more on SQL dialect <a href="https://docs.data.world/documentation/sql/concepts/basic/intro.html" target="_blank">here</a>.
+              </div>
+              <li style="padding-bottom:1em; padding-top:1em; font-weight:300;">
+              Pull data from data.world into JDBC-compatible tools like RapidMiner, Spark, Drill, TIBCO, and Pentaho to support and enhance ETL & business intelligence implementations.
+              </li>
+              <li style="padding-bottom:1em; padding-top:1em; font-weight:300;">
+              If using Maven, use dw-jdbc by including the following in your pom.xml file:
+              </li>
+              <div class="alert alert-secondary border col-sm-9" style="font-weight:300; padding-top:1.5em;">
+<pre>
+<<span style="color:#22863a;">dependency</span>>
+    <<span style="color:#22863a;">groupId</span>>world.data<<span style="color:#22863a;">/groupId</span>>
+    <<span style="color:#22863a;">artifactId</span>>dw-jdbc<<span style="color:#22863a;">/artifactId</span>>
+    <<span style="color:#22863a;">version</span>>0.4.1<<span style="color:#22863a;">/version</span>>
+<<span style="color:#22863a;">dependency</span>></pre>
+
+</div>
+            </ul>
+  </div> 
+  </div>
+  </div>     
+<!--footer-->
+<div class="jumbotron-fluid text-center align-items-center border-top" style="margin-top:1em; padding-top:2em; padding-bottom: 3em; background-color:#F2F2F2; color:#36454f">
+    <h4 style="font-weight:300"> Want to see more information on the data.world + Java/JDBC Integration? <u><a href="https://github.com/datadotworld/dw-jdbc/blob/master/README.md#dw-jdbc" style="color:#36454f; font-weight:600;" target="_blank">check it out here</a></u>.
+    </h4>
+</div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em" crossorigin="anonymous"></script>
+  </body>
+</html>
