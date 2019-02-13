@@ -2,9 +2,8 @@ version: 2
 
 resources:
   defaults: &defaults
-    machine:
-      java:
-        version: openjdk8
+    docker:
+    - image: circleci/openjdk:8u171-jdk-stretch  # 8u181-jdk-stretch crashes https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911925
 
     environment:
       _JAVA_OPTIONS: "-Xmx512m -Xms512m"
