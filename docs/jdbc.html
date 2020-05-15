@@ -52,6 +52,10 @@ Password: your data.world API token</pre>
               <div class="alert alert-info col-sm-10" style="font-weight:300;">
                      <b>Note: </b>You will need to have your data.world API token, which you can get from data.world's <a href="https://data.world/integrations/java-jdbc?tab=settings" target="_blank">Java/JDBC integration page</a>.
               </div>
+              <div class="alert alert-info col-sm-10" style="font-weight:300;padding-top:1em;">
+                <b>Note: </b>If you access data.world through a branded URL (i.e. <code>https://[customer name].data.world</code>) then you will need to pass an additional connection parameter to set the base query url.<br/>
+                <code>jdbc:data:world:sql:[user id]:[dataset id];querybaseurl=https://query.[customer name].data.world</code>
+              </div>
               <div class="col-sm-10" style="padding-top:1em;">
                   <img src="jdbc_config.png" class="img-fluid rounded" style="box-shadow:7px 7px 30px grey;">
               </div>
