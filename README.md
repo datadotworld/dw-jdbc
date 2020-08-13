@@ -91,6 +91,8 @@ provide dw-jdbc bundled with all its dependencies under the following:
 </dependency>
 ```
 
+If required, the driver class name is `world.data.jdbc.Driver`.
+
 
 ## Finding your Token
 
